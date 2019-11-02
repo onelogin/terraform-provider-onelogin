@@ -1,47 +1,49 @@
-#Onelogin Terraform Provider SDK
+# Onelogin Terraform Provider SDK
+Custom terraform provider for onelogin
 
-#Getting Started
-To run app: "go run cmd/main.go"
+# Prerequisites
+    1) Install Golang
+    2) Install Terraform v0.12.2
+    3) Install code dependencies
 
-#Dependency Management
-We use dep for dependency management.
+# Getting Started
+1) In the ./onelogin-terraform-provider folder run:
+    ```
+    make compile
+    ```
+2) You are ready to use the provider, just follow the terraform commands!
 
-To install: 
-
+# Terraform
+Install:
 ```
-brew install dep
+brew install terraform
 ```
 
-To install dependency into vendor folder:
+Initialize:
+ ```
+terraform init
 ```
-dep ensure
+
+Plan:
 ```
+terraform plan
+```
+
+Apply:
+```
+terraform apply
+```
+
+# Dependency Management
+We use go mod for dependency management.
 
 To add a package:
+
 ```
-dep ensure -add "package"
+go get -u "package-name"
 ```
 
-To update package:
-```
-dep ensure -update
-```
-
-To check status:
-```
-dep status
-```
-
-#Folder Structure
+# Folder Structure
 
     /cmd
         Main applications for project (main file for the app)
-    /internal
-        Internal packages for current app
-    /pkg
-        Packages available for external apps
-    /vendor
-        Application dependencies
-
-
-#Tests

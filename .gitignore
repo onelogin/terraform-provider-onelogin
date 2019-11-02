@@ -1,0 +1,4 @@
+*.tf
+./vendor
+terraform-provider-onelogin
+.terraform
