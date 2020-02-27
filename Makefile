@@ -1,11 +1,27 @@
-clean :
-	if [ -f "terraform-provider-onelogin" ]; then rm terraform-provider-onelogin; fi
 
-clean-terraform :
+.PHONY: clean build ti tp ta
+
+DIST_DIR=./dist
+BIN_NAME=terraform-provider-onelogin
+BIN_PATH=${DIST_DIR}/${BIN_NAME}
+
+PLUGINS_DIR=~/.terraform.d/plugins
+
+clean:
+	rm -r ${DIST_DIR}
+
+clean-terraform:
 	rm terraform.*
 
-compile :
-	make clean && cd ./cmd && go build -o terraform-provider-onelogin && mv terraform-provider-onelogin ../.
+build:
+	mkdir -p ${DIST_DIR}
+	go build -o ${DIST_DIR} ./...
+	mv ${DIST_DIR}/cmd ${BIN_PATH}
+
+sideload:
+	mkdir -p ${PLUGINS_DIR}
+	cp ${BIN_PATH} ${PLUGINS_DIR}/${BIN_NAME}
+
 
 ti:
 	terraform init

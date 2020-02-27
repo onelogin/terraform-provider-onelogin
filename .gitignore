@@ -1,4 +1,7 @@
 *.tf
+*.tfstate
+*.log
 ./vendor
 terraform-provider-onelogin
 .terraform
+dist
