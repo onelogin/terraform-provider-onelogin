@@ -29,7 +29,7 @@ func Provider() *schema.Provider {
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "us",
+				Default:  client.USRegion,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -43,20 +43,21 @@ func Provider() *schema.Provider {
 // an interface containing the api client.
 func configProvider(d *schema.ResourceData) (interface{}, error) {
 	clientID := d.Get("client_id").(string)
-	clientSecrets := d.Get("client_secret").(string)
+	clientSecret := d.Get("client_secret").(string)
 	region := d.Get("region").(string)
+	timeout := client.DefaultTimeout
 
-	// validate config inputs
-	if len(clientID) == 0 || len(clientSecrets) == 0 || (region != client.EUregion && region != client.USregion) {
-		return nil, errClientCredentials
+	oneloginClientConfig, err := client.NewConfig(
+		clientID,
+		clientSecret,
+		region,
+		timeout,
+	)
+	if err == nil {
+		return nil, err
 	}
 
-	oneloginClient := client.New(&client.APIClientConfig{
-		TimeoutInSeconds: 10,
-		ClientID:         clientID,
-		ClientSecret:     clientSecrets,
-		Region:           region,
-	})
+	oneloginClient := client.NewClient(oneloginClientConfig)
 
 	return oneloginClient, nil
 }
