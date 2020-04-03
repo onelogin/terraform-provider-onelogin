@@ -26,6 +26,10 @@ func Provider() *schema.Provider {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"url": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -45,19 +49,19 @@ func configProvider(d *schema.ResourceData) (interface{}, error) {
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 	region := d.Get("region").(string)
+	url := d.Get("url").(string)
+
 	timeout := client.DefaultTimeout
 
-	oneloginClientConfig, err := client.NewConfig(
-		clientID,
-		clientSecret,
-		region,
-		timeout,
-	)
-	if err == nil {
+	oneloginClient, err := client.NewClient(&client.APIClientConfig{
+		Timeout:      timeout,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Region:       region,
+		Url:          url,
+	})
+	if err != nil {
 		return nil, err
 	}
-
-	oneloginClient := client.NewClient(oneloginClientConfig)
-
 	return oneloginClient, nil
 }

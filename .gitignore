@@ -1,5 +1,6 @@
 *.tf
 *.tfstate
+*.tfstate.*
 *.log
 ./vendor
 terraform-provider-onelogin
