@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/onelogin/onelogin-terraform-provider/provider"
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/onelogin/onelogin-terraform-provider/provider"
 )
 
 func main() {

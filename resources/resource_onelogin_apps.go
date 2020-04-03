@@ -37,6 +37,13 @@ func OneloginApps() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			"provisioning": &schema.Schema{
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeBool,
+				},
+			},
 			"parameters": &schema.Schema{
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -94,10 +101,16 @@ func OneloginApps() *schema.Resource {
 }
 
 func appCreate(d *schema.ResourceData, m interface{}) error {
+	provisioningList := d.Get("provisioning").(map[string]interface{})
+	var appProvisioning = models.AppProvisioning{}
+	for _, provI := range provisioningList {
+		prov := provI.(bool)
+		enb := prov
+		appProvisioning.Enabled = &enb
+	}
+
 	paramsList := d.Get("parameters").(*schema.Set).List()
-
 	appParams := make(map[string]models.AppParameters, len(paramsList))
-
 	for _, paramI := range paramsList {
 		param := paramI.(map[string]interface{})
 		pid := int32(param["param_id"].(int))
@@ -133,12 +146,13 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	aum := int32(d.Get("auth_method").(int))
 
 	app := &models.App{
-		Visible:     &vis,
-		Name:        &nam,
-		Description: &des,
-		ConnectorID: &cid,
-		AuthMethod:  &aum,
-		Parameters:  appParams,
+		Visible:      &vis,
+		Name:         &nam,
+		Description:  &des,
+		ConnectorID:  &cid,
+		AuthMethod:   &aum,
+		Parameters:   appParams,
+		Provisioning: &appProvisioning,
 	}
 
 	client := m.(*client.APIClient)
@@ -158,10 +172,16 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func appUpdate(d *schema.ResourceData, m interface{}) error {
+	provisioningList := d.Get("provisioning").(map[string]interface{})
+	var appProvisioning = models.AppProvisioning{}
+	for _, provI := range provisioningList {
+		prov := provI.(bool)
+		enb := prov
+		appProvisioning.Enabled = &enb
+	}
+
 	paramsList := d.Get("parameters").(*schema.Set).List()
-
 	appParams := make(map[string]models.AppParameters, len(paramsList))
-
 	for _, paramI := range paramsList {
 		param := paramI.(map[string]interface{})
 		pid := int32(param["param_id"].(int))
@@ -198,12 +218,13 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 	aum := int32(d.Get("auth_method").(int))
 
 	app := &models.App{
-		Visible:     &vis,
-		Name:        &nam,
-		Description: &des,
-		ConnectorID: &cid,
-		AuthMethod:  &aum,
-		Parameters:  appParams,
+		Visible:      &vis,
+		Name:         &nam,
+		Description:  &des,
+		ConnectorID:  &cid,
+		AuthMethod:   &aum,
+		Parameters:   appParams,
+		Provisioning: &appProvisioning,
 	}
 
 	client := m.(*client.APIClient)
