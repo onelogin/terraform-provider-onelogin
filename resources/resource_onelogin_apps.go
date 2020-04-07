@@ -174,7 +174,7 @@ func OneloginApps() *schema.Resource {
 	}
 }
 
-func schemaMapToObject(s map[string]interface{}, obj interface{}) {
+func inflateWithSchema(s map[string]interface{}, obj interface{}) {
 	switch o := obj.(type) {
 	case *models.AppProvisioning:
 		e := s["enabled"].(bool)
@@ -229,7 +229,7 @@ func buildAppObject(d *schema.ResourceData) *models.App {
 	appProv := models.AppProvisioning{}
 	for _, s := range provisioningList {
 		sMap := s.(map[string]interface{})
-		schemaMapToObject(sMap, &appProv)
+		inflateWithSchema(sMap, &appProv)
 	}
 
 	paramsList := d.Get("parameters").(*schema.Set).List()
@@ -238,7 +238,7 @@ func buildAppObject(d *schema.ResourceData) *models.App {
 		sMap := s.(map[string]interface{})
 		key := sMap["param_key_name"].(string)
 		appParam := models.AppParameters{}
-		schemaMapToObject(sMap, &appParam)
+		inflateWithSchema(sMap, &appParam)
 		appParams[key] = appParam
 	}
 
