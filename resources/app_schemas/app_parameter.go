@@ -5,6 +5,8 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 )
 
+// AppParameter returns a key/value map of the various fields that make up
+// the AppParameter field for a OneLogin App.
 func AppParameter() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"param_key_name": &schema.Schema{
@@ -54,6 +56,8 @@ func AppParameter() map[string]*schema.Schema {
 	}
 }
 
+// InflateAppParameter takes a key/value map of interfaces and uses the fields to construct
+// an AppParameter struct, a sub-field of a OneLogin App.
 func InflateAppParameter(s map[string]interface{}) models.AppParameters {
 
 	pid := int32(s["param_id"].(int))

@@ -5,6 +5,8 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 )
 
+// AppConfiguration returns a key/value map of the various fields that make up
+// the AppConfiguration field for a OneLogin App.
 func AppConfiguration() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"redirect_uri": &schema.Schema{
@@ -42,6 +44,8 @@ func AppConfiguration() map[string]*schema.Schema {
 	}
 }
 
+// InflateAppConfiguration takes a key/value map of interfaces and uses the fields to construct
+// an AppConfiguration struct, a sub-field of a OneLogin App.
 func InflateAppConfiguration(s map[string]interface{}) *models.AppConfiguration {
 	rui := s["redirect_uri"].(string)
 	rte := int32(s["refresh_token_expiration_minutes"].(int))

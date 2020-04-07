@@ -20,6 +20,8 @@ func OneloginApps() *schema.Resource {
 	}
 }
 
+// appCreate takes a pointer to the ResourceData Struct and a HTTP client and
+// makes the POST request to OneLogin to create an App with its sub-resources
 func appCreate(d *schema.ResourceData, m interface{}) error {
 	app := app_schemas.InflateApp(d)
 	log.Println(app)
@@ -35,10 +37,14 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	return appRead(d, m)
 }
 
+// appRead takes a pointer to the ResourceData Struct and a HTTP client and
+// makes the GET request to OneLogin to read an App with its sub-resources
 func appRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
+// appUpdate takes a pointer to the ResourceData Struct and a HTTP client and
+// makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
 	app := app_schemas.InflateApp(d)
 
@@ -56,6 +62,8 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 	return appRead(d, m)
 }
 
+// appDelete takes a pointer to the ResourceData Struct and a HTTP client and
+// makes the DELETE request to OneLogin to delete an App and its sub-resources
 func appDelete(d *schema.ResourceData, m interface{}) error {
 	aid, err := strconv.Atoi(d.Id())
 	if err != nil {

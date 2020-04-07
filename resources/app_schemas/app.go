@@ -5,6 +5,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 )
 
+// App returns a key/value map of the various fields that make up an App at OneLogin.
 func App() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
@@ -81,6 +82,8 @@ func App() map[string]*schema.Schema {
 	}
 }
 
+// InflateApp takes a pointer to a ResourceData struct and uses it to construct a
+// OneLogin App struct to be used in requests to OneLogin.
 func InflateApp(d *schema.ResourceData) *models.App {
 	nam := d.Get("name").(string)
 	des := d.Get("description").(string)
