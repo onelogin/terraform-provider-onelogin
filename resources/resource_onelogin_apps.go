@@ -242,26 +242,58 @@ func buildAppObject(d *schema.ResourceData) *models.App {
 		appParams[key] = appParam
 	}
 
-	vis := d.Get("visible").(bool)
+	configList := d.Get("configuration").(*schema.Set).List()
+	appConfig := models.AppConfiguration{}
+	for _, s := range configList {
+		sMap := s.(map[string]interface{})
+		inflateWithSchema(sMap, appConfig)
+	}
+
 	nam := d.Get("name").(string)
 	des := d.Get("description").(string)
-	cid := int32(d.Get("connector_id").(int))
-	aum := int32(d.Get("auth_method").(int))
+	not := d.Get("notes").(string)
+	iur := d.Get("icon_url").(string)
 
-	return &models.App{
-		Visible:      &vis,
-		Name:         &nam,
-		Description:  &des,
-		ConnectorID:  &cid,
-		AuthMethod:   &aum,
-		Parameters:   appParams,
-		Provisioning: &appProv,
+	app := models.App{
+		Name:          &nam,
+		Description:   &des,
+		Notes:         &not,
+		IconURL:       &iur,
+		Parameters:    appParams,
+		Provisioning:  &appProv,
+		Configuration: &appConfig,
 	}
+	if vis, visSet := d.GetOk("visible"); visSet {
+		vis := vis.(bool)
+		app.Visible = &vis
+	}
+	if aas, aasSet := d.GetOk("allow_assumed_signin"); aasSet {
+		aas := aas.(bool)
+		app.AllowAssumedSignin = &aas
+	}
+	if cid, cidSet := d.GetOk("connector_id"); cidSet {
+		cid := int32(cid.(int))
+		app.ConnectorID = &cid
+	}
+	if aum, aumSet := d.GetOk("auth_method"); aumSet {
+		aum := int32(aum.(int))
+		app.AuthMethod = &aum
+	}
+	if pid, pidSet := d.GetOk("policy_id"); pidSet {
+		pid := int32(pid.(int))
+		app.PolicyID = &pid
+	}
+	if tid, tidSet := d.GetOk("tab_id"); tidSet {
+		tid := int32(tid.(int))
+		app.TabID = &tid
+	}
+
+	return &app
 }
 
 func appCreate(d *schema.ResourceData, m interface{}) error {
 	app := buildAppObject(d)
-
+	log.Println(app)
 	client := m.(*client.APIClient)
 	resp, app, err := client.Services.AppsV2.CreateApp(app)
 	if err != nil {
@@ -271,7 +303,7 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[CREATED] Created app with %d", *(app.ID))
 	log.Println(resp)
 	d.SetId(fmt.Sprintf("%d", *(app.ID)))
-	return nil
+	return appRead(d, m)
 }
 
 func appRead(d *schema.ResourceData, m interface{}) error {
@@ -292,7 +324,7 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[UPDATED] Updated app with %d", *(app.ID))
 	log.Println(resp)
 	d.SetId(fmt.Sprintf("%d", *(app.ID)))
-	return nil
+	return appRead(d, m)
 }
 
 func appDelete(d *schema.ResourceData, m interface{}) error {
