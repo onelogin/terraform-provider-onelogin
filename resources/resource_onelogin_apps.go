@@ -29,19 +29,93 @@ func OneloginApps() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"connector_id": &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
+			"notes": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"icon_url": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"auth_method": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"provisioning": &schema.Schema{
-				Type:     schema.TypeMap,
+			"policy_id": &schema.Schema{
+				Type:     schema.TypeInt,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeBool,
+			},
+			"allow_assumed_signin": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"tab_id": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"connector_id": &schema.Schema{
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"created_at": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"updated_at": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"provisioning": &schema.Schema{
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": &schema.Schema{
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+			"configuration": &schema.Schema{
+				Type:     schema.TypeSet,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"redirect_uri": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"refresh_token_expiration_minutes": &schema.Schema{
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"login_url": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"oidc_application_type": &schema.Schema{
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"token_endpoint_auth_method": &schema.Schema{
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"access_token_expiration_minutes": &schema.Schema{
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"provider_arn": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"signature_algorithm": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
 				},
 			},
 			"parameters": &schema.Schema{
@@ -100,43 +174,72 @@ func OneloginApps() *schema.Resource {
 	}
 }
 
-func appCreate(d *schema.ResourceData, m interface{}) error {
-	provisioningList := d.Get("provisioning").(map[string]interface{})
-	var appProvisioning = models.AppProvisioning{}
-	for _, provI := range provisioningList {
-		prov := provI.(bool)
-		enb := prov
-		appProvisioning.Enabled = &enb
+func schemaMapToObject(s map[string]interface{}, obj interface{}) {
+	switch o := obj.(type) {
+	case *models.AppProvisioning:
+		e := s["enabled"].(bool)
+
+		o.Enabled = &e
+	case *models.AppParameters:
+		pid := int32(s["param_id"].(int))
+		lbl := s["label"].(string)
+		uam := s["user_attribute_mappings"].(string)
+		uac := s["user_attribute_macros"].(string)
+		atr := s["attributes_transformations"].(string)
+		sib := s["skip_if_blank"].(bool)
+		val := s["values"].(string)
+		dfv := s["default_values"].(string)
+		pet := s["provisioned_entitlements"].(bool)
+		see := s["safe_entitlements_enabled"].(bool)
+
+		o.ID = &pid
+		o.Label = &lbl
+		o.UserAttributeMappings = &uam
+		o.UserAttributeMacros = &uac
+		o.AttributesTransformations = &atr
+		o.SkipIfBlank = &sib
+		o.Values = &val
+		o.DefaultValues = &dfv
+		o.ProvisionedEntitlements = &pet
+		o.SafeEntitlementsEnabled = &see
+
+	case *models.AppConfiguration:
+		rui := s["redirect_uri"].(string)
+		rte := int32(s["refresh_token_expiration_minutes"].(int))
+		lur := s["login_url"].(string)
+		oat := int32(s["oidc_application_type"].(int))
+		tea := int32(s["token_endpoint_auth_method"].(int))
+		ate := int32(s["access_token_expiration_minutes"].(int))
+		par := s["provider_arn"].(string)
+		sal := s["signature_algorithm"].(string)
+
+		o.RedirectURI = &rui
+		o.RefreshTokenExpirationMinutes = &rte
+		o.LoginURL = &lur
+		o.OidcApplicationType = &oat
+		o.TokenEndpointAuthMethod = &tea
+		o.AccessTokenExpirationMinutes = &ate
+		o.ProviderArn = &par
+		o.SignatureAlgorithm = &sal
+	}
+}
+
+func buildAppObject(d *schema.ResourceData) *models.App {
+	provisioningList := d.Get("provisioning").(*schema.Set).List()
+	appProv := models.AppProvisioning{}
+	for _, s := range provisioningList {
+		sMap := s.(map[string]interface{})
+		schemaMapToObject(sMap, &appProv)
 	}
 
 	paramsList := d.Get("parameters").(*schema.Set).List()
 	appParams := make(map[string]models.AppParameters, len(paramsList))
-	for _, paramI := range paramsList {
-		param := paramI.(map[string]interface{})
-		pid := int32(param["param_id"].(int))
-		lbl := param["label"].(string)
-		uam := param["user_attribute_mappings"].(string)
-		uac := param["user_attribute_macros"].(string)
-		atr := param["attributes_transformations"].(string)
-		sib := param["skip_if_blank"].(bool)
-		val := param["values"].(string)
-		dfv := param["default_values"].(string)
-		pet := param["provisioned_entitlements"].(bool)
-		see := param["safe_entitlements_enabled"].(bool)
-		key := param["param_key_name"].(string)
-
-		appParams[key] = models.AppParameters{
-			ID:                        &pid,
-			Label:                     &lbl,
-			UserAttributeMappings:     &uam,
-			UserAttributeMacros:       &uac,
-			AttributesTransformations: &atr,
-			SkipIfBlank:               &sib,
-			Values:                    &val,
-			DefaultValues:             &dfv,
-			ProvisionedEntitlements:   &pet,
-			SafeEntitlementsEnabled:   &see,
-		}
+	for _, s := range paramsList {
+		sMap := s.(map[string]interface{})
+		key := sMap["param_key_name"].(string)
+		appParam := models.AppParameters{}
+		schemaMapToObject(sMap, &appParam)
+		appParams[key] = appParam
 	}
 
 	vis := d.Get("visible").(bool)
@@ -145,15 +248,19 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	cid := int32(d.Get("connector_id").(int))
 	aum := int32(d.Get("auth_method").(int))
 
-	app := &models.App{
+	return &models.App{
 		Visible:      &vis,
 		Name:         &nam,
 		Description:  &des,
 		ConnectorID:  &cid,
 		AuthMethod:   &aum,
 		Parameters:   appParams,
-		Provisioning: &appProvisioning,
+		Provisioning: &appProv,
 	}
+}
+
+func appCreate(d *schema.ResourceData, m interface{}) error {
+	app := buildAppObject(d)
 
 	client := m.(*client.APIClient)
 	resp, app, err := client.Services.AppsV2.CreateApp(app)
@@ -172,60 +279,9 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func appUpdate(d *schema.ResourceData, m interface{}) error {
-	provisioningList := d.Get("provisioning").(map[string]interface{})
-	var appProvisioning = models.AppProvisioning{}
-	for _, provI := range provisioningList {
-		prov := provI.(bool)
-		enb := prov
-		appProvisioning.Enabled = &enb
-	}
-
-	paramsList := d.Get("parameters").(*schema.Set).List()
-	appParams := make(map[string]models.AppParameters, len(paramsList))
-	for _, paramI := range paramsList {
-		param := paramI.(map[string]interface{})
-		pid := int32(param["param_id"].(int))
-		lbl := param["label"].(string)
-		uam := param["user_attribute_mappings"].(string)
-		uac := param["user_attribute_macros"].(string)
-		atr := param["attributes_transformations"].(string)
-		sib := param["skip_if_blank"].(bool)
-		val := param["values"].(string)
-		dfv := param["default_values"].(string)
-		pet := param["provisioned_entitlements"].(bool)
-		see := param["safe_entitlements_enabled"].(bool)
-		key := param["param_key_name"].(string)
-
-		appParams[key] = models.AppParameters{
-			ID:                        &pid,
-			Label:                     &lbl,
-			UserAttributeMappings:     &uam,
-			UserAttributeMacros:       &uac,
-			AttributesTransformations: &atr,
-			SkipIfBlank:               &sib,
-			Values:                    &val,
-			DefaultValues:             &dfv,
-			ProvisionedEntitlements:   &pet,
-			SafeEntitlementsEnabled:   &see,
-		}
-	}
+	app := buildAppObject(d)
 
 	aid, _ := strconv.Atoi(d.Id())
-	vis := d.Get("visible").(bool)
-	nam := d.Get("name").(string)
-	des := d.Get("description").(string)
-	cid := int32(d.Get("connector_id").(int))
-	aum := int32(d.Get("auth_method").(int))
-
-	app := &models.App{
-		Visible:      &vis,
-		Name:         &nam,
-		Description:  &des,
-		ConnectorID:  &cid,
-		AuthMethod:   &aum,
-		Parameters:   appParams,
-		Provisioning: &appProvisioning,
-	}
 
 	client := m.(*client.APIClient)
 	resp, app, err := client.Services.AppsV2.UpdateAppByID(int32(aid), app)

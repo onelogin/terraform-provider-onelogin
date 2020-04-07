@@ -18,7 +18,7 @@ build:
 	go build -o ${DIST_DIR} ./...
 	mv ${DIST_DIR}/cmd ${BIN_PATH}
 
-sideload: clean build
+sideload: build
 	mkdir -p ${PLUGINS_DIR}
 	cp ${BIN_PATH} ${PLUGINS_DIR}/${BIN_NAME}
 
