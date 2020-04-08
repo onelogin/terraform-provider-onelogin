@@ -3,6 +3,7 @@ package app_schemas
 import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
 // AppConfiguration returns a key/value map of the various fields that make up
@@ -47,23 +48,14 @@ func AppConfiguration() map[string]*schema.Schema {
 // InflateAppConfiguration takes a key/value map of interfaces and uses the fields to construct
 // an AppConfiguration struct, a sub-field of a OneLogin App.
 func InflateAppConfiguration(s map[string]interface{}) *models.AppConfiguration {
-	rui := s["redirect_uri"].(string)
-	rte := int32(s["refresh_token_expiration_minutes"].(int))
-	lur := s["login_url"].(string)
-	oat := int32(s["oidc_application_type"].(int))
-	tea := int32(s["token_endpoint_auth_method"].(int))
-	ate := int32(s["access_token_expiration_minutes"].(int))
-	par := s["provider_arn"].(string)
-	sal := s["signature_algorithm"].(string)
-
 	return &models.AppConfiguration{
-		RedirectURI:                   &rui,
-		RefreshTokenExpirationMinutes: &rte,
-		LoginURL:                      &lur,
-		OidcApplicationType:           &oat,
-		TokenEndpointAuthMethod:       &tea,
-		AccessTokenExpirationMinutes:  &ate,
-		ProviderArn:                   &par,
-		SignatureAlgorithm:            &sal,
+		RedirectURI:                   oltypes.String(s["redirect_uri"].(string)),
+		RefreshTokenExpirationMinutes: oltypes.Int32(int32(s["refresh_token_expiration_minutes"].(int))),
+		LoginURL:                      oltypes.String(s["login_url"].(string)),
+		OidcApplicationType:           oltypes.Int32(int32(s["oidc_application_type"].(int))),
+		TokenEndpointAuthMethod:       oltypes.Int32(int32(s["token_endpoint_auth_method"].(int))),
+		AccessTokenExpirationMinutes:  oltypes.Int32(int32(s["access_token_expiration_minutes"].(int))),
+		ProviderArn:                   oltypes.String(s["provider_arn"].(string)),
+		SignatureAlgorithm:            oltypes.String(s["signature_algorithm"].(string)),
 	}
 }

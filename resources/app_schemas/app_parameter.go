@@ -3,6 +3,7 @@ package app_schemas
 import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
 // AppParameter returns a key/value map of the various fields that make up
@@ -59,29 +60,17 @@ func AppParameter() map[string]*schema.Schema {
 // InflateAppParameter takes a key/value map of interfaces and uses the fields to construct
 // an AppParameter struct, a sub-field of a OneLogin App.
 func InflateAppParameter(s map[string]interface{}) models.AppParameters {
-
-	pid := int32(s["param_id"].(int))
-	lbl := s["label"].(string)
-	uam := s["user_attribute_mappings"].(string)
-	uac := s["user_attribute_macros"].(string)
-	atr := s["attributes_transformations"].(string)
-	sib := s["skip_if_blank"].(bool)
-	val := s["values"].(string)
-	dfv := s["default_values"].(string)
-	pet := s["provisioned_entitlements"].(bool)
-	see := s["safe_entitlements_enabled"].(bool)
-
 	return models.AppParameters{
-		ID:                        &pid,
-		Label:                     &lbl,
-		UserAttributeMappings:     &uam,
-		UserAttributeMacros:       &uac,
-		AttributesTransformations: &atr,
-		SkipIfBlank:               &sib,
-		Values:                    &val,
-		DefaultValues:             &dfv,
-		ProvisionedEntitlements:   &pet,
-		SafeEntitlementsEnabled:   &see,
+		ID:                        oltypes.Int32(int32(s["param_id"].(int))),
+		Label:                     oltypes.String(s["label"].(string)),
+		UserAttributeMappings:     oltypes.String(s["user_attribute_mappings"].(string)),
+		UserAttributeMacros:       oltypes.String(s["user_attribute_macros"].(string)),
+		AttributesTransformations: oltypes.String(s["attributes_transformations"].(string)),
+		SkipIfBlank:               oltypes.Bool(s["skip_if_blank"].(bool)),
+		Values:                    oltypes.String(s["values"].(string)),
+		DefaultValues:             oltypes.String(s["default_values"].(string)),
+		ProvisionedEntitlements:   oltypes.Bool(s["provisioned_entitlements"].(bool)),
+		SafeEntitlementsEnabled:   oltypes.Bool(s["safe_entitlements_enabled"].(bool)),
 	}
 
 }

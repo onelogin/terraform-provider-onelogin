@@ -3,6 +3,7 @@ package app_schemas
 import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
 // App returns a key/value map of the various fields that make up an App at OneLogin.
@@ -85,16 +86,11 @@ func App() map[string]*schema.Schema {
 // InflateApp takes a pointer to a ResourceData struct and uses it to construct a
 // OneLogin App struct to be used in requests to OneLogin.
 func InflateApp(d *schema.ResourceData) *models.App {
-	nam := d.Get("name").(string)
-	des := d.Get("description").(string)
-	not := d.Get("notes").(string)
-	iur := d.Get("icon_url").(string)
-
 	app := models.App{
-		Name:        &nam,
-		Description: &des,
-		Notes:       &not,
-		IconURL:     &iur,
+		Name:        oltypes.String(d.Get("name").(string)),
+		Description: oltypes.String(d.Get("description").(string)),
+		Notes:       oltypes.String(d.Get("notes").(string)),
+		IconURL:     oltypes.String(d.Get("icon_url").(string)),
 	}
 
 	if paramsList, paramsGiven := d.GetOk("parameters"); paramsGiven {
@@ -106,42 +102,39 @@ func InflateApp(d *schema.ResourceData) *models.App {
 		}
 	}
 
-	for _, s := range d.Get("provisioning").(*schema.Set).List() {
-		app.Provisioning = InflateAppProvisioning(s.(map[string]interface{}))
+	var val interface{}
+	var isSet bool
+
+	for _, val = range d.Get("provisioning").(*schema.Set).List() {
+		app.Provisioning = InflateAppProvisioning(val.(map[string]interface{}))
 	}
 
-	for _, s := range d.Get("configuration").(*schema.Set).List() {
-		app.Configuration = InflateAppConfiguration(s.(map[string]interface{}))
+	for _, val = range d.Get("configuration").(*schema.Set).List() {
+		app.Configuration = InflateAppConfiguration(val.(map[string]interface{}))
 	}
 
-	if vis, visSet := d.GetOk("visible"); visSet {
-		vis := vis.(bool)
-		app.Visible = &vis
+	if val, isSet = d.GetOk("visible"); isSet {
+		app.Visible = oltypes.Bool(val.(bool))
 	}
 
-	if aas, aasSet := d.GetOk("allow_assumed_signin"); aasSet {
-		aas := aas.(bool)
-		app.AllowAssumedSignin = &aas
+	if val, isSet = d.GetOk("allow_assumed_signin"); isSet {
+		app.AllowAssumedSignin = oltypes.Bool(val.(bool))
 	}
 
-	if cid, cidSet := d.GetOk("connector_id"); cidSet {
-		cid := int32(cid.(int))
-		app.ConnectorID = &cid
+	if val, isSet = d.GetOk("connector_id"); isSet {
+		app.ConnectorID = oltypes.Int32(int32(val.(int)))
 	}
 
-	if aum, aumSet := d.GetOk("auth_method"); aumSet {
-		aum := int32(aum.(int))
-		app.AuthMethod = &aum
+	if val, isSet = d.GetOk("auth_method"); isSet {
+		app.AuthMethod = oltypes.Int32(int32(val.(int)))
 	}
 
-	if pid, pidSet := d.GetOk("policy_id"); pidSet {
-		pid := int32(pid.(int))
-		app.PolicyID = &pid
+	if val, isSet = d.GetOk("policy_id"); isSet {
+		app.PolicyID = oltypes.Int32(int32(val.(int)))
 	}
 
-	if tid, tidSet := d.GetOk("tab_id"); tidSet {
-		tid := int32(tid.(int))
-		app.TabID = &tid
+	if val, isSet = d.GetOk("tab_id"); isSet {
+		app.TabID = oltypes.Int32(int32(val.(int)))
 	}
 
 	return &app
