@@ -30,6 +30,7 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
+		return err
 	}
 	log.Printf("[CREATED] Created app with %d", *(app.ID))
 	log.Println(resp)
@@ -55,6 +56,7 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
+		return err
 	}
 	log.Printf("[UPDATED] Updated app with %d", *(app.ID))
 	log.Println(resp)
@@ -69,7 +71,7 @@ func appDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		log.Printf("[ERROR] There was a problem reading the id!")
 		log.Println(err)
-		return nil
+		return err
 	}
 	client := m.(*client.APIClient)
 	resp, err := client.Services.AppsV2.DeleteApp(int32(aid))
