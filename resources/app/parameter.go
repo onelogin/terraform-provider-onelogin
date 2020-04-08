@@ -1,4 +1,4 @@
-package app_schemas
+package app
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
@@ -8,7 +8,7 @@ import (
 
 // AppParameter returns a key/value map of the various fields that make up
 // the AppParameter field for a OneLogin App.
-func AppParameter() map[string]*schema.Schema {
+func ParameterSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"param_key_name": &schema.Schema{
 			Type:     schema.TypeString,
@@ -59,7 +59,7 @@ func AppParameter() map[string]*schema.Schema {
 
 // InflateAppParameter takes a key/value map of interfaces and uses the fields to construct
 // an AppParameter struct, a sub-field of a OneLogin App.
-func InflateAppParameter(s *map[string]interface{}) *models.AppParameters {
+func InflateParameter(s *map[string]interface{}) *models.AppParameters {
 	return &models.AppParameters{
 		ID:                        oltypes.Int32(int32((*s)["param_id"].(int))),
 		Label:                     oltypes.String((*s)["label"].(string)),

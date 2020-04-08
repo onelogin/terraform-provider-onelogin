@@ -27,6 +27,7 @@ require (
 	github.com/onelogin/onelogin-go-sdk v0.1.3
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
+	github.com/stretchr/testify v1.5.1
 	github.com/ulikunitz/xz v0.5.7 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/zclconf/go-cty v1.3.1 // indirect
@@ -36,4 +37,5 @@ require (
 	golang.org/x/tools v0.0.0-20200330191527-657a652153b5 // indirect
 	google.golang.org/genproto v0.0.0-20200330113809-af700f360a68 // indirect
 )
+
 replace github.com/onelogin/onelogin-go-sdk => /Users/dominickcaponi/go/src/github.com/onelogin/onelogin-go-sdk

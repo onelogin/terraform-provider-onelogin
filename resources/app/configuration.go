@@ -1,4 +1,4 @@
-package app_schemas
+package app
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
@@ -8,7 +8,7 @@ import (
 
 // AppConfiguration returns a key/value map of the various fields that make up
 // the AppConfiguration field for a OneLogin App.
-func AppConfiguration() map[string]*schema.Schema {
+func ConfigurationSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"redirect_uri": &schema.Schema{
 			Type:     schema.TypeString,
@@ -47,7 +47,7 @@ func AppConfiguration() map[string]*schema.Schema {
 
 // InflateAppConfiguration takes a key/value map of interfaces and uses the fields to construct
 // an AppConfiguration struct, a sub-field of a OneLogin App.
-func InflateAppConfiguration(s *map[string]interface{}) *models.AppConfiguration {
+func InflateConfiguration(s *map[string]interface{}) *models.AppConfiguration {
 	return &models.AppConfiguration{
 		RedirectURI:                   oltypes.String((*s)["redirect_uri"].(string)),
 		RefreshTokenExpirationMinutes: oltypes.Int32(int32((*s)["refresh_token_expiration_minutes"].(int))),

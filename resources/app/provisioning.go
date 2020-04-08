@@ -1,4 +1,4 @@
-package app_schemas
+package app
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
@@ -8,7 +8,7 @@ import (
 
 // AppProvisioning returns a key/value map of the various fields that make up
 // the AppProvisioning field for a OneLogin App.
-func AppProvisioning() map[string]*schema.Schema {
+func ProvisioningSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"enabled": &schema.Schema{
 			Type:     schema.TypeBool,
@@ -19,7 +19,7 @@ func AppProvisioning() map[string]*schema.Schema {
 
 // InflateAppProvisioning takes a key/value map of interfaces and uses the fields to construct
 // a AppProvisioning struct, a sub-field of a OneLogin App.
-func InflateAppProvisioning(s *map[string]interface{}) *models.AppProvisioning {
+func InflateProvisioning(s *map[string]interface{}) *models.AppProvisioning {
 	return &models.AppProvisioning{
 		Enabled: oltypes.Bool((*s)["enabled"].(bool)),
 	}

@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app_schemas"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 )
 
 func OneloginApps() *schema.Resource {
@@ -16,14 +16,14 @@ func OneloginApps() *schema.Resource {
 		Read:   appRead,
 		Update: appUpdate,
 		Delete: appDelete,
-		Schema: app_schemas.App(),
+		Schema: app.App(),
 	}
 }
 
 // appCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appCreate(d *schema.ResourceData, m interface{}) error {
-	app := app_schemas.InflateApp(d)
+	app := app.InflateApp(d)
 	log.Println(app)
 	client := m.(*client.APIClient)
 	resp, app, err := client.Services.AppsV2.CreateApp(app)
@@ -47,7 +47,7 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 // appUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
-	app := app_schemas.InflateApp(d)
+	app := app.InflateApp(d)
 
 	aid, _ := strconv.Atoi(d.Id())
 

@@ -1,4 +1,4 @@
-package app_schemas
+package app
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
@@ -62,7 +62,7 @@ func App() map[string]*schema.Schema {
 			Optional: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
-				Schema: AppProvisioning(),
+				Schema: ProvisioningSchema(),
 			},
 		},
 		"configuration": &schema.Schema{
@@ -70,14 +70,14 @@ func App() map[string]*schema.Schema {
 			Optional: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
-				Schema: AppConfiguration(),
+				Schema: ConfigurationSchema(),
 			},
 		},
 		"parameters": &schema.Schema{
 			Type:     schema.TypeSet,
 			Optional: true,
 			Elem: &schema.Resource{
-				Schema: AppParameter(),
+				Schema: ParameterSchema(),
 			},
 		},
 	}
@@ -101,18 +101,18 @@ func InflateApp(d *schema.ResourceData) *models.App {
 		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
 		for _, val := range paramsList.(*schema.Set).List() {
 			valMap = val.(map[string]interface{})
-			app.Parameters[valMap["param_key_name"].(string)] = *InflateAppParameter(&valMap) // dereference appParameters due to field constraint on App struct
+			app.Parameters[valMap["param_key_name"].(string)] = *InflateParameter(&valMap) // dereference appParameters due to field constraint on App struct
 		}
 	}
 
 	for _, val = range d.Get("provisioning").(*schema.Set).List() {
 		valMap = val.(map[string]interface{})
-		app.Provisioning = InflateAppProvisioning(&valMap)
+		app.Provisioning = InflateProvisioning(&valMap)
 	}
 
 	for _, val = range d.Get("configuration").(*schema.Set).List() {
 		valMap = val.(map[string]interface{})
-		app.Configuration = InflateAppConfiguration(&valMap)
+		app.Configuration = InflateConfiguration(&valMap)
 	}
 
 	if val, isSet = d.GetOk("visible"); isSet {
