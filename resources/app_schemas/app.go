@@ -86,6 +86,10 @@ func App() map[string]*schema.Schema {
 // InflateApp takes a pointer to a ResourceData struct and uses it to construct a
 // OneLogin App struct to be used in requests to OneLogin.
 func InflateApp(d *schema.ResourceData) *models.App {
+	var val interface{}
+	var valMap map[string]interface{}
+	var isSet bool
+
 	app := models.App{
 		Name:        oltypes.String(d.Get("name").(string)),
 		Description: oltypes.String(d.Get("description").(string)),
@@ -93,24 +97,22 @@ func InflateApp(d *schema.ResourceData) *models.App {
 		IconURL:     oltypes.String(d.Get("icon_url").(string)),
 	}
 
-	if paramsList, paramsGiven := d.GetOk("parameters"); paramsGiven {
+	if paramsList, isSet := d.GetOk("parameters"); isSet {
 		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, s := range paramsList.(*schema.Set).List() {
-			sMap := s.(map[string]interface{})
-			key := sMap["param_key_name"].(string)
-			app.Parameters[key] = InflateAppParameter(sMap)
+		for _, val := range paramsList.(*schema.Set).List() {
+			valMap = val.(map[string]interface{})
+			app.Parameters[valMap["param_key_name"].(string)] = *InflateAppParameter(&valMap) // dereference appParameters due to field constraint on App struct
 		}
 	}
 
-	var val interface{}
-	var isSet bool
-
 	for _, val = range d.Get("provisioning").(*schema.Set).List() {
-		app.Provisioning = InflateAppProvisioning(val.(map[string]interface{}))
+		valMap = val.(map[string]interface{})
+		app.Provisioning = InflateAppProvisioning(&valMap)
 	}
 
 	for _, val = range d.Get("configuration").(*schema.Set).List() {
-		app.Configuration = InflateAppConfiguration(val.(map[string]interface{}))
+		valMap = val.(map[string]interface{})
+		app.Configuration = InflateAppConfiguration(&valMap)
 	}
 
 	if val, isSet = d.GetOk("visible"); isSet {

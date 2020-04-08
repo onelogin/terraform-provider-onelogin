@@ -59,18 +59,18 @@ func AppParameter() map[string]*schema.Schema {
 
 // InflateAppParameter takes a key/value map of interfaces and uses the fields to construct
 // an AppParameter struct, a sub-field of a OneLogin App.
-func InflateAppParameter(s map[string]interface{}) models.AppParameters {
-	return models.AppParameters{
-		ID:                        oltypes.Int32(int32(s["param_id"].(int))),
-		Label:                     oltypes.String(s["label"].(string)),
-		UserAttributeMappings:     oltypes.String(s["user_attribute_mappings"].(string)),
-		UserAttributeMacros:       oltypes.String(s["user_attribute_macros"].(string)),
-		AttributesTransformations: oltypes.String(s["attributes_transformations"].(string)),
-		SkipIfBlank:               oltypes.Bool(s["skip_if_blank"].(bool)),
-		Values:                    oltypes.String(s["values"].(string)),
-		DefaultValues:             oltypes.String(s["default_values"].(string)),
-		ProvisionedEntitlements:   oltypes.Bool(s["provisioned_entitlements"].(bool)),
-		SafeEntitlementsEnabled:   oltypes.Bool(s["safe_entitlements_enabled"].(bool)),
+func InflateAppParameter(s *map[string]interface{}) *models.AppParameters {
+	return &models.AppParameters{
+		ID:                        oltypes.Int32(int32((*s)["param_id"].(int))),
+		Label:                     oltypes.String((*s)["label"].(string)),
+		UserAttributeMappings:     oltypes.String((*s)["user_attribute_mappings"].(string)),
+		UserAttributeMacros:       oltypes.String((*s)["user_attribute_macros"].(string)),
+		AttributesTransformations: oltypes.String((*s)["attributes_transformations"].(string)),
+		SkipIfBlank:               oltypes.Bool((*s)["skip_if_blank"].(bool)),
+		Values:                    oltypes.String((*s)["values"].(string)),
+		DefaultValues:             oltypes.String((*s)["default_values"].(string)),
+		ProvisionedEntitlements:   oltypes.Bool((*s)["provisioned_entitlements"].(bool)),
+		SafeEntitlementsEnabled:   oltypes.Bool((*s)["safe_entitlements_enabled"].(bool)),
 	}
 
 }
