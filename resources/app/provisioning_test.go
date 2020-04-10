@@ -16,18 +16,23 @@ func TestProvisioningSchema(t *testing.T) {
 }
 
 func TestInflateProvisioning(t *testing.T) {
-	test := struct {
+	tests := map[string]struct {
 		ResourceData   map[string]interface{}
 		ExpectedOutput *models.AppProvisioning
 	}{
-
-		ResourceData:   map[string]interface{}{"enabled": true},
-		ExpectedOutput: &models.AppProvisioning{Enabled: oltypes.Bool(true)},
+		"creates and returns the address of an AppProvisioning struct": {
+			ResourceData:   map[string]interface{}{"enabled": true},
+			ExpectedOutput: &models.AppProvisioning{Enabled: oltypes.Bool(true)},
+		},
+		"ignores unprovided field": {
+			ResourceData:   map[string]interface{}{},
+			ExpectedOutput: &models.AppProvisioning{},
+		},
 	}
-	t.Run("creates and returns the address of an AppProvisioning struct", func(t *testing.T) {
-		prov := InflateProvisioning(&test.ResourceData)
-		assert.Equal(t, prov, test.ExpectedOutput)
-		assert.Equal(t, *prov.Enabled, true)
-	})
-
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			prov := InflateProvisioning(&test.ResourceData)
+			assert.Equal(t, prov, test.ExpectedOutput)
+		})
+	}
 }

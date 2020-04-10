@@ -11,11 +11,12 @@ func App() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: true,
 		},
 		"visible": &schema.Schema{
 			Type:     schema.TypeBool,
 			Optional: true,
+			Default:  true,
 		},
 		"description": &schema.Schema{
 			Type:     schema.TypeString,
@@ -24,26 +25,28 @@ func App() map[string]*schema.Schema {
 		"notes": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
+			Default:  "",
 		},
 		"icon_url": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"auth_method": &schema.Schema{
 			Type:     schema.TypeInt,
-			Optional: true,
+			Computed: true,
 		},
 		"policy_id": &schema.Schema{
 			Type:     schema.TypeInt,
-			Optional: true,
+			Computed: true,
 		},
 		"allow_assumed_signin": &schema.Schema{
 			Type:     schema.TypeBool,
 			Optional: true,
+			Default:  false,
 		},
 		"tab_id": &schema.Schema{
 			Type:     schema.TypeInt,
-			Optional: true,
+			Computed: true,
 		},
 		"connector_id": &schema.Schema{
 			Type:     schema.TypeInt,
@@ -51,11 +54,11 @@ func App() map[string]*schema.Schema {
 		},
 		"created_at": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"updated_at": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"provisioning": &schema.Schema{
 			Type:     schema.TypeSet,
@@ -94,8 +97,12 @@ func InflateApp(d *schema.ResourceData) *models.App {
 		Name:        oltypes.String(d.Get("name").(string)),
 		Description: oltypes.String(d.Get("description").(string)),
 		Notes:       oltypes.String(d.Get("notes").(string)),
-		IconURL:     oltypes.String(d.Get("icon_url").(string)),
 	}
+
+	// if val, isSet = d.GetOkExists("description"); isSet {
+	// 	log.Println("SET THE DESC FOOL!")
+	// 	app.Description = oltypes.String(val.(string))
+	// }
 
 	if paramsList, isSet := d.GetOk("parameters"); isSet {
 		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
@@ -115,28 +122,16 @@ func InflateApp(d *schema.ResourceData) *models.App {
 		app.Configuration = InflateConfiguration(&valMap)
 	}
 
-	if val, isSet = d.GetOk("visible"); isSet {
+	if val, isSet = d.GetOkExists("visible"); isSet {
 		app.Visible = oltypes.Bool(val.(bool))
 	}
 
-	if val, isSet = d.GetOk("allow_assumed_signin"); isSet {
+	if val, isSet = d.GetOkExists("allow_assumed_signin"); isSet {
 		app.AllowAssumedSignin = oltypes.Bool(val.(bool))
 	}
 
-	if val, isSet = d.GetOk("connector_id"); isSet {
+	if val, isSet = d.GetOkExists("connector_id"); isSet {
 		app.ConnectorID = oltypes.Int32(int32(val.(int)))
-	}
-
-	if val, isSet = d.GetOk("auth_method"); isSet {
-		app.AuthMethod = oltypes.Int32(int32(val.(int)))
-	}
-
-	if val, isSet = d.GetOk("policy_id"); isSet {
-		app.PolicyID = oltypes.Int32(int32(val.(int)))
-	}
-
-	if val, isSet = d.GetOk("tab_id"); isSet {
-		app.TabID = oltypes.Int32(int32(val.(int)))
 	}
 
 	return &app

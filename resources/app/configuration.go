@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
@@ -41,6 +43,21 @@ func ConfigurationSchema() map[string]*schema.Schema {
 		"signature_algorithm": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
+			ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				validOpts := []string{"SHA-1", "SHA-256", "SHA-348", "SHA-512"}
+				v := val.(string)
+				isValid := false
+				for _, o := range validOpts {
+					isValid = v == o
+					if isValid {
+						break
+					}
+				}
+				if !isValid {
+					errs = append(errs, fmt.Errorf("signature_algorithm must be one of %v, got: %s", validOpts, v))
+				}
+				return
+			},
 		},
 	}
 }
@@ -48,14 +65,35 @@ func ConfigurationSchema() map[string]*schema.Schema {
 // InflateAppConfiguration takes a key/value map of interfaces and uses the fields to construct
 // an AppConfiguration struct, a sub-field of a OneLogin App.
 func InflateConfiguration(s *map[string]interface{}) *models.AppConfiguration {
-	return &models.AppConfiguration{
-		RedirectURI:                   oltypes.String((*s)["redirect_uri"].(string)),
-		RefreshTokenExpirationMinutes: oltypes.Int32(int32((*s)["refresh_token_expiration_minutes"].(int))),
-		LoginURL:                      oltypes.String((*s)["login_url"].(string)),
-		OidcApplicationType:           oltypes.Int32(int32((*s)["oidc_application_type"].(int))),
-		TokenEndpointAuthMethod:       oltypes.Int32(int32((*s)["token_endpoint_auth_method"].(int))),
-		AccessTokenExpirationMinutes:  oltypes.Int32(int32((*s)["access_token_expiration_minutes"].(int))),
-		ProviderArn:                   oltypes.String((*s)["provider_arn"].(string)),
-		SignatureAlgorithm:            oltypes.String((*s)["signature_algorithm"].(string)),
+	out := models.AppConfiguration{}
+	var st string
+	var n int
+	var notNil bool
+
+	if st, notNil = (*s)["redirect_uri"].(string); notNil {
+		out.RedirectURI = oltypes.String(st)
 	}
+	if st, notNil = (*s)["login_url"].(string); notNil {
+		out.LoginURL = oltypes.String(st)
+	}
+	if st, notNil = (*s)["provider_arn"].(string); notNil {
+		out.ProviderArn = oltypes.String(st)
+	}
+	if st, notNil = (*s)["signature_algorithm"].(string); notNil {
+		out.SignatureAlgorithm = oltypes.String(st)
+	}
+
+	if n, notNil = (*s)["refresh_token_expiration_minutes"].(int); notNil {
+		out.RefreshTokenExpirationMinutes = oltypes.Int32(int32(n))
+	}
+	if n, notNil = (*s)["oidc_application_type"].(int); notNil {
+		out.OidcApplicationType = oltypes.Int32(int32(n))
+	}
+	if n, notNil = (*s)["token_endpoint_auth_method"].(int); notNil {
+		out.TokenEndpointAuthMethod = oltypes.Int32(int32(n))
+	}
+	if n, notNil = (*s)["access_token_expiration_minutes"].(int); notNil {
+		out.AccessTokenExpirationMinutes = oltypes.Int32(int32(n))
+	}
+	return &out
 }
