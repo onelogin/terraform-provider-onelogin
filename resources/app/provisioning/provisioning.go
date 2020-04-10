@@ -1,4 +1,4 @@
-package app
+package provisioning
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"

@@ -1,4 +1,4 @@
-package app
+package parameters
 
 import (
 	"testing"
@@ -46,31 +46,6 @@ func TestInflateParameter(t *testing.T) {
 			},
 			ExpectedOutput: &models.AppParameters{
 				ID:                        oltypes.Int32(123),
-				Label:                     oltypes.String("test"),
-				UserAttributeMappings:     oltypes.String("test"),
-				UserAttributeMacros:       oltypes.String("test"),
-				AttributesTransformations: oltypes.String("test"),
-				SkipIfBlank:               oltypes.Bool(true),
-				Values:                    oltypes.String("test"),
-				DefaultValues:             oltypes.String("test"),
-				ProvisionedEntitlements:   oltypes.Bool(true),
-				SafeEntitlementsEnabled:   oltypes.Bool(true),
-			},
-		},
-		"ignores unsupplied fields": {
-			ResourceData: map[string]interface{}{
-				"param_key_name":             "test",
-				"label":                      "test",
-				"user_attribute_mappings":    "test",
-				"user_attribute_macros":      "test",
-				"attributes_transformations": "test",
-				"default_values":             "test",
-				"skip_if_blank":              true,
-				"values":                     "test",
-				"provisioned_entitlements":   true,
-				"safe_entitlements_enabled":  true,
-			},
-			ExpectedOutput: &models.AppParameters{
 				Label:                     oltypes.String("test"),
 				UserAttributeMappings:     oltypes.String("test"),
 				UserAttributeMacros:       oltypes.String("test"),

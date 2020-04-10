@@ -16,7 +16,7 @@ func OneloginApps() *schema.Resource {
 		Read:   appRead,
 		Update: appUpdate,
 		Delete: appDelete,
-		Schema: app.App(),
+		Schema: app.AppSchema(),
 	}
 }
 
@@ -24,7 +24,7 @@ func OneloginApps() *schema.Resource {
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appCreate(d *schema.ResourceData, m interface{}) error {
 	app := app.InflateApp(d)
-	log.Println(app)
+
 	client := m.(*client.APIClient)
 	resp, app, err := client.Services.AppsV2.CreateApp(app)
 	if err != nil {
@@ -48,7 +48,6 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
 	app := app.InflateApp(d)
-
 	aid, _ := strconv.Atoi(d.Id())
 
 	client := m.(*client.APIClient)
@@ -67,12 +66,8 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 // appDelete takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the DELETE request to OneLogin to delete an App and its sub-resources
 func appDelete(d *schema.ResourceData, m interface{}) error {
-	aid, err := strconv.Atoi(d.Id())
-	if err != nil {
-		log.Printf("[ERROR] There was a problem reading the id!")
-		log.Println(err)
-		return err
-	}
+	aid, _ := strconv.Atoi(d.Id())
+
 	client := m.(*client.APIClient)
 	resp, err := client.Services.AppsV2.DeleteApp(int32(aid))
 	if err != nil {

@@ -1,4 +1,4 @@
-package app
+package parameters
 
 import (
 	"log"
@@ -104,10 +104,6 @@ func InflateParameter(s *map[string]interface{}) *models.AppParameters {
 	}
 
 	if d, notNil = (*s)["param_id"].(int); notNil {
-		log.Println("IDEDEEEEEE MOTHER FUCKER!!!!!")
-		p, ok := (*s)["param_id"].(int)
-		log.Println(p)
-		log.Println(ok)
 		out.ID = oltypes.Int32(int32(d))
 	}
 	log.Println(out)

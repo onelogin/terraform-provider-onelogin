@@ -37,7 +37,9 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"onelogin_apps": resources.OneloginApps(),
+			"onelogin_apps":      resources.OneloginApps(),
+			"onelogin_oidc_apps": resources.OneloginOIDCApps(),
+			"onelogin_saml_apps": resources.OneloginSAMLApps(),
 		},
 		ConfigureFunc: configProvider,
 	}

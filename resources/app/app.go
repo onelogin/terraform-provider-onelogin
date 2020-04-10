@@ -4,10 +4,14 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
 )
 
+type ConfigurationSchema func() map[string]*schema.Schema
+
 // App returns a key/value map of the various fields that make up an App at OneLogin.
-func App() map[string]*schema.Schema {
+func AppSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
 			Type:     schema.TypeString,
@@ -65,22 +69,14 @@ func App() map[string]*schema.Schema {
 			Optional: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
-				Schema: ProvisioningSchema(),
-			},
-		},
-		"configuration": &schema.Schema{
-			Type:     schema.TypeSet,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: ConfigurationSchema(),
+				Schema: provisioning.ProvisioningSchema(),
 			},
 		},
 		"parameters": &schema.Schema{
 			Type:     schema.TypeSet,
 			Optional: true,
 			Elem: &schema.Resource{
-				Schema: ParameterSchema(),
+				Schema: parameters.ParameterSchema(),
 			},
 		},
 	}
@@ -99,27 +95,17 @@ func InflateApp(d *schema.ResourceData) *models.App {
 		Notes:       oltypes.String(d.Get("notes").(string)),
 	}
 
-	// if val, isSet = d.GetOkExists("description"); isSet {
-	// 	log.Println("SET THE DESC FOOL!")
-	// 	app.Description = oltypes.String(val.(string))
-	// }
-
 	if paramsList, isSet := d.GetOk("parameters"); isSet {
 		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
 		for _, val := range paramsList.(*schema.Set).List() {
 			valMap = val.(map[string]interface{})
-			app.Parameters[valMap["param_key_name"].(string)] = *InflateParameter(&valMap) // dereference appParameters due to field constraint on App struct
+			app.Parameters[valMap["param_key_name"].(string)] = *parameters.InflateParameter(&valMap)
 		}
 	}
 
 	for _, val = range d.Get("provisioning").(*schema.Set).List() {
 		valMap = val.(map[string]interface{})
-		app.Provisioning = InflateProvisioning(&valMap)
-	}
-
-	for _, val = range d.Get("configuration").(*schema.Set).List() {
-		valMap = val.(map[string]interface{})
-		app.Configuration = InflateConfiguration(&valMap)
+		app.Provisioning = provisioning.InflateProvisioning(&valMap)
 	}
 
 	if val, isSet = d.GetOkExists("visible"); isSet {
