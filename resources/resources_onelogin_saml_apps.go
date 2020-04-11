@@ -9,11 +9,14 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/sso"
 )
 
 func OneloginSAMLApps() *schema.Resource {
 	appSchema := app.AppSchema()
-	configuration.AddConfigurationSchema(&appSchema, configuration.SAMLConfigurationSchema)
+	app.AddSubSchema("configuration", &appSchema, configuration.SAMLConfigurationSchema)
+	app.AddSubSchema("sso", &appSchema, sso.SAMLSSOSchema)
+
 	return &schema.Resource{
 		Create: samlAppCreate,
 		Read:   samlAppRead,

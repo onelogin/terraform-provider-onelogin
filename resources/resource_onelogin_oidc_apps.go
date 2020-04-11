@@ -9,11 +9,14 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/sso"
 )
 
 func OneloginOIDCApps() *schema.Resource {
 	appSchema := app.AppSchema()
-	configuration.AddConfigurationSchema(&appSchema, configuration.OIDCConfigurationSchema)
+	app.AddSubSchema("configuration", &appSchema, configuration.OIDCConfigurationSchema)
+	app.AddSubSchema("sso", &appSchema, sso.OIDCSSOSchema)
+
 	return &schema.Resource{
 		Create: oidcAppCreate,
 		Read:   oidcAppRead,

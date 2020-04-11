@@ -6,7 +6,6 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,14 +26,6 @@ func TestSAMLConfigurationSchema(t *testing.T) {
 		schema := SAMLConfigurationSchema()
 		assert.NotNil(t, schema["provider_arn"])
 		assert.NotNil(t, schema["signature_algorithm"])
-	})
-}
-
-func TestAddConfigurationSchema(t *testing.T) {
-	t.Run("adds configuration schema to given resrouce schema", func(t *testing.T) {
-		appSchema := app.AppSchema()
-		AddConfigurationSchema(&appSchema, SAMLConfigurationSchema)
-		assert.NotNil(t, appSchema["configuration"])
 	})
 }
 
