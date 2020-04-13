@@ -41,6 +41,31 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 // appRead takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the GET request to OneLogin to read an App with its sub-resources
 func appRead(d *schema.ResourceData, m interface{}) error {
+	client := m.(*client.APIClient)
+	aid, _ := strconv.Atoi(d.Id())
+	resp, app, err := client.Services.AppsV2.GetAppByID(int32(aid))
+	if err != nil {
+		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Println(err)
+		return err
+	}
+	log.Printf("[READ] Reading app with %d", *(app.ID))
+	log.Println(resp)
+
+	d.SetId(fmt.Sprintf("%d", app.ID))
+
+	d.Set("name", app.Name)
+	d.Set("visible", app.Visible)
+	d.Set("description", app.Description)
+	d.Set("notes", app.Notes)
+	d.Set("icon_url", app.IconURL)
+	d.Set("auth_method", app.AuthMethod)
+	d.Set("policy_id", app.PolicyID)
+	d.Set("allow_assumed_signin", app.AllowAssumedSignin)
+	d.Set("tab_id", app.TabID)
+	d.Set("connector_id", app.ConnectorID)
+	d.Set("created_at", app.CreatedAt.String())
+	d.Set("updated_at", app.UpdatedAt.String())
 	return nil
 }
 

@@ -10,15 +10,15 @@ func SAMLSSOSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"acs_url": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"metadata_url": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"issuer": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 		},
 		"certificate": &schema.Schema{
 			Type:     schema.TypeSet,

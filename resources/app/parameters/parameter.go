@@ -18,7 +18,7 @@ func ParameterSchema() map[string]*schema.Schema {
 		},
 		"param_id": &schema.Schema{
 			Type:     schema.TypeInt,
-			Optional: true,
+			Computed: true,
 		},
 		"label": &schema.Schema{
 			Type:     schema.TypeString,

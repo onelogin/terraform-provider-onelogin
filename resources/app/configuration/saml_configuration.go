@@ -22,7 +22,7 @@ func SAMLConfigurationSchema() map[string]*schema.Schema {
 		},
 		"signature_algorithm": &schema.Schema{
 			Type:         schema.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: validSignatureAlgo,
 		},
 	}

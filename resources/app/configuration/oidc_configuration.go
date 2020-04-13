@@ -17,6 +17,7 @@ func OIDCConfigurationSchema() map[string]*schema.Schema {
 		"refresh_token_expiration_minutes": &schema.Schema{
 			Type:     schema.TypeInt,
 			Optional: true,
+			Default:  1,
 		},
 		"login_url": &schema.Schema{
 			Type:     schema.TypeString,
@@ -33,6 +34,7 @@ func OIDCConfigurationSchema() map[string]*schema.Schema {
 		"access_token_expiration_minutes": &schema.Schema{
 			Type:     schema.TypeInt,
 			Optional: true,
+			Default:  1,
 		},
 	}
 }
