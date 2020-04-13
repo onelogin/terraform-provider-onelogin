@@ -7,7 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
 )
 
 func OneloginApps() *schema.Resource {
@@ -23,18 +26,40 @@ func OneloginApps() *schema.Resource {
 // appCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appCreate(d *schema.ResourceData, m interface{}) error {
-	app := app.InflateApp(d)
+	appData := map[string]interface{}{
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+	}
+
+	app := app.InflateApp(&appData)
+
+	if paramsList, isSet := d.GetOk("parameters"); isSet {
+		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
+		for _, val := range paramsList.(*schema.Set).List() {
+			valMap := val.(map[string]interface{})
+			app.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
+		}
+	}
+
+	for _, val := range d.Get("provisioning").(*schema.Set).List() {
+		valMap := val.(map[string]interface{})
+		app.Provisioning = provisioning.InflateProvisioning(&valMap)
+	}
 
 	client := m.(*client.APIClient)
-	resp, app, err := client.Services.AppsV2.CreateApp(app)
+	resp, appResp, err := client.Services.AppsV2.CreateApp(&app)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[CREATED] Created app with %d", *(app.ID))
+	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(app.ID)))
+	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return appRead(d, m)
 }
 
@@ -72,19 +97,41 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 // appUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
-	app := app.InflateApp(d)
+	appData := map[string]interface{}{
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+	}
+
+	app := app.InflateApp(&appData)
+
+	if paramsList, isSet := d.GetOk("parameters"); isSet {
+		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
+		for _, val := range paramsList.(*schema.Set).List() {
+			valMap := val.(map[string]interface{})
+			app.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
+		}
+	}
+
+	for _, val := range d.Get("provisioning").(*schema.Set).List() {
+		valMap := val.(map[string]interface{})
+		app.Provisioning = provisioning.InflateProvisioning(&valMap)
+	}
 	aid, _ := strconv.Atoi(d.Id())
 
 	client := m.(*client.APIClient)
-	resp, app, err := client.Services.AppsV2.UpdateAppByID(int32(aid), app)
+	resp, appResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &app)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[UPDATED] Updated app with %d", *(app.ID))
+	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(app.ID)))
+	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return appRead(d, m)
 }
 

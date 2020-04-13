@@ -7,8 +7,11 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
+	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/sso"
 )
 
@@ -29,7 +32,29 @@ func OneloginSAMLApps() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an samlApp with its sub-resources
 func samlAppCreate(d *schema.ResourceData, m interface{}) error {
-	samlApp := app.InflateApp(d)
+	appData := map[string]interface{}{
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+	}
+
+	samlApp := app.InflateApp(&appData)
+
+	if paramsList, isSet := d.GetOk("parameters"); isSet {
+		samlApp.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
+		for _, val := range paramsList.(*schema.Set).List() {
+			valMap := val.(map[string]interface{})
+			samlApp.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
+		}
+	}
+
+	for _, val := range d.Get("provisioning").(*schema.Set).List() {
+		valMap := val.(map[string]interface{})
+		samlApp.Provisioning = provisioning.InflateProvisioning(&valMap)
+	}
 
 	for _, val := range d.Get("configuration").(*schema.Set).List() {
 		valMap := val.(map[string]interface{})
@@ -37,15 +62,15 @@ func samlAppCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	client := m.(*client.APIClient)
-	resp, samlApp, err := client.Services.AppsV2.CreateApp(samlApp)
+	resp, samlAppResp, err := client.Services.AppsV2.CreateApp(&samlApp)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the samlApp!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[CREATED] Created samlApp with %d", *(samlApp.ID))
+	log.Printf("[CREATED] Created samlApp with %d", *(samlAppResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(samlApp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(samlAppResp.ID)))
 	return samlAppRead(d, m)
 }
 
@@ -58,7 +83,29 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 // samlAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
-	samlApp := app.InflateApp(d)
+	appData := map[string]interface{}{
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+	}
+
+	samlApp := app.InflateApp(&appData)
+
+	if paramsList, isSet := d.GetOk("parameters"); isSet {
+		samlApp.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
+		for _, val := range paramsList.(*schema.Set).List() {
+			valMap := val.(map[string]interface{})
+			samlApp.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
+		}
+	}
+
+	for _, val := range d.Get("provisioning").(*schema.Set).List() {
+		valMap := val.(map[string]interface{})
+		samlApp.Provisioning = provisioning.InflateProvisioning(&valMap)
+	}
 
 	for _, val := range d.Get("configuration").(*schema.Set).List() {
 		valMap := val.(map[string]interface{})
@@ -68,15 +115,15 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 	aid, _ := strconv.Atoi(d.Id())
 
 	client := m.(*client.APIClient)
-	resp, samlApp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), samlApp)
+	resp, samlAppResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &samlApp)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the samlApp!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[UPDATED] Updated samlApp with %d", *(samlApp.ID))
+	log.Printf("[UPDATED] Updated samlApp with %d", *(samlAppResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(samlApp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(samlAppResp.ID)))
 	return samlAppRead(d, m)
 }
 

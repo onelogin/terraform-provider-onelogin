@@ -28,7 +28,7 @@ func TestParameterSchema(t *testing.T) {
 func TestInflateParameter(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput *models.AppParameters
+		ExpectedOutput models.AppParameters
 	}{
 		"creates and returns the address of an AppParameters struct": {
 			ResourceData: map[string]interface{}{
@@ -44,7 +44,7 @@ func TestInflateParameter(t *testing.T) {
 				"provisioned_entitlements":   true,
 				"safe_entitlements_enabled":  true,
 			},
-			ExpectedOutput: &models.AppParameters{
+			ExpectedOutput: models.AppParameters{
 				ID:                        oltypes.Int32(123),
 				Label:                     oltypes.String("test"),
 				UserAttributeMappings:     oltypes.String("test"),

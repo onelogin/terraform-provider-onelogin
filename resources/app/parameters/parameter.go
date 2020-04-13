@@ -1,8 +1,6 @@
 package parameters
 
 import (
-	"log"
-
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
@@ -61,7 +59,7 @@ func ParameterSchema() map[string]*schema.Schema {
 
 // InflateAppParameter takes a key/value map of interfaces and uses the fields to construct
 // an AppParameter struct, a sub-field of a OneLogin App.
-func InflateParameter(s *map[string]interface{}) *models.AppParameters {
+func InflateParameter(s *map[string]interface{}) models.AppParameters {
 	out := models.AppParameters{}
 	var b, notNil bool = false, false
 	var d int
@@ -106,6 +104,6 @@ func InflateParameter(s *map[string]interface{}) *models.AppParameters {
 	if d, notNil = (*s)["param_id"].(int); notNil {
 		out.ID = oltypes.Int32(int32(d))
 	}
-	log.Println(out)
-	return &out
+
+	return out
 }

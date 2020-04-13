@@ -97,41 +97,16 @@ func AddSubSchema(schemaKey string, parentSchema *map[string]*schema.Schema, sub
 
 // InflateApp takes a pointer to a ResourceData struct and uses it to construct a
 // OneLogin App struct to be used in requests to OneLogin.
-func InflateApp(d *schema.ResourceData) *models.App {
-	var val interface{}
-	var valMap map[string]interface{}
-	var isSet bool
+func InflateApp(s *map[string]interface{}) models.App {
 
 	app := models.App{
-		Name:        oltypes.String(d.Get("name").(string)),
-		Description: oltypes.String(d.Get("description").(string)),
-		Notes:       oltypes.String(d.Get("notes").(string)),
+		Name:               oltypes.String((*s)["name"].(string)),
+		Description:        oltypes.String((*s)["description"].(string)),
+		Notes:              oltypes.String((*s)["notes"].(string)),
+		ConnectorID:        oltypes.Int32(int32((*s)["connector_id"].(int))),
+		Visible:            oltypes.Bool((*s)["visible"].(bool)),
+		AllowAssumedSignin: oltypes.Bool((*s)["allow_assumed_signin"].(bool)),
 	}
 
-	if paramsList, isSet := d.GetOk("parameters"); isSet {
-		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, val := range paramsList.(*schema.Set).List() {
-			valMap = val.(map[string]interface{})
-			app.Parameters[valMap["param_key_name"].(string)] = *parameters.InflateParameter(&valMap)
-		}
-	}
-
-	for _, val = range d.Get("provisioning").(*schema.Set).List() {
-		valMap = val.(map[string]interface{})
-		app.Provisioning = provisioning.InflateProvisioning(&valMap)
-	}
-
-	if val, isSet = d.GetOkExists("visible"); isSet {
-		app.Visible = oltypes.Bool(val.(bool))
-	}
-
-	if val, isSet = d.GetOkExists("allow_assumed_signin"); isSet {
-		app.AllowAssumedSignin = oltypes.Bool(val.(bool))
-	}
-
-	if val, isSet = d.GetOkExists("connector_id"); isSet {
-		app.ConnectorID = oltypes.Int32(int32(val.(int)))
-	}
-
-	return &app
+	return app
 }

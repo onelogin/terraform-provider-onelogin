@@ -40,7 +40,7 @@ func TestAddSubSchema(t *testing.T) {
 func TestInflateApp(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput *models.AppParameters
+		ExpectedOutput models.App
 	}{
 		"creates and returns the address of an AppParameters struct": {
 			ResourceData: map[string]interface{}{
@@ -50,30 +50,14 @@ func TestInflateApp(t *testing.T) {
 				"notes":                "test",
 				"allow_assumed_signin": true,
 				"connector_id":         123,
-				"provisioning": map[string]interface{}{
-					"enabled": true,
-				},
-				"parameters": map[string]interface{}{
-					"test": map[string]interface{}{
-						"user_attribute_mappings": "test",
-					},
-				},
 			},
-			ExpectedOutput: &models.App{
+			ExpectedOutput: models.App{
 				Name:               oltypes.String("test"),
 				Visible:            oltypes.Bool(true),
 				Description:        oltypes.String("test"),
 				Notes:              oltypes.String("test"),
 				AllowAssumedSignin: oltypes.Bool(true),
 				ConnectorID:        oltypes.Int32(123),
-				Provisioning: &models.AppProvisioning{
-					Enabled: oltypes.Bool(true),
-				},
-				Parameters: map[string]models.AppParameters{
-					"test": models.AppParameters{
-						UserAttributeMappings: oltypes.String("test"),
-					},
-				},
 			},
 		},
 	}
