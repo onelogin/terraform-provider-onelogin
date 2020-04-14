@@ -22,6 +22,9 @@ sideload: build
 	mkdir -p ${PLUGINS_DIR}
 	cp ${BIN_PATH} ${PLUGINS_DIR}/${BIN_NAME}
 
+testacc:
+	TF_ACC=1 go test ./... -v -timeout 120m
+
 ti:
 	terraform init
 
