@@ -86,16 +86,16 @@ func TestFlatten(t *testing.T){
 		expected := []map[string]interface{}{
 			map[string]interface{}{
 				"param_key_name": "test",
-				"param_id": int32(123),
-				"label": "test",
-				"user_attribute_mappings": "test",
-				"user_attribute_macros": "test",
-				"attributes_transformations": "test",
-				"skip_if_blank": true,
-				"values": "test",
-				"default_values": "test",
-				"provisioned_entitlements": true,
-				"safe_entitlements_enabled": true,
+				"param_id": oltypes.Int32(123),
+				"label": oltypes.String("test"),
+				"user_attribute_mappings": oltypes.String("test"),
+				"user_attribute_macros": oltypes.String("test"),
+				"attributes_transformations": oltypes.String("test"),
+				"skip_if_blank": oltypes.Bool(true),
+				"values": oltypes.String("test"),
+				"default_values": oltypes.String("test"),
+				"provisioned_entitlements": oltypes.Bool(true),
+				"safe_entitlements_enabled": oltypes.Bool(true),
 			},
 		}
 		assert.Equal(t, expected, subj)

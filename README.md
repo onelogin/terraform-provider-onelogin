@@ -43,6 +43,10 @@ Computed fields are set by the API and cannot be set via Terraform
 13) created_at *computed*
 
 ### Parameter Sub Field
+*Known Issue* - Parameters are tracked as completely separate entities in the OneLogin API.
+Currently only adding new/additional parameters permitted is permitted here as their lifecycle methods
+Have not yet been implemented. Removing or Changing a parameter will NOT affect the state of the App resource. 
+
 1) param_key_name [string] *required*
 2) param_id [int] *computed*
 3) label [string]
