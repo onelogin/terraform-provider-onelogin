@@ -1,11 +1,11 @@
-package resources
+package onelogin
 
 import (
 	"fmt"
 	"log"
 	"strconv"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
@@ -77,6 +77,32 @@ func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
 // oidcAppRead takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the GET request to OneLogin to read an oidcApp with its sub-resources
 func oidcAppRead(d *schema.ResourceData, m interface{}) error {
+	client := m.(*client.APIClient)
+	aid, _ := strconv.Atoi(d.Id())
+	resp, oidcApp, err := client.Services.AppsV2.GetAppByID(int32(aid))
+	if err != nil {
+		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Println(err)
+		return err
+	}
+	log.Printf("[READ] Reading app with %d", *(oidcApp.ID))
+	log.Println(resp)
+
+	d.Set("name", oidcApp.Name)
+	d.Set("visible", oidcApp.Visible)
+	d.Set("description", oidcApp.Description)
+	d.Set("notes", oidcApp.Notes)
+	d.Set("icon_url", oidcApp.IconURL)
+	d.Set("auth_method", oidcApp.AuthMethod)
+	d.Set("policy_id", oidcApp.PolicyID)
+	d.Set("allow_assumed_signin", oidcApp.AllowAssumedSignin)
+	d.Set("tab_id", oidcApp.TabID)
+	d.Set("connector_id", oidcApp.ConnectorID)
+	d.Set("created_at", oidcApp.CreatedAt.String())
+	d.Set("updated_at", oidcApp.UpdatedAt.String())
+	d.Set("provisioning", provisioning.Flatten(oidcApp.Provisioning))
+	d.Set("parameters", parameters.Flatten(oidcApp.Parameters))
+	d.Set("configuration", configuration.FlattenOIDCConfiguration(oidcApp.Configuration))
 	return nil
 }
 

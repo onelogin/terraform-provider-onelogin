@@ -1,11 +1,12 @@
-package resources
+package onelogin
 
 import (
 	"fmt"
 	"log"
 	"strconv"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
@@ -60,7 +61,8 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
 	log.Println(resp)
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-	return appRead(d, m)
+	// return appRead(d, m)
+	return nil
 }
 
 // appRead takes a pointer to the ResourceData Struct and a HTTP client and
@@ -77,8 +79,6 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[READ] Reading app with %d", *(app.ID))
 	log.Println(resp)
 
-	d.SetId(fmt.Sprintf("%d", app.ID))
-
 	d.Set("name", app.Name)
 	d.Set("visible", app.Visible)
 	d.Set("description", app.Description)
@@ -91,6 +91,8 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("connector_id", app.ConnectorID)
 	d.Set("created_at", app.CreatedAt.String())
 	d.Set("updated_at", app.UpdatedAt.String())
+	d.Set("provisioning", provisioning.Flatten(app.Provisioning))
+	d.Set("parameters", parameters.Flatten(app.Parameters))
 	return nil
 }
 
@@ -133,6 +135,7 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 	log.Println(resp)
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return appRead(d, m)
+	// return nil
 }
 
 // appDelete takes a pointer to the ResourceData Struct and a HTTP client and

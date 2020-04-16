@@ -1,12 +1,12 @@
-package provider
+package onelogin
 
 import (
 	"errors"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-terraform-provider/resources"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 var (
@@ -15,20 +15,23 @@ var (
 
 // Provider creates a new provider with all the neccessary configurations.
 // It returns a pointer to the created provider.
-func Provider() *schema.Provider {
+func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"client_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_ID", nil),
+				Required:    true,
 			},
 			"client_secret": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_SECRET", nil),
+				Required:    true,
 			},
 			"url": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_OAPI_URL", nil),
+				Optional:    true,
 			},
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
@@ -37,9 +40,9 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"onelogin_apps":      resources.OneloginApps(),
-			"onelogin_oidc_apps": resources.OneloginOIDCApps(),
-			"onelogin_saml_apps": resources.OneloginSAMLApps(),
+			"onelogin_apps":      OneloginApps(),
+			"onelogin_oidc_apps": OneloginOIDCApps(),
+			"onelogin_saml_apps": OneloginSAMLApps(),
 		},
 		ConfigureFunc: configProvider,
 	}
@@ -53,10 +56,10 @@ func configProvider(d *schema.ResourceData) (interface{}, error) {
 	region := d.Get("region").(string)
 	url := d.Get("url").(string)
 
-	timeout := client.DefaultTimeout
+	// timeout := client.DefaultTimeout
 
 	oneloginClient, err := client.NewClient(&client.APIClientConfig{
-		Timeout:      timeout,
+		Timeout:      120000,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Region:       region,

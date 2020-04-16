@@ -1,7 +1,7 @@
 package parameters
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
@@ -105,5 +105,26 @@ func InflateParameter(s *map[string]interface{}) models.AppParameters {
 		out.ID = oltypes.Int32(int32(d))
 	}
 
+	return out
+}
+
+func Flatten(params map[string]models.AppParameters) []map[string]interface{} {
+	out := make([]map[string]interface{},0)
+	for k, v := range params {
+		param := map[string]interface{}{
+			"param_key_name": k,
+			"param_id": v.ID,
+			"label": v.Label,
+			"user_attribute_mappings": v.UserAttributeMappings,
+			"user_attribute_macros": v.UserAttributeMacros,
+			"attributes_transformations": v.AttributesTransformations,
+			"skip_if_blank": v.SkipIfBlank,
+			"values": v.Values,
+			"default_values": v.DefaultValues,
+			"provisioned_entitlements": v.ProvisionedEntitlements,
+			"safe_entitlements_enabled": v.SafeEntitlementsEnabled,
+		}
+		out = append(out, param)
+	}
 	return out
 }

@@ -36,3 +36,14 @@ func TestInflateProvisioning(t *testing.T) {
 		})
 	}
 }
+
+func TestFlatten(t *testing.T){
+	t.Run("It flattens the AppProvisioning Struct", func(t *testing.T){
+		appProvisioning := models.AppProvisioning{
+			Enabled: oltypes.Bool(true),
+		}
+		subj := Flatten(&appProvisioning)
+		expected := []map[string]interface{}{ {"enabled": true} }
+		assert.Equal(t, subj, expected)
+	})
+}

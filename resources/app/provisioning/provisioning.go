@@ -1,7 +1,7 @@
 package provisioning
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
@@ -25,4 +25,12 @@ func InflateProvisioning(s *map[string]interface{}) *models.AppProvisioning {
 		out.Enabled = oltypes.Bool(enb)
 	}
 	return &out
+}
+
+func Flatten(prov *models.AppProvisioning) []map[string]interface{} {
+	return []map[string]interface{}{
+		map[string]interface{}{
+			"enabled": *prov.Enabled,
+		},
+	}
 }

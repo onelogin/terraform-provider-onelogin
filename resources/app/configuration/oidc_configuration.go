@@ -1,7 +1,7 @@
 package configuration
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
@@ -67,4 +67,17 @@ func InflateOIDCConfiguration(s *map[string]interface{}) *models.AppConfiguratio
 		out.AccessTokenExpirationMinutes = oltypes.Int32(int32(n))
 	}
 	return &out
+}
+
+func FlattenOIDCConfiguration(config *models.AppConfiguration) []map[string]interface{} {
+	return []map[string]interface{}{
+		map[string]interface{}{
+			"redirect_uri": config.RedirectURI,
+			"login_url": config.LoginURL,
+			"refresh_token_expiration_minutes": config.RefreshTokenExpirationMinutes,
+			"oidc_application_type": config.OidcApplicationType,
+			"token_endpoint_auth_method": config.TokenEndpointAuthMethod,
+			"access_token_expiration_minutes": config.AccessTokenExpirationMinutes,
+		},
+	}
 }

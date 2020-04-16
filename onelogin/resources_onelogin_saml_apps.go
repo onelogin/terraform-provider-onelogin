@@ -1,11 +1,11 @@
-package resources
+package onelogin
 
 import (
 	"fmt"
 	"log"
 	"strconv"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
@@ -77,6 +77,32 @@ func samlAppCreate(d *schema.ResourceData, m interface{}) error {
 // samlAppRead takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the GET request to OneLogin to read an samlApp with its sub-resources
 func samlAppRead(d *schema.ResourceData, m interface{}) error {
+	client := m.(*client.APIClient)
+	aid, _ := strconv.Atoi(d.Id())
+	resp, samlApp, err := client.Services.AppsV2.GetAppByID(int32(aid))
+	if err != nil {
+		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Println(err)
+		return err
+	}
+	log.Printf("[READ] Reading app with %d", *(samlApp.ID))
+	log.Println(resp)
+
+	d.Set("name", samlApp.Name)
+	d.Set("visible", samlApp.Visible)
+	d.Set("description", samlApp.Description)
+	d.Set("notes", samlApp.Notes)
+	d.Set("icon_url", samlApp.IconURL)
+	d.Set("auth_method", samlApp.AuthMethod)
+	d.Set("policy_id", samlApp.PolicyID)
+	d.Set("allow_assumed_signin", samlApp.AllowAssumedSignin)
+	d.Set("tab_id", samlApp.TabID)
+	d.Set("connector_id", samlApp.ConnectorID)
+	d.Set("created_at", samlApp.CreatedAt.String())
+	d.Set("updated_at", samlApp.UpdatedAt.String())
+	d.Set("provisioning", provisioning.Flatten(samlApp.Provisioning))
+	d.Set("parameters", parameters.Flatten(samlApp.Parameters))
+	d.Set("configuration", configuration.FlattenSAMLConfiguration(samlApp.Configuration))
 	return nil
 }
 
@@ -124,7 +150,8 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[UPDATED] Updated samlApp with %d", *(samlAppResp.ID))
 	log.Println(resp)
 	d.SetId(fmt.Sprintf("%d", *(samlAppResp.ID)))
-	return samlAppRead(d, m)
+	// return samlAppRead(d, m)
+	return nil
 }
 
 // samlAppDelete takes a pointer to the ResourceData Struct and a HTTP client and

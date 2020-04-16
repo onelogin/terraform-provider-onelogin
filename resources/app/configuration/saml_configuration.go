@@ -3,7 +3,7 @@ package configuration
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
@@ -55,4 +55,13 @@ func validSignatureAlgo(val interface{}, key string) (warns []string, errs []err
 		errs = append(errs, fmt.Errorf("signature_algorithm must be one of %v, got: %s", validOpts, v))
 	}
 	return
+}
+
+func FlattenSAMLConfiguration(config *models.AppConfiguration) []map[string]interface{} {
+	return []map[string]interface{}{
+		map[string]interface{}{
+			"provider_arn": config.ProviderArn,
+			"signature_algorithm": config.SignatureAlgorithm,
+		},
+	}
 }

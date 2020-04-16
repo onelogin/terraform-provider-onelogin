@@ -65,3 +65,39 @@ func TestInflateParameter(t *testing.T) {
 		})
 	}
 }
+
+func TestFlatten(t *testing.T){
+	t.Run("It flattens the AppParameters Struct", func(t *testing.T){
+		appParamStruct := map[string]models.AppParameters{
+			"test": models.AppParameters{
+				ID:                        oltypes.Int32(123),
+				Label:                     oltypes.String("test"),
+				UserAttributeMappings:     oltypes.String("test"),
+				UserAttributeMacros:       oltypes.String("test"),
+				AttributesTransformations: oltypes.String("test"),
+				SkipIfBlank:               oltypes.Bool(true),
+				Values:                    oltypes.String("test"),
+				DefaultValues:             oltypes.String("test"),
+				ProvisionedEntitlements:   oltypes.Bool(true),
+				SafeEntitlementsEnabled:   oltypes.Bool(true),
+			},
+		}
+		subj := Flatten(appParamStruct)
+		expected := []map[string]interface{}{
+			map[string]interface{}{
+				"param_key_name": "test",
+				"param_id": int32(123),
+				"label": "test",
+				"user_attribute_mappings": "test",
+				"user_attribute_macros": "test",
+				"attributes_transformations": "test",
+				"skip_if_blank": true,
+				"values": "test",
+				"default_values": "test",
+				"provisioned_entitlements": true,
+				"safe_entitlements_enabled": true,
+			},
+		}
+		assert.Equal(t, expected, subj)
+	})
+}
