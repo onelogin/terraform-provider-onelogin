@@ -37,5 +37,3 @@ require (
 	golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775 // indirect
 	google.golang.org/genproto v0.0.0-20200330113809-af700f360a68 // indirect
 )
-
-replace github.com/onelogin/onelogin-go-sdk => /Users/dominickcaponi/go/src/github.com/onelogin/onelogin-go-sdk
