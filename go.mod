@@ -25,7 +25,7 @@ require (
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/onelogin/onelogin-go-sdk v0.1.3
+	github.com/onelogin/onelogin-go-sdk v0.1.5
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
