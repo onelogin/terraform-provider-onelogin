@@ -29,12 +29,12 @@ func TestSAMLConfigurationSchema(t *testing.T) {
 	})
 }
 
-func TestInflateOIDCConfiguration(t *testing.T) {
+func TestInflateConfiguration(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput *models.AppConfiguration
+		ExpectedOutput models.AppConfiguration
 	}{
-		"creates and returns the address of an AppConfiguration struct": {
+		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
 			ResourceData: map[string]interface{}{
 				"redirect_uri":                     "test",
 				"refresh_token_expiration_minutes": 2,
@@ -43,7 +43,7 @@ func TestInflateOIDCConfiguration(t *testing.T) {
 				"token_endpoint_auth_method":       2,
 				"access_token_expiration_minutes":  2,
 			},
-			ExpectedOutput: &models.AppConfiguration{
+			ExpectedOutput: models.AppConfiguration{
 				RedirectURI:                   oltypes.String("test"),
 				RefreshTokenExpirationMinutes: oltypes.Int32(2),
 				LoginURL:                      oltypes.String("test"),
@@ -52,26 +52,12 @@ func TestInflateOIDCConfiguration(t *testing.T) {
 				AccessTokenExpirationMinutes:  oltypes.Int32(2),
 			},
 		},
-	}
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			subj := InflateOIDCConfiguration(&test.ResourceData)
-			assert.Equal(t, subj, test.ExpectedOutput)
-		})
-	}
-}
-
-func TestInflateSAMLConfiguration(t *testing.T) {
-	tests := map[string]struct {
-		ResourceData   map[string]interface{}
-		ExpectedOutput *models.AppConfiguration
-	}{
-		"creates and returns the address of an AppConfiguration struct": {
+		"creates and returns the address of an AppConfiguration struct for a SAML app": {
 			ResourceData: map[string]interface{}{
 				"provider_arn":        "test",
 				"signature_algorithm": "test",
 			},
-			ExpectedOutput: &models.AppConfiguration{
+			ExpectedOutput: models.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
 			},
@@ -79,8 +65,68 @@ func TestInflateSAMLConfiguration(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := InflateSAMLConfiguration(&test.ResourceData)
+			subj := Inflate(test.ResourceData)
 			assert.Equal(t, subj, test.ExpectedOutput)
+		})
+	}
+}
+
+func TestFlattenConfiguration(t *testing.T) {
+	tests := map[string]struct {
+		InputData      models.AppConfiguration
+		ExpectedOutput []map[string]interface{}
+	}{
+		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
+			InputData: models.AppConfiguration{
+				RedirectURI:                   oltypes.String("test"),
+				RefreshTokenExpirationMinutes: oltypes.Int32(2),
+				LoginURL:                      oltypes.String("test"),
+				OidcApplicationType:           oltypes.Int32(2),
+				TokenEndpointAuthMethod:       oltypes.Int32(2),
+				AccessTokenExpirationMinutes:  oltypes.Int32(2),
+			},
+			ExpectedOutput: []map[string]interface{}{
+				map[string]interface{}{
+					"redirect_uri":                     oltypes.String("test"),
+					"refresh_token_expiration_minutes": oltypes.Int32(2),
+					"login_url":                        oltypes.String("test"),
+					"oidc_application_type":            oltypes.Int32(2),
+					"token_endpoint_auth_method":       oltypes.Int32(2),
+					"access_token_expiration_minutes":  oltypes.Int32(2),
+				},
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			subj := FlattenOIDCConfig(test.InputData)
+			assert.Equal(t, test.ExpectedOutput, subj)
+		})
+	}
+}
+
+func TestFlattenSAMLConfiguration(t *testing.T) {
+	tests := map[string]struct {
+		InputData      models.AppConfiguration
+		ExpectedOutput []map[string]interface{}
+	}{
+		"creates and returns the address of an AppConfiguration struct for a SAML app": {
+			InputData: models.AppConfiguration{
+				ProviderArn:        oltypes.String("test"),
+				SignatureAlgorithm: oltypes.String("test"),
+			},
+			ExpectedOutput: []map[string]interface{}{
+				map[string]interface{}{
+					"provider_arn":        oltypes.String("test"),
+					"signature_algorithm": oltypes.String("test"),
+				},
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			subj := FlattenSAMLConfig(test.InputData)
+			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}
 }

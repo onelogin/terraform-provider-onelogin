@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
@@ -32,45 +31,27 @@ func OneloginOIDCApps() *schema.Resource {
 // oidcAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an oidcApp with its sub-resources
 func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
-	appData := map[string]interface{}{
+	oidcApp := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
 		"connector_id":         d.Get("connector_id"),
 		"visible":              d.Get("visible"),
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-	}
-
-	oidcApp := app.InflateApp(&appData)
-
-	if paramsList, isSet := d.GetOk("parameters"); isSet {
-		oidcApp.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, val := range paramsList.(*schema.Set).List() {
-			valMap := val.(map[string]interface{})
-			oidcApp.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
-		}
-	}
-
-	for _, val := range d.Get("provisioning").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		oidcApp.Provisioning = provisioning.InflateProvisioning(&valMap)
-	}
-
-	for _, val := range d.Get("configuration").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		oidcApp.Configuration = configuration.InflateOIDCConfiguration(&valMap)
-	}
-
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+	})
 	client := m.(*client.APIClient)
-	resp, oidcAppResp, err := client.Services.AppsV2.CreateApp(&oidcApp)
+	resp, appResp, err := client.Services.AppsV2.CreateApp(&oidcApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the oidcApp!")
+		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[CREATED] Created oidcApp with %d", *(oidcAppResp.ID))
+	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(oidcAppResp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return oidcAppRead(d, m)
 }
 
@@ -79,77 +60,69 @@ func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
 func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 	aid, _ := strconv.Atoi(d.Id())
-	resp, oidcApp, err := client.Services.AppsV2.GetAppByID(int32(aid))
+	resp, app, err := client.Services.AppsV2.GetAppByID(int32(aid))
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Printf("[ERROR] There was a problem reading the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[READ] Reading app with %d", *(oidcApp.ID))
+	if app == nil {
+		d.SetId("")
+		return nil
+	}
+	log.Printf("[READ] Reading app with %d", *(app.ID))
 	log.Println(resp)
 
-	d.Set("name", oidcApp.Name)
-	d.Set("visible", oidcApp.Visible)
-	d.Set("description", oidcApp.Description)
-	d.Set("notes", oidcApp.Notes)
-	d.Set("icon_url", oidcApp.IconURL)
-	d.Set("auth_method", oidcApp.AuthMethod)
-	d.Set("policy_id", oidcApp.PolicyID)
-	d.Set("allow_assumed_signin", oidcApp.AllowAssumedSignin)
-	d.Set("tab_id", oidcApp.TabID)
-	d.Set("connector_id", oidcApp.ConnectorID)
-	d.Set("created_at", oidcApp.CreatedAt.String())
-	d.Set("updated_at", oidcApp.UpdatedAt.String())
-	d.Set("provisioning", provisioning.Flatten(oidcApp.Provisioning))
-	d.Set("parameters", parameters.Flatten(oidcApp.Parameters))
-	d.Set("configuration", configuration.FlattenOIDCConfiguration(oidcApp.Configuration))
+	d.Set("name", app.Name)
+	d.Set("visible", app.Visible)
+	d.Set("description", app.Description)
+	d.Set("notes", app.Notes)
+	d.Set("icon_url", app.IconURL)
+	d.Set("auth_method", app.AuthMethod)
+	d.Set("policy_id", app.PolicyID)
+	d.Set("allow_assumed_signin", app.AllowAssumedSignin)
+	d.Set("tab_id", app.TabID)
+	d.Set("connector_id", app.ConnectorID)
+	d.Set("created_at", app.CreatedAt.String())
+	d.Set("updated_at", app.UpdatedAt.String())
+	d.Set("parameters", parameters.Flatten(app.Parameters))
+	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
+	d.Set("configuration", configuration.FlattenOIDCConfig(*app.Configuration))
+
 	return nil
 }
 
 // oidcAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an oidcApp and its sub-resources
 func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
-	appData := map[string]interface{}{
+	oidcApp := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
 		"connector_id":         d.Get("connector_id"),
 		"visible":              d.Get("visible"),
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-	}
-
-	oidcApp := app.InflateApp(&appData)
-
-	if paramsList, isSet := d.GetOk("parameters"); isSet {
-		oidcApp.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, val := range paramsList.(*schema.Set).List() {
-			valMap := val.(map[string]interface{})
-			oidcApp.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
-		}
-	}
-
-	for _, val := range d.Get("provisioning").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		oidcApp.Provisioning = provisioning.InflateProvisioning(&valMap)
-	}
-
-	for _, val := range d.Get("configuration").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		oidcApp.Configuration = configuration.InflateOIDCConfiguration(&valMap)
-	}
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+	})
 
 	aid, _ := strconv.Atoi(d.Id())
-
 	client := m.(*client.APIClient)
-	resp, oidcAppResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &oidcApp)
+
+	resp, appResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &oidcApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the oidcApp!")
+		log.Printf("[ERROR] There was a problem updating the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[UPDATED] Updated oidcApp with %d", *(oidcAppResp.ID))
+	if appResp == nil { // app must be deleted in api so remove from tf state
+		d.SetId("")
+		return nil
+	}
+	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(oidcAppResp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return oidcAppRead(d, m)
 }
 

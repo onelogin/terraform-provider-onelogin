@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
@@ -34,25 +33,15 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 		"connector_id":         d.Get("connector_id"),
 		"visible":              d.Get("visible"),
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
 	}
 
-	app := app.InflateApp(&appData)
-
-	if paramsList, isSet := d.GetOk("parameters"); isSet {
-		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, val := range paramsList.(*schema.Set).List() {
-			valMap := val.(map[string]interface{})
-			app.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
-		}
-	}
-
-	for _, val := range d.Get("provisioning").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		app.Provisioning = provisioning.InflateProvisioning(&valMap)
-	}
+	basicApp := app.Inflate(appData)
 
 	client := m.(*client.APIClient)
-	resp, appResp, err := client.Services.AppsV2.CreateApp(&app)
+	resp, appResp, err := client.Services.AppsV2.CreateApp(&basicApp)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
@@ -61,8 +50,7 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
 	log.Println(resp)
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-	// return appRead(d, m)
-	return nil
+	return appRead(d, m)
 }
 
 // appRead takes a pointer to the ResourceData Struct and a HTTP client and
@@ -72,9 +60,13 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 	aid, _ := strconv.Atoi(d.Id())
 	resp, app, err := client.Services.AppsV2.GetAppByID(int32(aid))
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Printf("[ERROR] There was a problem reading the app!")
 		log.Println(err)
 		return err
+	}
+	if app == nil {
+		d.SetId("")
+		return nil
 	}
 	log.Printf("[READ] Reading app with %d", *(app.ID))
 	log.Println(resp)
@@ -91,8 +83,9 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("connector_id", app.ConnectorID)
 	d.Set("created_at", app.CreatedAt.String())
 	d.Set("updated_at", app.UpdatedAt.String())
-	d.Set("provisioning", provisioning.Flatten(app.Provisioning))
 	d.Set("parameters", parameters.Flatten(app.Parameters))
+	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
+
 	return nil
 }
 
@@ -106,28 +99,18 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 		"connector_id":         d.Get("connector_id"),
 		"visible":              d.Get("visible"),
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
 	}
 
-	app := app.InflateApp(&appData)
-
-	if paramsList, isSet := d.GetOk("parameters"); isSet {
-		app.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, val := range paramsList.(*schema.Set).List() {
-			valMap := val.(map[string]interface{})
-			app.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
-		}
-	}
-
-	for _, val := range d.Get("provisioning").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		app.Provisioning = provisioning.InflateProvisioning(&valMap)
-	}
 	aid, _ := strconv.Atoi(d.Id())
+	basicApp := app.Inflate(appData)
 
 	client := m.(*client.APIClient)
-	resp, appResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &app)
+	resp, appResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &basicApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Printf("[ERROR] There was a problem updating the app!")
 		log.Println(err)
 		return err
 	}
@@ -135,18 +118,17 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 	log.Println(resp)
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return appRead(d, m)
-	// return nil
 }
 
 // appDelete takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the DELETE request to OneLogin to delete an App and its sub-resources
 func appDelete(d *schema.ResourceData, m interface{}) error {
 	aid, _ := strconv.Atoi(d.Id())
-
 	client := m.(*client.APIClient)
+
 	resp, err := client.Services.AppsV2.DeleteApp(int32(aid))
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Printf("[ERROR] There was a problem deleting the app!")
 		log.Println(err)
 	} else {
 		log.Printf("[DELETED] Deleted app with %d", aid)

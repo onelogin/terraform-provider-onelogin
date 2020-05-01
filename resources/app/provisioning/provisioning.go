@@ -19,15 +19,15 @@ func ProvisioningSchema() map[string]*schema.Schema {
 
 // InflateAppProvisioning takes a key/value map of interfaces and uses the fields to construct
 // a AppProvisioning struct, a sub-field of a OneLogin App.
-func InflateProvisioning(s *map[string]interface{}) *models.AppProvisioning {
+func Inflate(s map[string]interface{}) models.AppProvisioning {
 	out := models.AppProvisioning{}
-	if enb, notNil := (*s)["enabled"].(bool); notNil {
+	if enb, notNil := s["enabled"].(bool); notNil {
 		out.Enabled = oltypes.Bool(enb)
 	}
-	return &out
+	return out
 }
 
-func Flatten(prov *models.AppProvisioning) []map[string]interface{} {
+func Flatten(prov models.AppProvisioning) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"enabled": *prov.Enabled,

@@ -6,6 +6,21 @@ import (
 
 // AppConfiguration returns a key/value map of the various fields that make up
 // the AppConfiguration field for a OneLogin App.
+func OIDCSSOSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"client_id": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"client_secret": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+	}
+}
+
+// AppConfiguration returns a key/value map of the various fields that make up
+// the AppConfiguration field for a OneLogin App.
 func SAMLSSOSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"acs_url": &schema.Schema{

@@ -9,6 +9,7 @@ PLUGINS_DIR=~/.terraform.d/plugins
 
 clean:
 	rm -r ${DIST_DIR}
+	rm -r ${PLUGINS_DIR}
 
 clean-terraform:
 	rm terraform.*
@@ -32,4 +33,4 @@ tp:
 	terraform plan
 
 ta:
-	terraform apply
+	terraform apply -auto-approve

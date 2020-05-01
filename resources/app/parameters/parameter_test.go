@@ -60,14 +60,14 @@ func TestInflateParameter(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := InflateParameter(&test.ResourceData)
+			subj := Inflate(test.ResourceData)
 			assert.Equal(t, subj, test.ExpectedOutput)
 		})
 	}
 }
 
-func TestFlatten(t *testing.T){
-	t.Run("It flattens the AppParameters Struct", func(t *testing.T){
+func TestFlatten(t *testing.T) {
+	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
 		appParamStruct := map[string]models.AppParameters{
 			"test": models.AppParameters{
 				ID:                        oltypes.Int32(123),
@@ -85,17 +85,17 @@ func TestFlatten(t *testing.T){
 		subj := Flatten(appParamStruct)
 		expected := []map[string]interface{}{
 			map[string]interface{}{
-				"param_key_name": "test",
-				"param_id": oltypes.Int32(123),
-				"label": oltypes.String("test"),
-				"user_attribute_mappings": oltypes.String("test"),
-				"user_attribute_macros": oltypes.String("test"),
+				"param_key_name":             "test",
+				"param_id":                   oltypes.Int32(123),
+				"label":                      oltypes.String("test"),
+				"user_attribute_mappings":    oltypes.String("test"),
+				"user_attribute_macros":      oltypes.String("test"),
 				"attributes_transformations": oltypes.String("test"),
-				"skip_if_blank": oltypes.Bool(true),
-				"values": oltypes.String("test"),
-				"default_values": oltypes.String("test"),
-				"provisioned_entitlements": oltypes.Bool(true),
-				"safe_entitlements_enabled": oltypes.Bool(true),
+				"skip_if_blank":              oltypes.Bool(true),
+				"values":                     oltypes.String("test"),
+				"default_values":             oltypes.String("test"),
+				"provisioned_entitlements":   oltypes.Bool(true),
+				"safe_entitlements_enabled":  oltypes.Bool(true),
 			},
 		}
 		assert.Equal(t, expected, subj)

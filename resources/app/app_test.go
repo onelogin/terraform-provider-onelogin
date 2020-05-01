@@ -32,17 +32,17 @@ func TestAppSchema(t *testing.T) {
 func TestAddSubSchema(t *testing.T) {
 	t.Run("adds sub schema to given resrouce schema", func(t *testing.T) {
 		appSchema := AppSchema()
-		AddSubSchema("sub", &appSchema, configuration.SAMLConfigurationSchema)
+		AddSubSchema("sub", &appSchema, configuration.OIDCConfigurationSchema)
 		assert.NotNil(t, appSchema["sub"])
 	})
 }
 
-func TestInflateApp(t *testing.T) {
+func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
 		ExpectedOutput models.App
 	}{
-		"creates and returns the address of an AppParameters struct": {
+		"creates and returns the address of an AppParameters struct with all sub-fiekds": {
 			ResourceData: map[string]interface{}{
 				"name":                 "test",
 				"visible":              true,
@@ -50,6 +50,32 @@ func TestInflateApp(t *testing.T) {
 				"notes":                "test",
 				"allow_assumed_signin": true,
 				"connector_id":         123,
+				"parameters": []interface{}{
+					map[string]interface{}{
+						"param_key_name":             "test",
+						"param_id":                   123,
+						"label":                      "test",
+						"user_attribute_mappings":    "test",
+						"user_attribute_macros":      "test",
+						"attributes_transformations": "test",
+						"default_values":             "test",
+						"skip_if_blank":              true,
+						"values":                     "test",
+						"provisioned_entitlements":   true,
+						"safe_entitlements_enabled":  true,
+					},
+				},
+				"provisioning": []interface{}{
+					map[string]interface{}{
+						"enabled": true,
+					},
+				},
+				"configuration": []interface{}{
+					map[string]interface{}{
+						"provider_arn":        "test",
+						"signature_algorithm": "test",
+					},
+				},
 			},
 			ExpectedOutput: models.App{
 				Name:               oltypes.String("test"),
@@ -58,12 +84,33 @@ func TestInflateApp(t *testing.T) {
 				Notes:              oltypes.String("test"),
 				AllowAssumedSignin: oltypes.Bool(true),
 				ConnectorID:        oltypes.Int32(123),
+				Parameters: map[string]models.AppParameters{
+					"test": models.AppParameters{
+						ID:                        oltypes.Int32(123),
+						Label:                     oltypes.String("test"),
+						UserAttributeMappings:     oltypes.String("test"),
+						UserAttributeMacros:       oltypes.String("test"),
+						AttributesTransformations: oltypes.String("test"),
+						DefaultValues:             oltypes.String("test"),
+						SkipIfBlank:               oltypes.Bool(true),
+						Values:                    oltypes.String("test"),
+						ProvisionedEntitlements:   oltypes.Bool(true),
+						SafeEntitlementsEnabled:   oltypes.Bool(true),
+					},
+				},
+				Provisioning: &models.AppProvisioning{
+					Enabled: oltypes.Bool(true),
+				},
+				Configuration: &models.AppConfiguration{
+					ProviderArn:        oltypes.String("test"),
+					SignatureAlgorithm: oltypes.String("test"),
+				},
 			},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := InflateApp(&test.ResourceData)
+			subj := Inflate(test.ResourceData)
 			assert.Equal(t, subj, test.ExpectedOutput)
 		})
 	}

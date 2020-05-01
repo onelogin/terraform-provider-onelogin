@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
@@ -32,45 +31,27 @@ func OneloginSAMLApps() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an samlApp with its sub-resources
 func samlAppCreate(d *schema.ResourceData, m interface{}) error {
-	appData := map[string]interface{}{
+	samlApp := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
 		"connector_id":         d.Get("connector_id"),
 		"visible":              d.Get("visible"),
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-	}
-
-	samlApp := app.InflateApp(&appData)
-
-	if paramsList, isSet := d.GetOk("parameters"); isSet {
-		samlApp.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, val := range paramsList.(*schema.Set).List() {
-			valMap := val.(map[string]interface{})
-			samlApp.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
-		}
-	}
-
-	for _, val := range d.Get("provisioning").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		samlApp.Provisioning = provisioning.InflateProvisioning(&valMap)
-	}
-
-	for _, val := range d.Get("configuration").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		samlApp.Configuration = configuration.InflateSAMLConfiguration(&valMap)
-	}
-
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+	})
 	client := m.(*client.APIClient)
-	resp, samlAppResp, err := client.Services.AppsV2.CreateApp(&samlApp)
+	resp, appResp, err := client.Services.AppsV2.CreateApp(&samlApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the samlApp!")
+		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[CREATED] Created samlApp with %d", *(samlAppResp.ID))
+	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(samlAppResp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return samlAppRead(d, m)
 }
 
@@ -79,79 +60,70 @@ func samlAppCreate(d *schema.ResourceData, m interface{}) error {
 func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 	aid, _ := strconv.Atoi(d.Id())
-	resp, samlApp, err := client.Services.AppsV2.GetAppByID(int32(aid))
+	resp, app, err := client.Services.AppsV2.GetAppByID(int32(aid))
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
+		log.Printf("[ERROR] There was a problem reading the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[READ] Reading app with %d", *(samlApp.ID))
+	if app == nil {
+		d.SetId("")
+		return nil
+	}
+	log.Printf("[READ] Reading app with %d", *(app.ID))
 	log.Println(resp)
 
-	d.Set("name", samlApp.Name)
-	d.Set("visible", samlApp.Visible)
-	d.Set("description", samlApp.Description)
-	d.Set("notes", samlApp.Notes)
-	d.Set("icon_url", samlApp.IconURL)
-	d.Set("auth_method", samlApp.AuthMethod)
-	d.Set("policy_id", samlApp.PolicyID)
-	d.Set("allow_assumed_signin", samlApp.AllowAssumedSignin)
-	d.Set("tab_id", samlApp.TabID)
-	d.Set("connector_id", samlApp.ConnectorID)
-	d.Set("created_at", samlApp.CreatedAt.String())
-	d.Set("updated_at", samlApp.UpdatedAt.String())
-	d.Set("provisioning", provisioning.Flatten(samlApp.Provisioning))
-	d.Set("parameters", parameters.Flatten(samlApp.Parameters))
-	d.Set("configuration", configuration.FlattenSAMLConfiguration(samlApp.Configuration))
+	d.Set("name", app.Name)
+	d.Set("visible", app.Visible)
+	d.Set("description", app.Description)
+	d.Set("notes", app.Notes)
+	d.Set("icon_url", app.IconURL)
+	d.Set("auth_method", app.AuthMethod)
+	d.Set("policy_id", app.PolicyID)
+	d.Set("allow_assumed_signin", app.AllowAssumedSignin)
+	d.Set("tab_id", app.TabID)
+	d.Set("connector_id", app.ConnectorID)
+	d.Set("created_at", app.CreatedAt.String())
+	d.Set("updated_at", app.UpdatedAt.String())
+	d.Set("parameters", parameters.Flatten(app.Parameters))
+	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
+	d.Set("configuration", configuration.FlattenSAMLConfig(*app.Configuration))
+
 	return nil
 }
 
 // samlAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
-	appData := map[string]interface{}{
+	samlApp := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
 		"connector_id":         d.Get("connector_id"),
 		"visible":              d.Get("visible"),
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-	}
-
-	samlApp := app.InflateApp(&appData)
-
-	if paramsList, isSet := d.GetOk("parameters"); isSet {
-		samlApp.Parameters = make(map[string]models.AppParameters, len(paramsList.(*schema.Set).List()))
-		for _, val := range paramsList.(*schema.Set).List() {
-			valMap := val.(map[string]interface{})
-			samlApp.Parameters[valMap["param_key_name"].(string)] = parameters.InflateParameter(&valMap)
-		}
-	}
-
-	for _, val := range d.Get("provisioning").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		samlApp.Provisioning = provisioning.InflateProvisioning(&valMap)
-	}
-
-	for _, val := range d.Get("configuration").(*schema.Set).List() {
-		valMap := val.(map[string]interface{})
-		samlApp.Configuration = configuration.InflateSAMLConfiguration(&valMap)
-	}
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+	})
 
 	aid, _ := strconv.Atoi(d.Id())
-
 	client := m.(*client.APIClient)
-	resp, samlAppResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &samlApp)
+
+	resp, appResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &samlApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the samlApp!")
+		log.Printf("[ERROR] There was a problem updating the app!")
 		log.Println(err)
 		return err
 	}
-	log.Printf("[UPDATED] Updated samlApp with %d", *(samlAppResp.ID))
+	if appResp == nil { // app must be deleted in api so remove from tf state
+		d.SetId("")
+		return nil
+	}
+	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))
 	log.Println(resp)
-	d.SetId(fmt.Sprintf("%d", *(samlAppResp.ID)))
-	// return samlAppRead(d, m)
-	return nil
+	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+	return samlAppRead(d, m)
 }
 
 // samlAppDelete takes a pointer to the ResourceData Struct and a HTTP client and

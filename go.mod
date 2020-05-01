@@ -5,7 +5,7 @@ go 1.12
 require (
 	cloud.google.com/go v0.55.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/aws/aws-sdk-go v1.30.0
+	github.com/aws/aws-sdk-go v1.30.12
 	github.com/bmatcuk/doublestar v1.2.2 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/hashicorp/go-hclog v0.12.1 // indirect
@@ -27,15 +27,14 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/onelogin/onelogin-go-sdk v0.1.3
 	github.com/posener/complete v1.2.3 // indirect
+	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/ulikunitz/xz v0.5.7 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
-	github.com/zclconf/go-cty v1.3.1 // indirect
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59 // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775 // indirect
-	golang.org/x/tools v0.0.0-20200330191527-657a652153b5 // indirect
 	google.golang.org/genproto v0.0.0-20200330113809-af700f360a68 // indirect
 )
 

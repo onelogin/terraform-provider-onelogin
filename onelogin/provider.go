@@ -56,10 +56,10 @@ func configProvider(d *schema.ResourceData) (interface{}, error) {
 	region := d.Get("region").(string)
 	url := d.Get("url").(string)
 
-	// timeout := client.DefaultTimeout
+	timeout := client.DefaultTimeout
 
 	oneloginClient, err := client.NewClient(&client.APIClientConfig{
-		Timeout:      120000,
+		Timeout:      timeout,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Region:       region,
