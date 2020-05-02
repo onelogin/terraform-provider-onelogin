@@ -1,0 +1,18 @@
+on: [push, pull_request]
+name: CI
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Format
+      run: go fmt ./...
+    - name: Build
+      run: go build ./...
+    - name: Vet
+      run: go vet ./...
+    - name: Test
+      run: go test ./...
