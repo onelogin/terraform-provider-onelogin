@@ -10,7 +10,7 @@ import (
 
 func TestParameterSchema(t *testing.T) {
 	t.Run("creates and returns a map of an AppParameter Schema", func(t *testing.T) {
-		schema := ParameterSchema()
+		schema := Schema()
 		assert.NotNil(t, schema["param_key_name"])
 		assert.NotNil(t, schema["param_id"])
 		assert.NotNil(t, schema["label"])

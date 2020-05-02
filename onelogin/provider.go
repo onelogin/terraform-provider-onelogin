@@ -40,9 +40,9 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"onelogin_apps":      OneloginApps(),
-			"onelogin_oidc_apps": OneloginOIDCApps(),
-			"onelogin_saml_apps": OneloginSAMLApps(),
+			"onelogin_apps":      Apps(),
+			"onelogin_oidc_apps": OIDCApps(),
+			"onelogin_saml_apps": SAMLApps(),
 		},
 		ConfigureFunc: configProvider,
 	}

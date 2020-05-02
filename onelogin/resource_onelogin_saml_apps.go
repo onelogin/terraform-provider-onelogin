@@ -14,23 +14,23 @@ import (
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/sso"
 )
 
-// OneloginSAMLApps attaches additional configuration and sso schemas and
+// SAMLApps attaches additional configuration and sso schemas and
 // returns a resource with the CRUD methods and Terraform Schema defined
-func OneloginSAMLApps() *schema.Resource {
-	appSchema := app.AppSchema()
+func SAMLApps() *schema.Resource {
+	appSchema := app.Schema()
 	appSchema["configuration"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: configuration.SAMLConfigurationSchema()},
+		Elem:     &schema.Resource{Schema: configuration.SAMLSchema()},
 	}
 	appSchema["sso"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: sso.SAMLSSOSchema()},
+		Elem:     &schema.Resource{Schema: sso.SAMLSchema()},
 	}
 
 	return &schema.Resource{
@@ -101,8 +101,8 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("updated_at", app.UpdatedAt.String())
 	d.Set("parameters", parameters.Flatten(app.Parameters))
 	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
-	d.Set("configuration", configuration.FlattenSAMLConfig(*app.Configuration))
-	d.Set("sso", sso.FlattenSAMLSSO(*app.Sso))
+	d.Set("configuration", configuration.FlattenSAML(*app.Configuration))
+	d.Set("sso", sso.FlattenSAML(*app.Sso))
 
 	return nil
 }

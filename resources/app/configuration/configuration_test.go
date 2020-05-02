@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOIDCConfigurationSchema(t *testing.T) {
+func TestOIDCSchema(t *testing.T) {
 	t.Run("creates and returns a map of an AppConfiguration Schema", func(t *testing.T) {
-		schema := OIDCConfigurationSchema()
+		schema := OIDCSchema()
 		assert.NotNil(t, schema["redirect_uri"])
 		assert.NotNil(t, schema["refresh_token_expiration_minutes"])
 		assert.NotNil(t, schema["login_url"])
@@ -21,9 +21,9 @@ func TestOIDCConfigurationSchema(t *testing.T) {
 	})
 }
 
-func TestSAMLConfigurationSchema(t *testing.T) {
+func TestSAMLSchema(t *testing.T) {
 	t.Run("creates and returns a map of an AppConfiguration Schema", func(t *testing.T) {
-		schema := SAMLConfigurationSchema()
+		schema := SAMLSchema()
 		assert.NotNil(t, schema["provider_arn"])
 		assert.NotNil(t, schema["signature_algorithm"])
 	})
@@ -99,7 +99,7 @@ func TestFlattenConfiguration(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := FlattenOIDCConfig(test.InputData)
+			subj := FlattenOIDC(test.InputData)
 			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}
@@ -125,7 +125,7 @@ func TestFlattenSAMLConfiguration(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := FlattenSAMLConfig(test.InputData)
+			subj := FlattenSAML(test.InputData)
 			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}

@@ -10,7 +10,7 @@ import (
 
 func TestProvisioningSchema(t *testing.T) {
 	t.Run("creates and returns a map of an AppProvisioning Schema", func(t *testing.T) {
-		provSchema := ProvisioningSchema()
+		provSchema := Schema()
 		assert.NotNil(t, provSchema["enabled"])
 	})
 }

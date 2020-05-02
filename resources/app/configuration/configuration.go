@@ -8,9 +8,9 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
-// OIDCConfigurationSchema returns a key/value map of the various fields that make up
+// OIDCSchema returns a key/value map of the various fields that make up
 // the Configuration field for a OneLogin OIDC App.
-func OIDCConfigurationSchema() map[string]*schema.Schema {
+func OIDCSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"redirect_uri": &schema.Schema{
 			Type:     schema.TypeString,
@@ -47,7 +47,7 @@ func OIDCConfigurationSchema() map[string]*schema.Schema {
 
 // SAMLConfigurationSchema returns a key/value map of the various fields that make up
 // the Configuration field for a OneLogin SAML App.
-func SAMLConfigurationSchema() map[string]*schema.Schema {
+func SAMLSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"certificate_id": &schema.Schema{
 			Type:     schema.TypeInt,
@@ -120,9 +120,9 @@ func Inflate(s map[string]interface{}) models.AppConfiguration {
 	return out
 }
 
-// FlattenOIDCConfig takes an instance of AppConfiguration and return an array of
+// FlattenOIDC takes an instance of AppConfiguration and return an array of
 // maps. Fields differ depending on if the app is a SAML or OIDC app.
-func FlattenOIDCConfig(config models.AppConfiguration) []map[string]interface{} {
+func FlattenOIDC(config models.AppConfiguration) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"redirect_uri":                     config.RedirectURI,
@@ -135,9 +135,9 @@ func FlattenOIDCConfig(config models.AppConfiguration) []map[string]interface{} 
 	}
 }
 
-// FlattenSAMLConfig takes an instance of AppConfiguration and return an array of
+// FlattenSAML takes an instance of AppConfiguration and return an array of
 // maps. Fields differ depending on if the app is a SAML or OIDC app.
-func FlattenSAMLConfig(config models.AppConfiguration) []map[string]interface{} {
+func FlattenSAML(config models.AppConfiguration) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"provider_arn":        config.ProviderArn,

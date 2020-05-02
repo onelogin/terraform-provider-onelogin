@@ -14,23 +14,23 @@ import (
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/sso"
 )
 
-// OneloginOIDCApps attaches additional configuration and sso schemas and
+// OIDCApps attaches additional configuration and sso schemas and
 // returns a resource with the CRUD methods and Terraform Schema defined
-func OneloginOIDCApps() *schema.Resource {
-	appSchema := app.AppSchema()
+func OIDCApps() *schema.Resource {
+	appSchema := app.Schema()
 	appSchema["configuration"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: configuration.OIDCConfigurationSchema()},
+		Elem:     &schema.Resource{Schema: configuration.OIDCSchema()},
 	}
 	appSchema["sso"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: sso.OIDCSSOSchema()},
+		Elem:     &schema.Resource{Schema: sso.OIDCSchema()},
 	}
 
 	return &schema.Resource{
@@ -101,8 +101,8 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("updated_at", app.UpdatedAt.String())
 	d.Set("parameters", parameters.Flatten(app.Parameters))
 	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
-	d.Set("configuration", configuration.FlattenOIDCConfig(*app.Configuration))
-	d.Set("sso", sso.FlattenOIDCSSO(*app.Sso))
+	d.Set("configuration", configuration.FlattenOIDC(*app.Configuration))
+	d.Set("sso", sso.FlattenOIDC(*app.Sso))
 
 	return nil
 }

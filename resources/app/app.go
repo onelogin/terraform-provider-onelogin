@@ -9,8 +9,8 @@ import (
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
 )
 
-// App returns a key/value map of the various fields that make up an App at OneLogin.
-func AppSchema() map[string]*schema.Schema {
+// Schema returns a key/value map of the various fields that make up an App at OneLogin.
+func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
 			Type:     schema.TypeString,
@@ -69,7 +69,7 @@ func AppSchema() map[string]*schema.Schema {
 			Computed: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
-				Schema: provisioning.ProvisioningSchema(),
+				Schema: provisioning.Schema(),
 			},
 		},
 		"parameters": &schema.Schema{
@@ -77,7 +77,7 @@ func AppSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 			Elem: &schema.Resource{
-				Schema: parameters.ParameterSchema(),
+				Schema: parameters.Schema(),
 			},
 		},
 	}
