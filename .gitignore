@@ -1,4 +1,4 @@
-*.tf
+main.tf
 *.tfstate
 *.tfstate.*
 *.log
