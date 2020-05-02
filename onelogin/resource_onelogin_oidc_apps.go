@@ -102,6 +102,7 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("parameters", parameters.Flatten(app.Parameters))
 	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
 	d.Set("configuration", configuration.FlattenOIDCConfig(*app.Configuration))
+	d.Set("sso", sso.FlattenOIDCSSO(*app.Sso))
 
 	return nil
 }

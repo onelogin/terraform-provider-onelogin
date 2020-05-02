@@ -102,6 +102,7 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("parameters", parameters.Flatten(app.Parameters))
 	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
 	d.Set("configuration", configuration.FlattenSAMLConfig(*app.Configuration))
+	d.Set("sso", sso.FlattenSAMLSSO(*app.Sso))
 
 	return nil
 }
