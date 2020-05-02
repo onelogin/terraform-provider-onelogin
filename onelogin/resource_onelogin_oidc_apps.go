@@ -18,8 +18,20 @@ import (
 // returns a resource with the CRUD methods and Terraform Schema defined
 func OneloginOIDCApps() *schema.Resource {
 	appSchema := app.AppSchema()
-	app.AddSubSchema("configuration", &appSchema, configuration.OIDCConfigurationSchema)
-	app.AddSubSchema("sso", &appSchema, sso.OIDCSSOSchema)
+	appSchema["configuration"] = &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Computed: true,
+		Elem:     &schema.Resource{Schema: configuration.OIDCConfigurationSchema()},
+	}
+	appSchema["sso"] = &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Computed: true,
+		Elem:     &schema.Resource{Schema: sso.OIDCSSOSchema()},
+	}
 
 	return &schema.Resource{
 		Create: oidcAppCreate,

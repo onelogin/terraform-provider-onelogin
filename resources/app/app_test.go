@@ -5,7 +5,6 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,14 +25,6 @@ func TestAppSchema(t *testing.T) {
 		assert.NotNil(t, schema["updated_at"])
 		assert.NotNil(t, schema["provisioning"])
 		assert.NotNil(t, schema["parameters"])
-	})
-}
-
-func TestAddSubSchema(t *testing.T) {
-	t.Run("adds sub schema to given resrouce schema", func(t *testing.T) {
-		appSchema := AppSchema()
-		AddSubSchema("sub", &appSchema, configuration.OIDCConfigurationSchema)
-		assert.NotNil(t, appSchema["sub"])
 	})
 }
 

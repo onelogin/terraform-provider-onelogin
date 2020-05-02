@@ -18,8 +18,20 @@ import (
 // returns a resource with the CRUD methods and Terraform Schema defined
 func OneloginSAMLApps() *schema.Resource {
 	appSchema := app.AppSchema()
-	app.AddSubSchema("configuration", &appSchema, configuration.SAMLConfigurationSchema)
-	app.AddSubSchema("sso", &appSchema, sso.SAMLSSOSchema)
+	appSchema["configuration"] = &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Computed: true,
+		Elem:     &schema.Resource{Schema: configuration.SAMLConfigurationSchema()},
+	}
+	appSchema["sso"] = &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Computed: true,
+		Elem:     &schema.Resource{Schema: sso.SAMLSSOSchema()},
+	}
 
 	return &schema.Resource{
 		Create: samlAppCreate,
