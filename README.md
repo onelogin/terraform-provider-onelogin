@@ -1,15 +1,15 @@
 # Onelogin Terraform Provider SDK
-Custom terraform provider for onelogin
+Custom terraform provider for OneLogin
 
 # Prerequisites
     1) Install Golang
-    2) Install Terraform v0.12.2
+    2) Install Terraform v0.12.24 or later
     3) Install code dependencies
 
 # Getting Started
-1) In the ./onelogin-terraform-provider folder run:
+1) In the ./onelogin-terraform-provider directory run:
     ```
-    make compile
+    make sideload
     ```
 2) You are ready to use the provider, just follow the terraform commands!
 
@@ -44,8 +44,7 @@ Computed fields are set by the API and cannot be set via Terraform
 
 ### Parameter Sub Field
 *Known Issue* - Parameters are tracked as completely separate entities in the OneLogin API.
-Currently only adding new/additional parameters permitted is permitted here as their lifecycle methods
-Have not yet been implemented. Removing or Changing a parameter will NOT affect the state of the App resource. 
+Currently only adding new/additional parameters permitted is permitted here as their lifecycle methods Have not yet been implemented. Removing or Changing a parameter will NOT affect the state of the App resource as of v0.0.1.
 
 1) param_key_name [string] *required*
 2) param_id [int] *computed*
@@ -122,7 +121,24 @@ To add a package:
 go get -u "package-name"
 ```
 
-# Folder Structure
+To re-install dependencies for this project:
+```
+rm go.sum
+go mod download
+```
 
-    /cmd
-        Main applications for project (main file for the app)
+To update dependencies for this project:
+```
+go mod -u ./...
+```
+
+# Running Tests
+Standard Go Way:
+```
+go test ./... -v -cover
+```
+
+Including Terraform Acceptance Tests
+```
+TF_ACC=1 go test ./... -v -cover
+```

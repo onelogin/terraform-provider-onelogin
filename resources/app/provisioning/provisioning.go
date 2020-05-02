@@ -6,8 +6,8 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
-// AppProvisioning returns a key/value map of the various fields that make up
-// the AppProvisioning field for a OneLogin App.
+// ProvisioningSchema returns a key/value map of the various fields that make up
+// the Provisioning field for a OneLogin App.
 func ProvisioningSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"enabled": &schema.Schema{
@@ -17,7 +17,7 @@ func ProvisioningSchema() map[string]*schema.Schema {
 	}
 }
 
-// InflateAppProvisioning takes a key/value map of interfaces and uses the fields to construct
+// Inflate takes a key/value map of interfaces and uses the fields to construct
 // a AppProvisioning struct, a sub-field of a OneLogin App.
 func Inflate(s map[string]interface{}) models.AppProvisioning {
 	out := models.AppProvisioning{}
@@ -27,6 +27,7 @@ func Inflate(s map[string]interface{}) models.AppProvisioning {
 	return out
 }
 
+// Flatten takes a AppProvisioning instance and converts it to an array of maps
 func Flatten(prov models.AppProvisioning) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{

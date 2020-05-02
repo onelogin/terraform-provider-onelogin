@@ -8,8 +8,8 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
-// AppConfiguration returns a key/value map of the various fields that make up
-// the AppConfiguration field for a OneLogin App.
+// OIDCConfigurationSchema returns a key/value map of the various fields that make up
+// the Configuration field for a OneLogin OIDC App.
 func OIDCConfigurationSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"redirect_uri": &schema.Schema{
@@ -45,8 +45,8 @@ func OIDCConfigurationSchema() map[string]*schema.Schema {
 	}
 }
 
-// AppConfiguration returns a key/value map of the various fields that make up
-// the AppConfiguration field for a OneLogin App.
+// SAMLConfigurationSchema returns a key/value map of the various fields that make up
+// the Configuration field for a OneLogin SAML App.
 func SAMLConfigurationSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"certificate_id": &schema.Schema{
@@ -82,8 +82,8 @@ func validSignatureAlgo(val interface{}, key string) (warns []string, errs []err
 	return
 }
 
-// Inflate takes a key/value map of interfaces and uses the fields to construct
-// an AppConfiguration struct, a sub-field of a OneLogin App.
+// Inflate takes a map of interfaces and uses the fields to construct
+// an AppConfiguration instance.
 func Inflate(s map[string]interface{}) models.AppConfiguration {
 	out := models.AppConfiguration{}
 	var st string
@@ -120,6 +120,8 @@ func Inflate(s map[string]interface{}) models.AppConfiguration {
 	return out
 }
 
+// FlattenOIDCConfig takes an instance of AppConfiguration and return an array of
+// maps. Fields differ depending on if the app is a SAML or OIDC app.
 func FlattenOIDCConfig(config models.AppConfiguration) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
@@ -133,6 +135,8 @@ func FlattenOIDCConfig(config models.AppConfiguration) []map[string]interface{} 
 	}
 }
 
+// FlattenSAMLConfig takes an instance of AppConfiguration and return an array of
+// maps. Fields differ depending on if the app is a SAML or OIDC app.
 func FlattenSAMLConfig(config models.AppConfiguration) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{

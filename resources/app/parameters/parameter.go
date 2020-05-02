@@ -6,8 +6,8 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
-// AppParameter returns a key/value map of the various fields that make up
-// the AppParameter field for a OneLogin App.
+// ParameterSchema returns a key/value map of the various fields that make up
+// the Parameters field for a OneLogin App.
 func ParameterSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"param_key_name": &schema.Schema{
@@ -66,8 +66,8 @@ func ParameterSchema() map[string]*schema.Schema {
 	}
 }
 
-// InflateAppParameter takes a key/value map of interfaces and uses the fields to construct
-// an AppParameter struct, a sub-field of a OneLogin App.
+// Inflate takes a map of interfaces and uses the fields to construct
+// an AppParameter instance.
 func Inflate(s map[string]interface{}) models.AppParameters {
 	out := models.AppParameters{}
 	var b, notNil bool = false, false
@@ -117,6 +117,7 @@ func Inflate(s map[string]interface{}) models.AppParameters {
 	return out
 }
 
+// Flatten takes a map of AppParamters instances and returns an array of maps
 func Flatten(params map[string]models.AppParameters) []map[string]interface{} {
 	out := make([]map[string]interface{}, 0)
 	for k, v := range params {

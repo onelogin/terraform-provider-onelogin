@@ -13,6 +13,7 @@ import (
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
 )
 
+// OneloginApps returns a resource with the CRUD methods and Terraform Schema defined
 func OneloginApps() *schema.Resource {
 	return &schema.Resource{
 		Create: appCreate,

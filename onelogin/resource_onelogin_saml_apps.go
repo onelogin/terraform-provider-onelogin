@@ -14,6 +14,8 @@ import (
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/sso"
 )
 
+// OneloginSAMLApps attaches additional configuration and sso schemas and
+// returns a resource with the CRUD methods and Terraform Schema defined
 func OneloginSAMLApps() *schema.Resource {
 	appSchema := app.AppSchema()
 	app.AddSubSchema("configuration", &appSchema, configuration.SAMLConfigurationSchema)

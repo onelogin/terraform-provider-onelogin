@@ -19,9 +19,20 @@ func init() {
 	}
 }
 
+// TestProvider checks the validity of a provider and stops further testing
+// if a problem is found
 func TestProvider(t *testing.T) {
 	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
+	}
+}
+
+// TestAccPreCheck performs a check to ensure requisite credentials are in
+// the environment and stops further testing if a problem is found
+func TestAccPreCheck(t *testing.T) {
+	err := accPreCheck()
+	if err != nil {
+		t.Fatalf("%v", err)
 	}
 }
 
@@ -37,11 +48,4 @@ func accPreCheck() error {
 	}
 
 	return nil
-}
-
-func TestAccPreCheck(t *testing.T) {
-	err := accPreCheck()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
 }
