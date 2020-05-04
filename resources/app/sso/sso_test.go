@@ -10,7 +10,7 @@ import (
 
 func TestOIDCSSOSchema(t *testing.T) {
 	t.Run("creates and returns a map of a OIDC SSO Schema", func(t *testing.T) {
-		schema := OIDCSSOSchema()
+		schema := OIDCSchema()
 		assert.NotNil(t, schema["client_id"])
 		assert.NotNil(t, schema["client_secret"])
 	})
@@ -18,7 +18,7 @@ func TestOIDCSSOSchema(t *testing.T) {
 
 func TestSAMLSSOSchema(t *testing.T) {
 	t.Run("creates and returns a map of a SAML SSO Schema", func(t *testing.T) {
-		schema := SAMLSSOSchema()
+		schema := SAMLSchema()
 		assert.NotNil(t, schema["acs_url"])
 		assert.NotNil(t, schema["metadata_url"])
 		assert.NotNil(t, schema["issuer"])
@@ -46,13 +46,13 @@ func TestFlattenOIDCSSO(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := FlattenOIDCSSO(test.InputData)
+			subj := FlattenOIDC(test.InputData)
 			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}
 }
 
-func TestFlattenSAMLSSO(t *testing.T) {
+func TestFlattenSAML(t *testing.T) {
 	tests := map[string]struct {
 		InputData      models.AppSso
 		ExpectedOutput []map[string]interface{}
@@ -88,7 +88,7 @@ func TestFlattenSAMLSSO(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := FlattenSAMLSSO(test.InputData)
+			subj := FlattenSAML(test.InputData)
 			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}

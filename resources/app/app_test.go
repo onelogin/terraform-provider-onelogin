@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAppSchema(t *testing.T) {
+func TestSchema(t *testing.T) {
 	t.Run("creates and returns a map of an AppConfiguration Schema", func(t *testing.T) {
-		schema := AppSchema()
+		schema := Schema()
 		assert.NotNil(t, schema["name"])
 		assert.NotNil(t, schema["visible"])
 		assert.NotNil(t, schema["description"])

@@ -6,9 +6,9 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
-// ParameterSchema returns a key/value map of the various fields that make up
+// Schema returns a key/value map of the various fields that make up
 // the Parameters field for a OneLogin App.
-func ParameterSchema() map[string]*schema.Schema {
+func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"param_key_name": &schema.Schema{
 			Type:     schema.TypeString,
@@ -70,7 +70,7 @@ func ParameterSchema() map[string]*schema.Schema {
 // an AppParameter instance.
 func Inflate(s map[string]interface{}) models.AppParameters {
 	out := models.AppParameters{}
-	var b, notNil bool = false, false
+	var b, notNil bool
 	var d int
 	var st string
 

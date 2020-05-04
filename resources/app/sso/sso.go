@@ -7,7 +7,7 @@ import (
 
 // OIDCSSOSchema returns a key/value map of the various fields that make up
 // the SSO field for a OneLogin App.
-func OIDCSSOSchema() map[string]*schema.Schema {
+func OIDCSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"client_id": &schema.Schema{
 			Type:     schema.TypeString,
@@ -22,7 +22,7 @@ func OIDCSSOSchema() map[string]*schema.Schema {
 
 // SAMLSSOSchema returns a key/value map of the various fields that make up
 // the SSO field for a OneLogin App.
-func SAMLSSOSchema() map[string]*schema.Schema {
+func SAMLSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"acs_url": &schema.Schema{
 			Type:     schema.TypeString,
@@ -64,7 +64,7 @@ func SAMLSSOSchema() map[string]*schema.Schema {
 	}
 }
 
-func FlattenOIDCSSO(sso models.AppSso) []map[string]interface{} {
+func FlattenOIDC(sso models.AppSso) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"client_id":     sso.ClientID,
@@ -73,7 +73,7 @@ func FlattenOIDCSSO(sso models.AppSso) []map[string]interface{} {
 	}
 }
 
-func FlattenSAMLSSO(sso models.AppSso) []map[string]interface{} {
+func FlattenSAML(sso models.AppSso) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"metadata_url": sso.MetadataURL,

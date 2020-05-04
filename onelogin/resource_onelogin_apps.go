@@ -13,14 +13,14 @@ import (
 	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
 )
 
-// OneloginApps returns a resource with the CRUD methods and Terraform Schema defined
-func OneloginApps() *schema.Resource {
+// Apps returns a resource with the CRUD methods and Terraform Schema defined
+func Apps() *schema.Resource {
 	return &schema.Resource{
 		Create: appCreate,
 		Read:   appRead,
 		Update: appUpdate,
 		Delete: appDelete,
-		Schema: app.AppSchema(),
+		Schema: app.Schema(),
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 
 // ProvisioningSchema returns a key/value map of the various fields that make up
 // the Provisioning field for a OneLogin App.
-func ProvisioningSchema() map[string]*schema.Schema {
+func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"enabled": &schema.Schema{
 			Type:     schema.TypeBool,
