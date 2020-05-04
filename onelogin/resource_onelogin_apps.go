@@ -36,7 +36,6 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
-		"configuration":        d.Get("configuration"),
 	}
 
 	basicApp := app.Inflate(appData)
@@ -102,7 +101,6 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
-		"configuration":        d.Get("configuration"),
 	}
 
 	aid, _ := strconv.Atoi(d.Id())
