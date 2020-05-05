@@ -16,11 +16,12 @@ import (
 // Apps returns a resource with the CRUD methods and Terraform Schema defined
 func Apps() *schema.Resource {
 	return &schema.Resource{
-		Create: appCreate,
-		Read:   appRead,
-		Update: appUpdate,
-		Delete: appDelete,
-		Schema: app.Schema(),
+		Create:   appCreate,
+		Read:     appRead,
+		Update:   appUpdate,
+		Delete:   appDelete,
+		Importer: &schema.ResourceImporter{},
+		Schema:   app.Schema(),
 	}
 }
 

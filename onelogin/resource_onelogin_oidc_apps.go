@@ -34,11 +34,12 @@ func OIDCApps() *schema.Resource {
 	}
 
 	return &schema.Resource{
-		Create: oidcAppCreate,
-		Read:   oidcAppRead,
-		Update: oidcAppUpdate,
-		Delete: oidcAppDelete,
-		Schema: appSchema,
+		Create:   oidcAppCreate,
+		Read:     oidcAppRead,
+		Update:   oidcAppUpdate,
+		Delete:   oidcAppDelete,
+		Importer: &schema.ResourceImporter{},
+		Schema:   appSchema,
 	}
 }
 

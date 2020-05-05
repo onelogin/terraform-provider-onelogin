@@ -38,6 +38,7 @@ func SAMLApps() *schema.Resource {
 		Read:   samlAppRead,
 		Update: samlAppUpdate,
 		Delete: samlAppDelete,
+		Importer: &schema.ResourceImporter{},
 		Schema: appSchema,
 	}
 }
