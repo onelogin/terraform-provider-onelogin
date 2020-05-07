@@ -43,6 +43,7 @@ func TestInflateParameter(t *testing.T) {
 				"values":                     "test",
 				"provisioned_entitlements":   true,
 				"safe_entitlements_enabled":  true,
+				"include_in_saml_assertion":  true,
 			},
 			ExpectedOutput: models.AppParameters{
 				ID:                        oltypes.Int32(123),
@@ -55,6 +56,7 @@ func TestInflateParameter(t *testing.T) {
 				DefaultValues:             oltypes.String("test"),
 				ProvisionedEntitlements:   oltypes.Bool(true),
 				SafeEntitlementsEnabled:   oltypes.Bool(true),
+				IncludeInSamlAssertion:    oltypes.Bool(true),
 			},
 		},
 	}
@@ -80,6 +82,7 @@ func TestFlatten(t *testing.T) {
 				DefaultValues:             oltypes.String("test"),
 				ProvisionedEntitlements:   oltypes.Bool(true),
 				SafeEntitlementsEnabled:   oltypes.Bool(true),
+				IncludeInSamlAssertion:    oltypes.Bool(true),
 			},
 		}
 		subj := Flatten(appParamStruct)
@@ -96,6 +99,7 @@ func TestFlatten(t *testing.T) {
 				"default_values":             oltypes.String("test"),
 				"provisioned_entitlements":   oltypes.Bool(true),
 				"safe_entitlements_enabled":  oltypes.Bool(true),
+				"include_in_saml_assertion":  oltypes.Bool(true),
 			},
 		}
 		assert.Equal(t, expected, subj)

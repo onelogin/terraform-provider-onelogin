@@ -63,6 +63,11 @@ func Schema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"include_in_saml_assertion": &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
 	}
 }
 
@@ -110,6 +115,10 @@ func Inflate(s map[string]interface{}) models.AppParameters {
 		out.SafeEntitlementsEnabled = oltypes.Bool(b)
 	}
 
+	if b, notNil = s["include_in_saml_assertion"].(bool); notNil {
+		out.IncludeInSamlAssertion = oltypes.Bool(b)
+	}
+
 	if d, notNil = s["param_id"].(int); notNil {
 		out.ID = oltypes.Int32(int32(d))
 	}
@@ -133,6 +142,7 @@ func Flatten(params map[string]models.AppParameters) []map[string]interface{} {
 			"default_values":             v.DefaultValues,
 			"provisioned_entitlements":   v.ProvisionedEntitlements,
 			"safe_entitlements_enabled":  v.SafeEntitlementsEnabled,
+			"include_in_saml_assertion":  v.IncludeInSamlAssertion,
 		}
 		out = append(out, param)
 	}
