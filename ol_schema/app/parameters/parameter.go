@@ -2,8 +2,8 @@ package parameters
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 )
 
 // Schema returns a key/value map of the various fields that make up
@@ -73,8 +73,8 @@ func Schema() map[string]*schema.Schema {
 
 // Inflate takes a map of interfaces and uses the fields to construct
 // an AppParameter instance.
-func Inflate(s map[string]interface{}) models.AppParameters {
-	out := models.AppParameters{}
+func Inflate(s map[string]interface{}) apps.AppParameters {
+	out := apps.AppParameters{}
 	var b, notNil bool
 	var d int
 	var st string
@@ -127,7 +127,7 @@ func Inflate(s map[string]interface{}) models.AppParameters {
 }
 
 // Flatten takes a map of AppParamters instances and returns an array of maps
-func Flatten(params map[string]models.AppParameters) []map[string]interface{} {
+func Flatten(params map[string]apps.AppParameters) []map[string]interface{} {
 	out := make([]map[string]interface{}, 0)
 	for k, v := range params {
 		param := map[string]interface{}{

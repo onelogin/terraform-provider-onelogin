@@ -3,8 +3,8 @@ package app
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +31,7 @@ func TestSchema(t *testing.T) {
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput models.App
+		ExpectedOutput apps.App
 	}{
 		"creates and returns the address of an AppParameters struct with all sub-fiekds": {
 			ResourceData: map[string]interface{}{
@@ -68,15 +68,15 @@ func TestInflate(t *testing.T) {
 					},
 				},
 			},
-			ExpectedOutput: models.App{
+			ExpectedOutput: apps.App{
 				Name:               oltypes.String("test"),
 				Visible:            oltypes.Bool(true),
 				Description:        oltypes.String("test"),
 				Notes:              oltypes.String("test"),
 				AllowAssumedSignin: oltypes.Bool(true),
 				ConnectorID:        oltypes.Int32(123),
-				Parameters: map[string]models.AppParameters{
-					"test": models.AppParameters{
+				Parameters: map[string]apps.AppParameters{
+					"test": apps.AppParameters{
 						ID:                        oltypes.Int32(123),
 						Label:                     oltypes.String("test"),
 						UserAttributeMappings:     oltypes.String("test"),
@@ -89,10 +89,10 @@ func TestInflate(t *testing.T) {
 						SafeEntitlementsEnabled:   oltypes.Bool(true),
 					},
 				},
-				Provisioning: &models.AppProvisioning{
+				Provisioning: &apps.AppProvisioning{
 					Enabled: oltypes.Bool(true),
 				},
-				Configuration: &models.AppConfiguration{
+				Configuration: &apps.AppConfiguration{
 					ProviderArn:        oltypes.String("test"),
 					SignatureAlgorithm: oltypes.String("test"),
 				},

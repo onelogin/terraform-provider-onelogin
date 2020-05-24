@@ -3,8 +3,8 @@ package parameters
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +28,7 @@ func TestParameterSchema(t *testing.T) {
 func TestInflateParameter(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput models.AppParameters
+		ExpectedOutput apps.AppParameters
 	}{
 		"creates and returns the address of an AppParameters struct": {
 			ResourceData: map[string]interface{}{
@@ -45,7 +45,7 @@ func TestInflateParameter(t *testing.T) {
 				"safe_entitlements_enabled":  true,
 				"include_in_saml_assertion":  true,
 			},
-			ExpectedOutput: models.AppParameters{
+			ExpectedOutput: apps.AppParameters{
 				ID:                        oltypes.Int32(123),
 				Label:                     oltypes.String("test"),
 				UserAttributeMappings:     oltypes.String("test"),
@@ -70,8 +70,8 @@ func TestInflateParameter(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
-		appParamStruct := map[string]models.AppParameters{
-			"test": models.AppParameters{
+		appParamStruct := map[string]apps.AppParameters{
+			"test": apps.AppParameters{
 				ID:                        oltypes.Int32(123),
 				Label:                     oltypes.String("test"),
 				UserAttributeMappings:     oltypes.String("test"),

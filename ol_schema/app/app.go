@@ -2,11 +2,12 @@ package app
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/configuration"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/parameters"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/provisioning"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/shared/rules"
 )
 
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.
@@ -80,12 +81,20 @@ func Schema() map[string]*schema.Schema {
 				Schema: parameters.Schema(),
 			},
 		},
+		"rules": &schema.Schema{
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: rules.Schema(),
+			},
+		},
 	}
 }
 
 // Inflate takes a map of interfaces and constructs a OneLogin App.
-func Inflate(s map[string]interface{}) models.App {
-	app := models.App{
+func Inflate(s map[string]interface{}) apps.App {
+	app := apps.App{
 		Name:               oltypes.String(s["name"].(string)),
 		Description:        oltypes.String(s["description"].(string)),
 		Notes:              oltypes.String(s["notes"].(string)),
@@ -94,7 +103,7 @@ func Inflate(s map[string]interface{}) models.App {
 		AllowAssumedSignin: oltypes.Bool(s["allow_assumed_signin"].(bool)),
 	}
 	if s["parameters"] != nil {
-		app.Parameters = make(map[string]models.AppParameters, len(s["parameters"].([]interface{})))
+		app.Parameters = make(map[string]apps.AppParameters, len(s["parameters"].([]interface{})))
 		for _, val := range s["parameters"].([]interface{}) {
 			valMap := val.(map[string]interface{})
 			app.Parameters[valMap["param_key_name"].(string)] = parameters.Inflate(valMap)
@@ -113,6 +122,14 @@ func Inflate(s map[string]interface{}) models.App {
 			config := configuration.Inflate(valMap)
 			app.Configuration = &config
 		}
+	}
+	if s["rules"] != nil {
+		appRules := make([]apps.AppRule, len(s["rules"].([]interface{})))
+		for i, val := range s["rules"].([]interface{}) {
+			valMap := val.(map[string]interface{})
+			appRules[i] = rules.Inflate(valMap)
+		}
+		app.Rules = appRules
 	}
 	return app
 }

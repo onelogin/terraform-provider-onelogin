@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +32,7 @@ func TestSAMLSchema(t *testing.T) {
 func TestInflateConfiguration(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput models.AppConfiguration
+		ExpectedOutput apps.AppConfiguration
 	}{
 		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
 			ResourceData: map[string]interface{}{
@@ -43,7 +43,7 @@ func TestInflateConfiguration(t *testing.T) {
 				"token_endpoint_auth_method":       2,
 				"access_token_expiration_minutes":  2,
 			},
-			ExpectedOutput: models.AppConfiguration{
+			ExpectedOutput: apps.AppConfiguration{
 				RedirectURI:                   oltypes.String("test"),
 				RefreshTokenExpirationMinutes: oltypes.Int32(2),
 				LoginURL:                      oltypes.String("test"),
@@ -57,7 +57,7 @@ func TestInflateConfiguration(t *testing.T) {
 				"provider_arn":        "test",
 				"signature_algorithm": "test",
 			},
-			ExpectedOutput: models.AppConfiguration{
+			ExpectedOutput: apps.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
 			},
@@ -73,11 +73,11 @@ func TestInflateConfiguration(t *testing.T) {
 
 func TestFlattenConfiguration(t *testing.T) {
 	tests := map[string]struct {
-		InputData      models.AppConfiguration
+		InputData      apps.AppConfiguration
 		ExpectedOutput []map[string]interface{}
 	}{
 		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
-			InputData: models.AppConfiguration{
+			InputData: apps.AppConfiguration{
 				RedirectURI:                   oltypes.String("test"),
 				RefreshTokenExpirationMinutes: oltypes.Int32(2),
 				LoginURL:                      oltypes.String("test"),
@@ -107,11 +107,11 @@ func TestFlattenConfiguration(t *testing.T) {
 
 func TestFlattenSAMLConfiguration(t *testing.T) {
 	tests := map[string]struct {
-		InputData      models.AppConfiguration
+		InputData      apps.AppConfiguration
 		ExpectedOutput []map[string]interface{}
 	}{
 		"creates and returns the address of an AppConfiguration struct for a SAML app": {
-			InputData: models.AppConfiguration{
+			InputData: apps.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
 			},
@@ -131,25 +131,27 @@ func TestFlattenSAMLConfiguration(t *testing.T) {
 	}
 }
 
-func TestValidSignatureAlgo(t *testing.T) {
-	validOpts := []string{"SHA-1", "SHA-256", "SHA-348", "SHA-512"}
+func TestValidSignatureAlgorithm(t *testing.T) {
 	tests := map[string]struct {
-		InputData      string
+		InputKey       string
+		InputValue     string
 		ExpectedOutput []error
 	}{
 		"no errors on valid input": {
-			InputData:      "SHA-1",
+			InputKey:       "signature_algorithm",
+			InputValue:     "SHA-1",
 			ExpectedOutput: nil,
 		},
 		"errors on invalid input": {
-			InputData:      "asdf",
-			ExpectedOutput: []error{fmt.Errorf("signature_algorithm must be one of %v, got: %s", validOpts, "asdf")},
+			InputKey:       "signature_algorithm",
+			InputValue:     "asdf",
+			ExpectedOutput: []error{fmt.Errorf("signature_algorithm must be one of [SHA-1 SHA-256 SHA-348 SHA-512], got: asdf")},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			_, errs := validSignatureAlgo(test.InputData, "signature_algorithm")
-			assert.Equal(t, errs, test.ExpectedOutput)
+			_, errs := validSignatureAlgorithm(test.InputValue, test.InputKey)
+			assert.Equal(t, test.ExpectedOutput, errs)
 		})
 	}
 }

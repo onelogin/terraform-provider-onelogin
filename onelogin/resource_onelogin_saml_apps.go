@@ -7,11 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/configuration"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/parameters"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/provisioning"
-	"github.com/onelogin/onelogin-terraform-provider/resources/app/sso"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/configuration"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/parameters"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/provisioning"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/sso"
+	"github.com/onelogin/onelogin-terraform-provider/ol_schema/shared/rules"
 )
 
 // SAMLApps attaches additional configuration and sso schemas and
@@ -34,12 +35,12 @@ func SAMLApps() *schema.Resource {
 	}
 
 	return &schema.Resource{
-		Create: samlAppCreate,
-		Read:   samlAppRead,
-		Update: samlAppUpdate,
-		Delete: samlAppDelete,
+		Create:   samlAppCreate,
+		Read:     samlAppRead,
+		Update:   samlAppUpdate,
+		Delete:   samlAppDelete,
 		Importer: &schema.ResourceImporter{},
-		Schema: appSchema,
+		Schema:   appSchema,
 	}
 }
 
@@ -56,16 +57,17 @@ func samlAppCreate(d *schema.ResourceData, m interface{}) error {
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
+		"rules":                d.Get("rules"),
 	})
 	client := m.(*client.APIClient)
-	resp, appResp, err := client.Services.AppsV2.CreateApp(&samlApp)
+	appResp, err := client.Services.AppsV2.Create(&samlApp)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
 		return err
 	}
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
-	log.Println(resp)
+
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return samlAppRead(d, m)
 }
@@ -75,7 +77,7 @@ func samlAppCreate(d *schema.ResourceData, m interface{}) error {
 func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 	aid, _ := strconv.Atoi(d.Id())
-	resp, app, err := client.Services.AppsV2.GetAppByID(int32(aid))
+	app, err := client.Services.AppsV2.GetOne(int32(aid))
 	if err != nil {
 		log.Printf("[ERROR] There was a problem reading the app!")
 		log.Println(err)
@@ -86,7 +88,6 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	log.Printf("[READ] Reading app with %d", *(app.ID))
-	log.Println(resp)
 
 	d.Set("name", app.Name)
 	d.Set("visible", app.Visible)
@@ -104,6 +105,7 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
 	d.Set("configuration", configuration.FlattenSAML(*app.Configuration))
 	d.Set("sso", sso.FlattenSAML(*app.Sso))
+	d.Set("rules", rules.Flatten(app.Rules))
 
 	return nil
 }
@@ -121,12 +123,13 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
+		"rules":                d.Get("rules"),
 	})
 
 	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
 
-	resp, appResp, err := client.Services.AppsV2.UpdateAppByID(int32(aid), &samlApp)
+	appResp, err := client.Services.AppsV2.Update(int32(aid), &samlApp)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem updating the app!")
 		log.Println(err)
@@ -137,7 +140,7 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))
-	log.Println(resp)
+
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return samlAppRead(d, m)
 }
@@ -148,13 +151,13 @@ func samlAppDelete(d *schema.ResourceData, m interface{}) error {
 	aid, _ := strconv.Atoi(d.Id())
 
 	client := m.(*client.APIClient)
-	resp, err := client.Services.AppsV2.DeleteApp(int32(aid))
+	err := client.Services.AppsV2.Destroy(int32(aid))
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the samlApp!")
 		log.Println(err)
 	} else {
 		log.Printf("[DELETED] Deleted samlApp with %d", aid)
-		log.Println(resp)
+
 		d.SetId("")
 	}
 
