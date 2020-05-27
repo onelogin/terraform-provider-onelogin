@@ -18,11 +18,7 @@ Use the navigation to the left to read about the available resources.
 
 ```hcl
 # Configure the OneLogin Provider
-provider "onelogin" {
-  client_id = <your client id>
-  client_secret = <your client secret>
-  url = <the api url for your region>
-}
+provider "onelogin" {}
 
 # Add an App to your account
 resource "onelogin_saml_app" "my_saml_app" {
@@ -37,10 +33,11 @@ credentials to your environment
 
 The following arguments are supported in the `provider` block:
 
-* `client_id` - (Required) This is the client_id for your OneLogin account that is used to authenticate requests to the OneLogin APIs on your behalf. You can create this by visiting your OneLogin account and selecting from the top ribbon Developers > API Credentials
+None: This provider reads API credentials from your environment. You need to export
+your OneLogin credentials like so:
 
-* `client_secret` - (Required) This is the client_secret for your OneLogin account that is used to authenticate requests to the OneLogin APIs on your behalf. You can create this by visiting your OneLogin account and selecting from the top ribbon Developers > API Credentials
-
-* `url` - (Optional, if no region given) This is the url for your API endpoint depending on your location. It can be api.<us or eu>.onelogin.com
-
-* `region` - (Optional, if no url given) This is the region for your API endpoint. It will be interpolated into the url as shown above.
+```
+export ONELOGIN_CLIENT_ID=<your client id>
+export ONELOGIN_CLIENT_SECRET=<your client secret>
+export ONELOGIN_OAPI_URL=<the api url for your region>
+```

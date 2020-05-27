@@ -13,25 +13,13 @@ Custom terraform provider for OneLogin
     ```
 2) You'll need admin access to a OneLogin account where you can create API credentials. Create a set of API credentials with _manage all_ permission. For applying the credentials, there are 2 ways
 
-    * In your main.tf you can add the credentials using the api url
-    ```
-    client_id = <your client id>
-    client_secret = <your client secret>
-    url = <the api url for your region>
-    ```
-    or you can use the region
-    ```
-    client_id = <your client id>
-    client_secret = <your client secret>
-    region = <us or eu>
-    ```
-    * You can also export these credentials to your environment and the provider will read them in from there
+    * Export these credentials to your environment and the provider will read them in from there
     ```
     export ONELOGIN_CLIENT_ID=<your client id>
     export ONELOGIN_CLIENT_SECRET=<your client secret>
     export ONELOGIN_OAPI_URL=<the api url for your region>
     ```
-    
+
 3) You are ready to use the provider, just follow the terraform commands!
 
 # Managing App Resources
