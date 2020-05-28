@@ -128,6 +128,7 @@ func Inflate(s map[string]interface{}) apps.App {
 		for i, val := range s["rules"].([]interface{}) {
 			valMap := val.(map[string]interface{})
 			appRules[i] = rules.Inflate(valMap)
+			appRules[i].Position = oltypes.Int32(int32(i + 1))
 		}
 		app.Rules = appRules
 	}

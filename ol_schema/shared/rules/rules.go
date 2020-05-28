@@ -32,7 +32,7 @@ func Schema() map[string]*schema.Schema {
 		},
 		"position": &schema.Schema{
 			Type:     schema.TypeInt,
-			Required: true,
+			Optional: true,
 		},
 		"conditions": &schema.Schema{
 			Type:     schema.TypeList,
