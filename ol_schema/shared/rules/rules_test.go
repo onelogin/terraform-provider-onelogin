@@ -44,7 +44,7 @@ func TestInflate(t *testing.T) {
 					map[string]interface{}{
 						"action":     "test",
 						"expression": ".*",
-						"value":      []string{"test"},
+						"value":      []interface{}{"test"},
 					},
 				},
 			},

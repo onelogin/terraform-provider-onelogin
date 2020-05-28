@@ -67,6 +67,29 @@ func TestInflate(t *testing.T) {
 						"signature_algorithm": "test",
 					},
 				},
+				"rules": []interface{}{
+					map[string]interface{}{
+						"id":       123,
+						"name":     "test",
+						"match":    "test",
+						"enabled":  true,
+						"position": 1,
+						"conditions": []interface{}{
+							map[string]interface{}{
+								"source":   "test",
+								"operator": "=",
+								"value":    "test",
+							},
+						},
+						"actions": []interface{}{
+							map[string]interface{}{
+								"action":     "test",
+								"expression": ".*",
+								"value":      []interface{}{"test"},
+							},
+						},
+					},
+				},
 			},
 			ExpectedOutput: apps.App{
 				Name:               oltypes.String("test"),
@@ -95,6 +118,29 @@ func TestInflate(t *testing.T) {
 				Configuration: &apps.AppConfiguration{
 					ProviderArn:        oltypes.String("test"),
 					SignatureAlgorithm: oltypes.String("test"),
+				},
+				Rules: []apps.AppRule{
+					apps.AppRule{
+						ID:       oltypes.Int32(123),
+						Name:     oltypes.String("test"),
+						Match:    oltypes.String("test"),
+						Enabled:  oltypes.Bool(true),
+						Position: oltypes.Int32(1),
+						Conditions: []apps.AppRuleConditions{
+							apps.AppRuleConditions{
+								Source:   oltypes.String("test"),
+								Operator: oltypes.String("="),
+								Value:    oltypes.String("test"),
+							},
+						},
+						Actions: []apps.AppRuleActions{
+							apps.AppRuleActions{
+								Action:     oltypes.String("test"),
+								Expression: oltypes.String(".*"),
+								Value:      []string{"test"},
+							},
+						},
+					},
 				},
 			},
 		},

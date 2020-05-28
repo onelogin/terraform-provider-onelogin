@@ -84,16 +84,20 @@ func Inflate(s map[string]interface{}) apps.AppConfiguration {
 	if st, notNil = s["login_url"].(string); notNil {
 		out.LoginURL = oltypes.String(st)
 	}
-	if n, notNil = s["refresh_token_expiration_minutes"].(int); notNil {
+
+	if n, notNil = s["refresh_token_expiration_minutes"].(int); n != 0 && notNil {
 		out.RefreshTokenExpirationMinutes = oltypes.Int32(int32(n))
 	}
-	if n, notNil = s["oidc_application_type"].(int); notNil {
+
+	if n, notNil = s["oidc_application_type"].(int); n != 0 && notNil {
 		out.OidcApplicationType = oltypes.Int32(int32(n))
 	}
-	if n, notNil = s["token_endpoint_auth_method"].(int); notNil {
+
+	if n, notNil = s["token_endpoint_auth_method"].(int); n != 0 && notNil {
 		out.TokenEndpointAuthMethod = oltypes.Int32(int32(n))
 	}
-	if n, notNil = s["access_token_expiration_minutes"].(int); notNil {
+
+	if n, notNil = s["access_token_expiration_minutes"].(int); n != 0 && notNil {
 		out.AccessTokenExpirationMinutes = oltypes.Int32(int32(n))
 	}
 

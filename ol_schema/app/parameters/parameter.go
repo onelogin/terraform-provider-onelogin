@@ -119,10 +119,9 @@ func Inflate(s map[string]interface{}) apps.AppParameters {
 		out.IncludeInSamlAssertion = oltypes.Bool(b)
 	}
 
-	if d, notNil = s["param_id"].(int); notNil {
+	if d, notNil = s["param_id"].(int); d != 0 && notNil {
 		out.ID = oltypes.Int32(int32(d))
 	}
-
 	return out
 }
 

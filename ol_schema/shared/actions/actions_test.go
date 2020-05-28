@@ -17,7 +17,7 @@ func TestRulesSchema(t *testing.T) {
 	})
 }
 
-func Test(t *testing.T) {
+func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
 		ExpectedOutput apps.AppRuleActions
@@ -26,7 +26,7 @@ func Test(t *testing.T) {
 			ResourceData: map[string]interface{}{
 				"action":     "test",
 				"expression": ".*",
-				"value":      []string{"test"},
+				"value":      []interface{}{"test"},
 			},
 			ExpectedOutput: apps.AppRuleActions{
 				Action:     oltypes.String("test"),

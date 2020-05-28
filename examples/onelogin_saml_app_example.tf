@@ -7,4 +7,20 @@ resource onelogin_saml_apps saml{
     provider_arn = null
     signature_algorithm = "SHA-1"
   }
+  rules {
+    enabled = true
+    match = "all"
+    name = "changed rule"
+    position = 1
+    conditions {
+      operator = ">"
+      source = "last_login"
+      value = "90"
+    }
+    actions {
+      action = "set_amazonusername"
+      expression = ".*"
+      value = ["member_of"]
+    }
+  }
 }

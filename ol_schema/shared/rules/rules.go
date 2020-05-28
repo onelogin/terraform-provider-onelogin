@@ -59,7 +59,7 @@ func validMatch(val interface{}, key string) (warns []string, errs []error) {
 // a AppProvisioning struct, a sub-field of a OneLogin App.
 func Inflate(s map[string]interface{}) apps.AppRule {
 	out := apps.AppRule{}
-	if id, notNil := s["id"].(int); notNil {
+	if id, notNil := s["id"].(int); id != 0 && notNil {
 		out.ID = oltypes.Int32(int32(id))
 	}
 	if name, notNil := s["name"].(string); notNil {

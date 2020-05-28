@@ -46,7 +46,7 @@ func TestInflateParameter(t *testing.T) {
 				"include_in_saml_assertion":  true,
 			},
 			ExpectedOutput: apps.AppParameters{
-				ID:                        oltypes.Int32(123),
+				ID:                        oltypes.Int32(int32(123)),
 				Label:                     oltypes.String("test"),
 				UserAttributeMappings:     oltypes.String("test"),
 				UserAttributeMacros:       oltypes.String("test"),
