@@ -47,6 +47,10 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
+		if appResp.ID != nil {
+			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+			appRead(d, m)
+		}
 		return err
 	}
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
@@ -114,6 +118,10 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		log.Printf("[ERROR] There was a problem updating the app!")
 		log.Println(err)
+		if appResp.ID != nil {
+			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+			appRead(d, m)
+		}
 		return err
 	}
 	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))

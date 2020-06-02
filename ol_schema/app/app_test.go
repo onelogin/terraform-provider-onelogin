@@ -3,6 +3,7 @@ package app
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
@@ -28,6 +29,10 @@ func TestSchema(t *testing.T) {
 	})
 }
 
+func mockSetFn(interface{}) int {
+	return 0
+}
+
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
@@ -41,7 +46,7 @@ func TestInflate(t *testing.T) {
 				"notes":                "test",
 				"allow_assumed_signin": true,
 				"connector_id":         123,
-				"parameters": []interface{}{
+				"parameters": schema.NewSet(mockSetFn, []interface{}{
 					map[string]interface{}{
 						"param_key_name":             "test",
 						"param_id":                   123,
@@ -55,7 +60,7 @@ func TestInflate(t *testing.T) {
 						"provisioned_entitlements":   true,
 						"safe_entitlements_enabled":  true,
 					},
-				},
+				}),
 				"provisioning": []interface{}{
 					map[string]interface{}{
 						"enabled": true,

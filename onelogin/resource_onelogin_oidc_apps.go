@@ -64,6 +64,10 @@ func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the app!")
 		log.Println(err)
+		if appResp.ID != nil {
+			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+			oidcAppRead(d, m)
+		}
 		return err
 	}
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
@@ -133,6 +137,10 @@ func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		log.Printf("[ERROR] There was a problem updating the app!")
 		log.Println(err)
+		if appResp.ID != nil {
+			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+			oidcAppRead(d, m)
+		}
 		return err
 	}
 	if appResp == nil { // app must be deleted in api so remove from tf state

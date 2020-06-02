@@ -62,8 +62,12 @@ func samlAppCreate(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 	appResp, err := client.Services.AppsV2.Create(&samlApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
-		log.Println(err)
+		if appResp.ID != nil {
+			log.Println("[ERROR] There was a problem setting sub-resources!", err)
+			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+			return samlAppRead(d, m)
+		}
+		log.Println("[ERROR] There was a problem creating the app!", err)
 		return err
 	}
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
@@ -128,14 +132,17 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 
 	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
-
 	appResp, err := client.Services.AppsV2.Update(int32(aid), &samlApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem updating the app!")
-		log.Println(err)
+		if appResp.ID != nil {
+			log.Println("[ERROR] There was a problem setting sub-resources!", err)
+			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+			return samlAppRead(d, m)
+		}
+		log.Println("[ERROR] There was a problem Updating the app!", err)
 		return err
 	}
-	if appResp == nil { // app must be deleted in api so remove from tf state
+	if appResp == nil {
 		d.SetId("")
 		return nil
 	}

@@ -74,7 +74,7 @@ func Schema() map[string]*schema.Schema {
 			},
 		},
 		"parameters": &schema.Schema{
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Computed: true,
 			Elem: &schema.Resource{
@@ -103,8 +103,9 @@ func Inflate(s map[string]interface{}) apps.App {
 		AllowAssumedSignin: oltypes.Bool(s["allow_assumed_signin"].(bool)),
 	}
 	if s["parameters"] != nil {
-		app.Parameters = make(map[string]apps.AppParameters, len(s["parameters"].([]interface{})))
-		for _, val := range s["parameters"].([]interface{}) {
+		p := s["parameters"].(*schema.Set).List()
+		app.Parameters = make(map[string]apps.AppParameters, len(p))
+		for _, val := range p {
 			valMap := val.(map[string]interface{})
 			app.Parameters[valMap["param_key_name"].(string)] = parameters.Inflate(valMap)
 		}
