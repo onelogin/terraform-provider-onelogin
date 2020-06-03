@@ -29,7 +29,7 @@ func Apps() *schema.Resource {
 // appCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appCreate(d *schema.ResourceData, m interface{}) error {
-	appData := map[string]interface{}{
+	basicApp := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -39,18 +39,16 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"rules":                d.Get("rules"),
-	}
-
-	basicApp := app.Inflate(appData)
+	})
 	client := m.(*client.APIClient)
 	appResp, err := client.Services.AppsV2.Create(&basicApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
-		log.Println(err)
 		if appResp.ID != nil {
+			log.Println("[ERROR] There was a problem setting sub-resources!", err)
 			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			appRead(d, m)
+			return appRead(d, m)
 		}
+		log.Println("[ERROR] There was a problem creating the app!", err)
 		return err
 	}
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
@@ -98,7 +96,7 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 // appUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
-	appData := map[string]interface{}{
+	basicApp := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -108,21 +106,24 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"rules":                d.Get("rules"),
-	}
+	})
 
 	aid, _ := strconv.Atoi(d.Id())
-	basicApp := app.Inflate(appData)
-
 	client := m.(*client.APIClient)
+
 	appResp, err := client.Services.AppsV2.Update(int32(aid), &basicApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem updating the app!")
-		log.Println(err)
 		if appResp.ID != nil {
+			log.Println("[ERROR] There was a problem setting sub-resources!", err)
 			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			appRead(d, m)
+			return appRead(d, m)
 		}
+		log.Println("[ERROR] There was a problem updating the app!", err)
 		return err
+	}
+	if appResp == nil { // app must be deleted in api so remove from tf state
+		d.SetId("")
+		return nil
 	}
 	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
@@ -141,7 +142,6 @@ func appDelete(d *schema.ResourceData, m interface{}) error {
 		log.Println(err)
 	} else {
 		log.Printf("[DELETED] Deleted app with %d", aid)
-
 		d.SetId("")
 	}
 

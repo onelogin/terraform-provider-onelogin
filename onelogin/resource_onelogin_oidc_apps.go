@@ -62,12 +62,12 @@ func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 	appResp, err := client.Services.AppsV2.Create(&oidcApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the app!")
-		log.Println(err)
 		if appResp.ID != nil {
+			log.Println("[ERROR] There was a problem setting sub-resources!", err)
 			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			oidcAppRead(d, m)
+			return oidcAppRead(d, m)
 		}
+		log.Println("[ERROR] There was a problem creating the app!", err)
 		return err
 	}
 	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
@@ -135,12 +135,12 @@ func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
 
 	appResp, err := client.Services.AppsV2.Update(int32(aid), &oidcApp)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem updating the app!")
-		log.Println(err)
 		if appResp.ID != nil {
+			log.Println("[ERROR] There was a problem setting sub-resources!", err)
 			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			oidcAppRead(d, m)
+			return oidcAppRead(d, m)
 		}
+		log.Println("[ERROR] There was a problem updating the app!", err)
 		return err
 	}
 	if appResp == nil { // app must be deleted in api so remove from tf state
@@ -156,8 +156,8 @@ func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
 // makes the DELETE request to OneLogin to delete an oidcApp and its sub-resources
 func oidcAppDelete(d *schema.ResourceData, m interface{}) error {
 	aid, _ := strconv.Atoi(d.Id())
-
 	client := m.(*client.APIClient)
+
 	err := client.Services.AppsV2.Destroy(int32(aid))
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the oidcApp!")

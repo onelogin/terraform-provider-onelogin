@@ -132,6 +132,7 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 
 	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
+
 	appResp, err := client.Services.AppsV2.Update(int32(aid), &samlApp)
 	if err != nil {
 		if appResp.ID != nil {
@@ -147,7 +148,6 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))
-
 	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
 	return samlAppRead(d, m)
 }
@@ -156,15 +156,14 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 // makes the DELETE request to OneLogin to delete an samlApp and its sub-resources
 func samlAppDelete(d *schema.ResourceData, m interface{}) error {
 	aid, _ := strconv.Atoi(d.Id())
-
 	client := m.(*client.APIClient)
+
 	err := client.Services.AppsV2.Destroy(int32(aid))
 	if err != nil {
 		log.Printf("[ERROR] There was a problem creating the samlApp!")
 		log.Println(err)
 	} else {
 		log.Printf("[DELETED] Deleted samlApp with %d", aid)
-
 		d.SetId("")
 	}
 
