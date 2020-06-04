@@ -40,8 +40,8 @@ ta:
 	terraform apply -auto-approve
 
 test:
-	go get github.com/dcaponi/gopherbadger
-	gopherbadger -md="readme.md" -png=false
+	go get -u github.com/dcaponi/gopherbadger@v2.2.1
+	gopherbadger -root="./ol_schema" -md="readme.md" -png=false
 
 secure:
 	# or install it into ./bin/

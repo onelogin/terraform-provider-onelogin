@@ -11,7 +11,6 @@ resource onelogin_saml_apps saml{
     enabled = true
     match = "all"
     name = "changed rule"
-    position = 1
     conditions {
       operator = ">"
       source = "last_login"

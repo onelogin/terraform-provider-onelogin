@@ -20,5 +20,3 @@ jobs:
         args: make test
     - name: Secure
       run: make secure
-    # - name: Test
-    #   run: go test ./ol_schema/...
