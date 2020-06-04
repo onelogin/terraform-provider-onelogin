@@ -2,7 +2,7 @@ package sso
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 )
 
 // OIDCSSOSchema returns a key/value map of the various fields that make up
@@ -64,7 +64,7 @@ func SAMLSchema() map[string]*schema.Schema {
 	}
 }
 
-func FlattenOIDC(sso models.AppSso) []map[string]interface{} {
+func FlattenOIDC(sso apps.AppSso) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"client_id":     sso.ClientID,
@@ -73,7 +73,7 @@ func FlattenOIDC(sso models.AppSso) []map[string]interface{} {
 	}
 }
 
-func FlattenSAML(sso models.AppSso) []map[string]interface{} {
+func FlattenSAML(sso apps.AppSso) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"metadata_url": sso.MetadataURL,

@@ -15,4 +15,8 @@ jobs:
     - name: Vet
       run: go vet ./...
     - name: Test
-      run: go test ./resources/...
+      uses: cedrickring/golang-action@master
+      with:
+        args: make test
+    - name: Secure
+      run: make secure

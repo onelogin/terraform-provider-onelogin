@@ -1,11 +1,10 @@
 package configuration
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-terraform-provider/utils"
 )
 
 // OIDCSchema returns a key/value map of the various fields that make up
@@ -61,31 +60,19 @@ func SAMLSchema() map[string]*schema.Schema {
 		"signature_algorithm": &schema.Schema{
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validSignatureAlgo,
+			ValidateFunc: validSignatureAlgorithm,
 		},
 	}
 }
 
-func validSignatureAlgo(val interface{}, key string) (warns []string, errs []error) {
-	validOpts := []string{"SHA-1", "SHA-256", "SHA-348", "SHA-512"}
-	v := val.(string)
-	isValid := false
-	for _, o := range validOpts {
-		isValid = v == o
-		if isValid {
-			break
-		}
-	}
-	if !isValid {
-		errs = append(errs, fmt.Errorf("signature_algorithm must be one of %v, got: %s", validOpts, v))
-	}
-	return
+func validSignatureAlgorithm(val interface{}, key string) (warns []string, errs []error) {
+	return utils.OneOf(key, val.(string), []string{"SHA-1", "SHA-256", "SHA-348", "SHA-512"})
 }
 
 // Inflate takes a map of interfaces and uses the fields to construct
 // an AppConfiguration instance.
-func Inflate(s map[string]interface{}) models.AppConfiguration {
-	out := models.AppConfiguration{}
+func Inflate(s map[string]interface{}) apps.AppConfiguration {
+	out := apps.AppConfiguration{}
 	var st string
 	var n int
 	var notNil bool
@@ -97,16 +84,20 @@ func Inflate(s map[string]interface{}) models.AppConfiguration {
 	if st, notNil = s["login_url"].(string); notNil {
 		out.LoginURL = oltypes.String(st)
 	}
-	if n, notNil = s["refresh_token_expiration_minutes"].(int); notNil {
+
+	if n, notNil = s["refresh_token_expiration_minutes"].(int); n != 0 && notNil {
 		out.RefreshTokenExpirationMinutes = oltypes.Int32(int32(n))
 	}
-	if n, notNil = s["oidc_application_type"].(int); notNil {
+
+	if n, notNil = s["oidc_application_type"].(int); n != 0 && notNil {
 		out.OidcApplicationType = oltypes.Int32(int32(n))
 	}
-	if n, notNil = s["token_endpoint_auth_method"].(int); notNil {
+
+	if n, notNil = s["token_endpoint_auth_method"].(int); n != 0 && notNil {
 		out.TokenEndpointAuthMethod = oltypes.Int32(int32(n))
 	}
-	if n, notNil = s["access_token_expiration_minutes"].(int); notNil {
+
+	if n, notNil = s["access_token_expiration_minutes"].(int); n != 0 && notNil {
 		out.AccessTokenExpirationMinutes = oltypes.Int32(int32(n))
 	}
 
@@ -122,7 +113,7 @@ func Inflate(s map[string]interface{}) models.AppConfiguration {
 
 // FlattenOIDC takes an instance of AppConfiguration and return an array of
 // maps. Fields differ depending on if the app is a SAML or OIDC app.
-func FlattenOIDC(config models.AppConfiguration) []map[string]interface{} {
+func FlattenOIDC(config apps.AppConfiguration) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"redirect_uri":                     config.RedirectURI,
@@ -137,7 +128,7 @@ func FlattenOIDC(config models.AppConfiguration) []map[string]interface{} {
 
 // FlattenSAML takes an instance of AppConfiguration and return an array of
 // maps. Fields differ depending on if the app is a SAML or OIDC app.
-func FlattenSAML(config models.AppConfiguration) []map[string]interface{} {
+func FlattenSAML(config apps.AppConfiguration) []map[string]interface{} {
 	return []map[string]interface{}{
 		map[string]interface{}{
 			"provider_arn":        config.ProviderArn,

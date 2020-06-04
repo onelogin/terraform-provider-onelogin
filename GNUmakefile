@@ -1,6 +1,6 @@
 
 .PHONY: clean build ti tp ta
-	
+
 PKG_NAME=onelogin
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 DIST_DIR=./dist
@@ -39,9 +39,13 @@ tp:
 ta:
 	terraform apply -auto-approve
 
-website:
-	ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-		echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-		git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-	endif
-		@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
+test:
+	go get -u github.com/dcaponi/gopherbadger@v2.2.1
+	gopherbadger -root="./ol_schema" -md="readme.md" -png=false
+
+secure:
+	# excludes G104 (unhandled go errors) - Approved by security team
+	# excludes G109 (potential integer rollover) - These function calls were recommended by hashicorp for developing a provider
+	# excludes G304 (potential file inclusion) - The file needs to be read in order to run acceptance tests by hashicorp
+	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s
+	./bin/gosec -exclude=G104,G304,G109 ./...

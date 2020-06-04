@@ -3,8 +3,9 @@ package app
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,10 +29,14 @@ func TestSchema(t *testing.T) {
 	})
 }
 
+func mockSetFn(interface{}) int {
+	return 0
+}
+
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput models.App
+		ExpectedOutput apps.App
 	}{
 		"creates and returns the address of an AppParameters struct with all sub-fiekds": {
 			ResourceData: map[string]interface{}{
@@ -41,7 +46,7 @@ func TestInflate(t *testing.T) {
 				"notes":                "test",
 				"allow_assumed_signin": true,
 				"connector_id":         123,
-				"parameters": []interface{}{
+				"parameters": schema.NewSet(mockSetFn, []interface{}{
 					map[string]interface{}{
 						"param_key_name":             "test",
 						"param_id":                   123,
@@ -55,7 +60,7 @@ func TestInflate(t *testing.T) {
 						"provisioned_entitlements":   true,
 						"safe_entitlements_enabled":  true,
 					},
-				},
+				}),
 				"provisioning": []interface{}{
 					map[string]interface{}{
 						"enabled": true,
@@ -67,16 +72,39 @@ func TestInflate(t *testing.T) {
 						"signature_algorithm": "test",
 					},
 				},
+				"rules": []interface{}{
+					map[string]interface{}{
+						"id":       123,
+						"name":     "test",
+						"match":    "test",
+						"enabled":  true,
+						"position": 1,
+						"conditions": []interface{}{
+							map[string]interface{}{
+								"source":   "test",
+								"operator": "=",
+								"value":    "test",
+							},
+						},
+						"actions": []interface{}{
+							map[string]interface{}{
+								"action":     "test",
+								"expression": ".*",
+								"value":      []interface{}{"test"},
+							},
+						},
+					},
+				},
 			},
-			ExpectedOutput: models.App{
+			ExpectedOutput: apps.App{
 				Name:               oltypes.String("test"),
 				Visible:            oltypes.Bool(true),
 				Description:        oltypes.String("test"),
 				Notes:              oltypes.String("test"),
 				AllowAssumedSignin: oltypes.Bool(true),
 				ConnectorID:        oltypes.Int32(123),
-				Parameters: map[string]models.AppParameters{
-					"test": models.AppParameters{
+				Parameters: map[string]apps.AppParameters{
+					"test": apps.AppParameters{
 						ID:                        oltypes.Int32(123),
 						Label:                     oltypes.String("test"),
 						UserAttributeMappings:     oltypes.String("test"),
@@ -89,12 +117,35 @@ func TestInflate(t *testing.T) {
 						SafeEntitlementsEnabled:   oltypes.Bool(true),
 					},
 				},
-				Provisioning: &models.AppProvisioning{
+				Provisioning: &apps.AppProvisioning{
 					Enabled: oltypes.Bool(true),
 				},
-				Configuration: &models.AppConfiguration{
+				Configuration: &apps.AppConfiguration{
 					ProviderArn:        oltypes.String("test"),
 					SignatureAlgorithm: oltypes.String("test"),
+				},
+				Rules: []apps.AppRule{
+					apps.AppRule{
+						ID:       oltypes.Int32(123),
+						Name:     oltypes.String("test"),
+						Match:    oltypes.String("test"),
+						Enabled:  oltypes.Bool(true),
+						Position: oltypes.Int32(1),
+						Conditions: []apps.AppRuleConditions{
+							apps.AppRuleConditions{
+								Source:   oltypes.String("test"),
+								Operator: oltypes.String("="),
+								Value:    oltypes.String("test"),
+							},
+						},
+						Actions: []apps.AppRuleActions{
+							apps.AppRuleActions{
+								Action:     oltypes.String("test"),
+								Expression: oltypes.String(".*"),
+								Value:      []string{"test"},
+							},
+						},
+					},
 				},
 			},
 		},

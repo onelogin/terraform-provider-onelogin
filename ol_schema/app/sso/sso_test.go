@@ -3,8 +3,8 @@ package sso
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,11 +28,11 @@ func TestSAMLSSOSchema(t *testing.T) {
 
 func TestFlattenOIDCSSO(t *testing.T) {
 	tests := map[string]struct {
-		InputData      models.AppSso
+		InputData      apps.AppSso
 		ExpectedOutput []map[string]interface{}
 	}{
 		"creates and returns the address of an AppSso struct for a OIDC app": {
-			InputData: models.AppSso{
+			InputData: apps.AppSso{
 				ClientID:     oltypes.String("test"),
 				ClientSecret: oltypes.String("test"),
 			},
@@ -54,16 +54,16 @@ func TestFlattenOIDCSSO(t *testing.T) {
 
 func TestFlattenSAML(t *testing.T) {
 	tests := map[string]struct {
-		InputData      models.AppSso
+		InputData      apps.AppSso
 		ExpectedOutput []map[string]interface{}
 	}{
 		"creates and returns the address of an AppSso struct for a OIDC app": {
-			InputData: models.AppSso{
+			InputData: apps.AppSso{
 				MetadataURL: oltypes.String("test"),
 				AcsURL:      oltypes.String("test"),
 				SlsURL:      oltypes.String("test"),
 				Issuer:      oltypes.String("test"),
-				Certificate: &models.AppSsoCertificate{
+				Certificate: &apps.AppSsoCertificate{
 					Name:  oltypes.String("test"),
 					ID:    oltypes.Int32(123),
 					Value: oltypes.String("test"),
