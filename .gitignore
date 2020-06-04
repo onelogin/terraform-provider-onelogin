@@ -1,4 +1,10 @@
-*.tf
+main.tf
+*.tfstate
+*.tfstate.*
+*.log
 ./vendor
 terraform-provider-onelogin
 .terraform
+dist
+coverage.out
+bin
