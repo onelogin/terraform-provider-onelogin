@@ -6,3 +6,5 @@ main.tf
 terraform-provider-onelogin
 .terraform
 dist
+coverage.out
+bin
