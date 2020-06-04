@@ -44,6 +44,8 @@ test:
 	gopherbadger -root="./ol_schema" -md="readme.md" -png=false
 
 secure:
-	# or install it into ./bin/
+	# excludes G104 (unhandled go errors) - Approved by security team
+	# excludes G109 (potential integer rollover) - These function calls were recommended by hashicorp for developing a provider
+	# excludes G304 (potential file inclusion) - The file needs to be read in order to run acceptance tests by hashicorp
 	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s
-	./bin/gosec -exclude=G104 ./...
+	./bin/gosec -exclude=G104,G304,G109 ./...
