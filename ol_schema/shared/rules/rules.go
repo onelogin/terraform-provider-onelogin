@@ -36,14 +36,14 @@ func Schema() map[string]*schema.Schema {
 		},
 		"conditions": &schema.Schema{
 			Type:     schema.TypeList,
-			Required: true,
+			Optional: true,
 			Elem: &schema.Resource{
 				Schema: conditions.Schema(),
 			},
 		},
 		"actions": &schema.Schema{
 			Type:     schema.TypeList,
-			Required: true,
+			Optional: true,
 			Elem: &schema.Resource{
 				Schema: actions.Schema(),
 			},
