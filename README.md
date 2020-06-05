@@ -8,7 +8,9 @@
     3) Install code dependencies
 
 # Getting Started
-1) In the ./onelogin-terraform-provider directory run:
+If you are sideloading this provider (i.e. not getting this via the Terraform store) You must clone this repository to run the following commands.
+
+1) In the ./terraform-provider-onelogin directory run:
     ```
     make sideload
     ```
