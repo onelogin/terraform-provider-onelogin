@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/parameters"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/provisioning"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/shared/rules"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/rules"
 )
 
 // Apps returns a resource with the CRUD methods and Terraform Schema defined

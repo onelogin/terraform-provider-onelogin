@@ -4,10 +4,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/configuration"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/parameters"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/provisioning"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/shared/rules"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/rules"
 )
 
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.
