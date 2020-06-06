@@ -21,7 +21,6 @@ clean-terraform:
 build:
 	mkdir -p ${DIST_DIR}
 	go build -o ${DIST_DIR} ./...
-	mv ${DIST_DIR}/cmd ${BIN_PATH}
 
 sideload: build
 	mkdir -p ${PLUGINS_DIR}
