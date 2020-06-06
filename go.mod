@@ -1,4 +1,4 @@
-module github.com/onelogin/onelogin-terraform-provider
+module github.com/onelogin/terraform-provider-onelogin
 
 go 1.12
 

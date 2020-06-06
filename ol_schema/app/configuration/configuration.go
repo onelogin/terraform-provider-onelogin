@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
-	"github.com/onelogin/onelogin-terraform-provider/utils"
+	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
 // OIDCSchema returns a key/value map of the various fields that make up
