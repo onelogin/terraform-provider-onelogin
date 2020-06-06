@@ -1,3 +1,12 @@
+## [0.0.3] - 2020-06-04
+### Added
+- tf provider binary builder to build pipeline
+
+### Changed
+
+### Removed
+
+
 ## [0.0.2] - 2020-06-04
 ### Added
 
