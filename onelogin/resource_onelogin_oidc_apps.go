@@ -7,12 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/configuration"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/parameters"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/provisioning"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/app/sso"
-	"github.com/onelogin/onelogin-terraform-provider/ol_schema/shared/rules"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/sso"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/rules"
 )
 
 // OIDCApps attaches additional configuration and sso schemas and

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
-	"github.com/onelogin/onelogin-terraform-provider/onelogin"
+	"github.com/onelogin/terraform-provider-onelogin/onelogin"
 )
 
 func main() {
