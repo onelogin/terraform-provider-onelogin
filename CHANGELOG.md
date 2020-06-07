@@ -1,27 +1,8 @@
-## [0.0.3] - 2020-06-04
+## [0.0.13] - 2020-06-05
 ### Added
-- tf provider binary builder to build pipeline
+- adds multi-platform binary build script
 
 ### Changed
-
-### Removed
-
-
-## [0.0.2] - 2020-06-04
-### Added
-
-### Changed
-- onelogin sdk version
-
-### Removed
-
-## [0.0.1] - 2020-06-03
-### Added
-- Apps Resource
-- SAML Apps Resource
-- OIDC Apps Resource
-
-### Changed
-
+- changes gh action to use build script
 
 ### Removed
