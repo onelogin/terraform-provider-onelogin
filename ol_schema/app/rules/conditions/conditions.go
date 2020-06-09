@@ -1,4 +1,4 @@
-package conditions
+package appruleconditionsschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"

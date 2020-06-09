@@ -11,14 +11,14 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/sso"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/rules"
 )
 
 // SAMLApps attaches additional configuration and sso schemas and
 // returns a resource with the CRUD methods and Terraform Schema defined
 func SAMLApps() *schema.Resource {
-	appSchema := app.Schema()
+	appSchema := appschema.Schema()
 	appSchema["configuration"] = &schema.Schema{
 		Type:     schema.TypeMap,
 		Optional: true,
@@ -43,7 +43,7 @@ func SAMLApps() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an samlApp with its sub-resources
 func samlAppCreate(d *schema.ResourceData, m interface{}) error {
-	samlApp, err := app.Inflate(map[string]interface{}{
+	samlApp := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -105,18 +105,19 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("connector_id", app.ConnectorID)
 	d.Set("created_at", app.CreatedAt.String())
 	d.Set("updated_at", app.UpdatedAt.String())
-	d.Set("parameters", parameters.Flatten(app.Parameters))
-	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
-	d.Set("configuration", configuration.FlattenSAML(*app.Configuration))
-	d.Set("sso", sso.FlattenSAML(*app.Sso))
-	d.Set("rules", rules.Flatten(app.Rules))
+	d.Set("parameters", appparametersschema.Flatten(app.Parameters))
+	d.Set("provisioning", appprovisioningschema.Flatten(*app.Provisioning))
+	d.Set("configuration", appconfigurationschema.FlattenSAML(*app.Configuration))
+	d.Set("sso", appssoschema.FlattenSAML(*app.Sso))
+	d.Set("rules", apprulesschema.Flatten(app.Rules))
+
 	return nil
 }
 
 // samlAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
-	samlApp, err := app.Inflate(map[string]interface{}{
+	samlApp := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),

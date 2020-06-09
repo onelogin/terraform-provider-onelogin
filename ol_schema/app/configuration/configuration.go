@@ -1,4 +1,4 @@
-package configuration
+package appconfigurationschema
 
 import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"

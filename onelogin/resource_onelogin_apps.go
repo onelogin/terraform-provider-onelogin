@@ -11,7 +11,7 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/rules"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules"
 )
 
 // Apps returns a resource with the CRUD methods and Terraform Schema defined
@@ -22,14 +22,14 @@ func Apps() *schema.Resource {
 		Update:   appUpdate,
 		Delete:   appDelete,
 		Importer: &schema.ResourceImporter{},
-		Schema:   app.Schema(),
+		Schema:   appschema.Schema(),
 	}
 }
 
 // appCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appCreate(d *schema.ResourceData, m interface{}) error {
-	basicApp, _ := app.Inflate(map[string]interface{}{
+	basicApp := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -86,9 +86,9 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("connector_id", app.ConnectorID)
 	d.Set("created_at", app.CreatedAt.String())
 	d.Set("updated_at", app.UpdatedAt.String())
-	d.Set("parameters", parameters.Flatten(app.Parameters))
-	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
-	d.Set("rules", rules.Flatten(app.Rules))
+	d.Set("parameters", appparametersschema.Flatten(app.Parameters))
+	d.Set("provisioning", appprovisioningschema.Flatten(*app.Provisioning))
+	d.Set("rules", apprulesschema.Flatten(app.Rules))
 
 	return nil
 }
@@ -96,7 +96,7 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 // appUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
-	basicApp, _ := app.Inflate(map[string]interface{}{
+	basicApp := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
