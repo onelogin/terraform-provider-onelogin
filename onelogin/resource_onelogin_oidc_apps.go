@@ -11,27 +11,27 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/sso"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/rules"
 )
 
 // OIDCApps attaches additional configuration and sso schemas and
 // returns a resource with the CRUD methods and Terraform Schema defined
 func OIDCApps() *schema.Resource {
-	appSchema := app.Schema()
+	appSchema := appschema.Schema()
 	appSchema["configuration"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: configuration.OIDCSchema()},
+		Elem:     &schema.Resource{Schema: appconfigurationschema.OIDCSchema()},
 	}
 	appSchema["sso"] = &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: sso.OIDCSchema()},
+		Elem:     &schema.Resource{Schema: appssoschema.OIDCSchema()},
 	}
 
 	return &schema.Resource{
@@ -47,7 +47,7 @@ func OIDCApps() *schema.Resource {
 // oidcAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an oidcApp with its sub-resources
 func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
-	oidcApp := app.Inflate(map[string]interface{}{
+	oidcApp := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -105,11 +105,11 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("connector_id", app.ConnectorID)
 	d.Set("created_at", app.CreatedAt.String())
 	d.Set("updated_at", app.UpdatedAt.String())
-	d.Set("parameters", parameters.Flatten(app.Parameters))
-	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
-	d.Set("configuration", configuration.FlattenOIDC(*app.Configuration))
-	d.Set("sso", sso.FlattenOIDC(*app.Sso))
-	d.Set("rules", rules.Flatten(app.Rules))
+	d.Set("parameters", appparametersschema.Flatten(app.Parameters))
+	d.Set("provisioning", appprovisioningschema.Flatten(*app.Provisioning))
+	d.Set("configuration", appconfigurationschema.FlattenOIDC(*app.Configuration))
+	d.Set("sso", appssoschema.FlattenOIDC(*app.Sso))
+	d.Set("rules", apprulesschema.Flatten(app.Rules))
 
 	return nil
 }
@@ -117,7 +117,7 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 // oidcAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an oidcApp and its sub-resources
 func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
-	oidcApp := app.Inflate(map[string]interface{}{
+	oidcApp := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),

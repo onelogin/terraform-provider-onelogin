@@ -1,4 +1,4 @@
-package provisioning
+package appprovisioningschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"

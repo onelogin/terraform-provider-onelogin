@@ -1,4 +1,4 @@
-package sso
+package appssoschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"

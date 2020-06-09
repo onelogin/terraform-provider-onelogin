@@ -1,4 +1,4 @@
-package app
+package appschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -7,7 +7,8 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/rules"
+
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules"
 )
 
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.
@@ -70,7 +71,7 @@ func Schema() map[string]*schema.Schema {
 			Computed: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
-				Schema: provisioning.Schema(),
+				Schema: appprovisioningschema.Schema(),
 			},
 		},
 		"parameters": &schema.Schema{
@@ -78,7 +79,7 @@ func Schema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 			Elem: &schema.Resource{
-				Schema: parameters.Schema(),
+				Schema: appparametersschema.Schema(),
 			},
 		},
 		"rules": &schema.Schema{
@@ -86,7 +87,7 @@ func Schema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 			Elem: &schema.Resource{
-				Schema: rules.Schema(),
+				Schema: apprulesschema.Schema(),
 			},
 		},
 	}
@@ -107,20 +108,20 @@ func Inflate(s map[string]interface{}) apps.App {
 		app.Parameters = make(map[string]apps.AppParameters, len(p))
 		for _, val := range p {
 			valMap := val.(map[string]interface{})
-			app.Parameters[valMap["param_key_name"].(string)] = parameters.Inflate(valMap)
+			app.Parameters[valMap["param_key_name"].(string)] = appparametersschema.Inflate(valMap)
 		}
 	}
 	if s["provisioning"] != nil {
 		for _, val := range s["provisioning"].([]interface{}) {
 			valMap := val.(map[string]interface{})
-			prov := provisioning.Inflate(valMap)
+			prov := appprovisioningschema.Inflate(valMap)
 			app.Provisioning = &prov
 		}
 	}
 	if s["configuration"] != nil {
 		for _, val := range s["configuration"].([]interface{}) {
 			valMap := val.(map[string]interface{})
-			config := configuration.Inflate(valMap)
+			config := appconfigurationschema.Inflate(valMap)
 			app.Configuration = &config
 		}
 	}
@@ -128,7 +129,7 @@ func Inflate(s map[string]interface{}) apps.App {
 		appRules := make([]apps.AppRule, len(s["rules"].([]interface{})))
 		for i, val := range s["rules"].([]interface{}) {
 			valMap := val.(map[string]interface{})
-			appRules[i] = rules.Inflate(valMap)
+			appRules[i] = apprulesschema.Inflate(valMap)
 			appRules[i].Position = oltypes.Int32(int32(i + 1))
 		}
 		app.Rules = appRules
