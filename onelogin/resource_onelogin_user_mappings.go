@@ -12,7 +12,7 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/conditions"
 )
 
-// SAMLApps attaches additional configuration and sso schemas and
+// UserMappings attaches additional configuration and sso schemas and
 // returns a resource with the CRUD methods and Terraform Schema defined
 func UserMappings() *schema.Resource {
 	mappingSchema := usermappingschema.Schema()
@@ -50,7 +50,7 @@ func userMappingCreate(d *schema.ResourceData, m interface{}) error {
 	return userMappingRead(d, m)
 }
 
-// samlAppRead takes a pointer to the ResourceData Struct and a HTTP client and
+// UserMappingRead takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the GET request to OneLogin to read an samlApp with its sub-resources
 func userMappingRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
@@ -77,7 +77,7 @@ func userMappingRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-// samlAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
+// UserMappingUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func userMappingUpdate(d *schema.ResourceData, m interface{}) error {
 	userMapping := usermappingschema.Inflate(map[string]interface{}{
