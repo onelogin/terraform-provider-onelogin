@@ -8,3 +8,5 @@ require (
 	github.com/onelogin/onelogin-go-sdk v0.2.8
 	github.com/stretchr/testify v1.5.1
 )
+
+replace github.com/onelogin/onelogin-go-sdk => /Users/dominickcaponi/go/src/github.com/onelogin/onelogin-go-sdk
