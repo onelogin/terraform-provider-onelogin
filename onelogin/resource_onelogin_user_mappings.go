@@ -94,14 +94,14 @@ func userMappingUpdate(d *schema.ResourceData, m interface{}) error {
 
 	userMappingResp, err := client.Services.UserMappingsV2.Update(int32(aid), &userMapping)
 	if err != nil {
-		log.Println("[ERROR] There was a problem Updating the app!", err)
+		log.Println("[ERROR] There was a problem Updating the user mapping!", err)
 		return err
 	}
 	if userMappingResp == nil {
 		d.SetId("")
 		return nil
 	}
-	log.Printf("[UPDATED] Updated app with %d", *(userMappingResp.ID))
+	log.Printf("[UPDATED] Updated user mapping with %d", *(userMappingResp.ID))
 	d.SetId(fmt.Sprintf("%d", *(userMappingResp.ID)))
 	return userMappingRead(d, m)
 }
