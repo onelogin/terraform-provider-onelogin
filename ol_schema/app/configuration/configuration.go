@@ -52,11 +52,11 @@ func SAMLSchema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Computed: true,
 		},
-		"provider_arn": &schema.Schema{
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
+		// "provider_arn": &schema.Schema{
+		// 	Type:     schema.TypeString,
+		// 	Optional: true,
+		// 	Computed: true,
+		// },
 		"signature_algorithm": &schema.Schema{
 			Type:         schema.TypeString,
 			Required:     true,
