@@ -27,11 +27,9 @@ func OIDCApps() *schema.Resource {
 		Elem:     &schema.Resource{Schema: configuration.OIDCSchema()},
 	}
 	appSchema["sso"] = &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:     schema.TypeMap,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: sso.OIDCSchema()},
+		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
 
 	return &schema.Resource{

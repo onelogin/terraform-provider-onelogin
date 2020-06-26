@@ -27,11 +27,9 @@ func SAMLApps() *schema.Resource {
 		Elem:     &schema.Resource{Schema: configuration.SAMLSchema()},
 	}
 	appSchema["sso"] = &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:     schema.TypeMap,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: sso.SAMLSchema()},
+		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
 
 	return &schema.Resource{
