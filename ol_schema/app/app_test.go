@@ -38,7 +38,7 @@ func TestInflate(t *testing.T) {
 		ResourceData   map[string]interface{}
 		ExpectedOutput apps.App
 	}{
-		"creates and returns the address of an AppParameters struct with all sub-fiekds": {
+		"creates and returns the address of an AppParameters struct with all sub-fields": {
 			ResourceData: map[string]interface{}{
 				"name":                 "test",
 				"visible":              true,
@@ -61,16 +61,12 @@ func TestInflate(t *testing.T) {
 						"safe_entitlements_enabled":  true,
 					},
 				}),
-				"provisioning": []interface{}{
-					map[string]interface{}{
-						"enabled": true,
-					},
+				"provisioning": map[string]interface{}{
+					"enabled": true,
 				},
-				"configuration": []interface{}{
-					map[string]interface{}{
-						"provider_arn":        "test",
-						"signature_algorithm": "test",
-					},
+				"configuration": map[string]interface{}{
+					"provider_arn":        "test",
+					"signature_algorithm": "test",
 				},
 				"rules": []interface{}{
 					map[string]interface{}{
@@ -152,7 +148,7 @@ func TestInflate(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := Inflate(test.ResourceData)
+			subj, _ := Inflate(test.ResourceData)
 			assert.Equal(t, subj, test.ExpectedOutput)
 		})
 	}

@@ -20,11 +20,9 @@ import (
 func SAMLApps() *schema.Resource {
 	appSchema := app.Schema()
 	appSchema["configuration"] = &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeMap,
 		Optional: true,
-		MaxItems: 1,
-		Computed: true,
-		Elem:     &schema.Resource{Schema: configuration.SAMLSchema()},
+		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
 	appSchema["sso"] = &schema.Schema{
 		Type:     schema.TypeMap,
@@ -45,7 +43,7 @@ func SAMLApps() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an samlApp with its sub-resources
 func samlAppCreate(d *schema.ResourceData, m interface{}) error {
-	samlApp := app.Inflate(map[string]interface{}{
+	samlApp, err := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -57,6 +55,10 @@ func samlAppCreate(d *schema.ResourceData, m interface{}) error {
 		"configuration":        d.Get("configuration"),
 		"rules":                d.Get("rules"),
 	})
+	if err != nil {
+		log.Println("Unable to convert string in plan to required value type", err)
+		return err
+	}
 	client := m.(*client.APIClient)
 	appResp, err := client.Services.AppsV2.Create(&samlApp)
 	if err != nil {
@@ -108,14 +110,13 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("configuration", configuration.FlattenSAML(*app.Configuration))
 	d.Set("sso", sso.FlattenSAML(*app.Sso))
 	d.Set("rules", rules.Flatten(app.Rules))
-
 	return nil
 }
 
 // samlAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
-	samlApp := app.Inflate(map[string]interface{}{
+	samlApp, err := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -127,7 +128,10 @@ func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
 		"configuration":        d.Get("configuration"),
 		"rules":                d.Get("rules"),
 	})
-
+	if err != nil {
+		log.Println("Unable to convert string in plan to required value type", err)
+		return err
+	}
 	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
 

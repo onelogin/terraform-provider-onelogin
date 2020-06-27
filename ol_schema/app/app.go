@@ -65,13 +65,10 @@ func Schema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"provisioning": &schema.Schema{
-			Type:     schema.TypeList,
+			Type:     schema.TypeMap,
 			Optional: true,
 			Computed: true,
-			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: provisioning.Schema(),
-			},
+			Elem:     &schema.Schema{Type: schema.TypeBool},
 		},
 		"parameters": &schema.Schema{
 			Type:     schema.TypeSet,
@@ -93,7 +90,8 @@ func Schema() map[string]*schema.Schema {
 }
 
 // Inflate takes a map of interfaces and constructs a OneLogin App.
-func Inflate(s map[string]interface{}) apps.App {
+func Inflate(s map[string]interface{}) (apps.App, error) {
+	var err error
 	app := apps.App{
 		Name:               oltypes.String(s["name"].(string)),
 		Description:        oltypes.String(s["description"].(string)),
@@ -111,18 +109,13 @@ func Inflate(s map[string]interface{}) apps.App {
 		}
 	}
 	if s["provisioning"] != nil {
-		for _, val := range s["provisioning"].([]interface{}) {
-			valMap := val.(map[string]interface{})
-			prov := provisioning.Inflate(valMap)
-			app.Provisioning = &prov
-		}
+		prov := provisioning.Inflate(s["provisioning"].(map[string]interface{}))
+		app.Provisioning = &prov
 	}
 	if s["configuration"] != nil {
-		for _, val := range s["configuration"].([]interface{}) {
-			valMap := val.(map[string]interface{})
-			config := configuration.Inflate(valMap)
-			app.Configuration = &config
-		}
+		var conf apps.AppConfiguration
+		conf, err = configuration.Inflate(s["configuration"].(map[string]interface{}))
+		app.Configuration = &conf
 	}
 	if s["rules"] != nil {
 		appRules := make([]apps.AppRule, len(s["rules"].([]interface{})))
@@ -133,5 +126,5 @@ func Inflate(s map[string]interface{}) apps.App {
 		}
 		app.Rules = appRules
 	}
-	return app
+	return app, err
 }
