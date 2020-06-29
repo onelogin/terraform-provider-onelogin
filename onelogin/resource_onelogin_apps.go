@@ -29,7 +29,7 @@ func Apps() *schema.Resource {
 // appCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appCreate(d *schema.ResourceData, m interface{}) error {
-	basicApp := appschema.Inflate(map[string]interface{}{
+	basicApp, _ := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -96,7 +96,7 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 // appUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
-	basicApp := appschema.Inflate(map[string]interface{}{
+	basicApp, _ := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),

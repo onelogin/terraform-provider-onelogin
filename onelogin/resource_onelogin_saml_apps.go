@@ -43,7 +43,7 @@ func SAMLApps() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an samlApp with its sub-resources
 func samlAppCreate(d *schema.ResourceData, m interface{}) error {
-	samlApp := appschema.Inflate(map[string]interface{}{
+	samlApp, err := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -117,7 +117,7 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 // samlAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func samlAppUpdate(d *schema.ResourceData, m interface{}) error {
-	samlApp := appschema.Inflate(map[string]interface{}{
+	samlApp, err := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),

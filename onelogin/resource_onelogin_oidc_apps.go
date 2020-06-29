@@ -43,7 +43,7 @@ func OIDCApps() *schema.Resource {
 // oidcAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an oidcApp with its sub-resources
 func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
-	oidcApp := appschema.Inflate(map[string]interface{}{
+	oidcApp, err := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -117,7 +117,7 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 // oidcAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an oidcApp and its sub-resources
 func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
-	oidcApp := appschema.Inflate(map[string]interface{}{
+	oidcApp, err := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
