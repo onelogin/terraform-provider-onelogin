@@ -19,7 +19,7 @@ func TestAccSAMLApp_crud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "name", "SAML App"),
 					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "description", "SAML"),
-					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "configuration.0.signature_algorithm", "SHA-1"),
+					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "configuration.signature_algorithm", "SHA-1"),
 				),
 			},
 			{
@@ -27,7 +27,7 @@ func TestAccSAMLApp_crud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "name", "Updated SAML App"),
 					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "description", "Updated SAML"),
-					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "configuration.0.signature_algorithm", "SHA-256"),
+					resource.TestCheckResourceAttr("onelogin_saml_apps.saml", "configuration.signature_algorithm", "SHA-256"),
 				),
 			},
 		},

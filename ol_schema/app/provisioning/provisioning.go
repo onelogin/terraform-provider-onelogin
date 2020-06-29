@@ -1,21 +1,9 @@
 package provisioning
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 )
-
-// ProvisioningSchema returns a key/value map of the various fields that make up
-// the Provisioning field for a OneLogin App.
-func Schema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"enabled": &schema.Schema{
-			Type:     schema.TypeBool,
-			Required: true,
-		},
-	}
-}
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
 // a AppProvisioning struct, a sub-field of a OneLogin App.
@@ -28,10 +16,8 @@ func Inflate(s map[string]interface{}) apps.AppProvisioning {
 }
 
 // Flatten takes a AppProvisioning instance and converts it to an array of maps
-func Flatten(prov apps.AppProvisioning) []map[string]interface{} {
-	return []map[string]interface{}{
-		map[string]interface{}{
-			"enabled": *prov.Enabled,
-		},
+func Flatten(prov apps.AppProvisioning) map[string]interface{} {
+	return map[string]interface{}{
+		"enabled": *prov.Enabled,
 	}
 }

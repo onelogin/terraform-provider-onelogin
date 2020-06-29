@@ -3,7 +3,7 @@ resource onelogin_oidc_apps oidc{
   name =  "Updated OIDC APP"
   description = "OIDC"
 
-  configuration {
+  configuration = {
     redirect_uri = "https://localhost:3000/callback"
     refresh_token_expiration_minutes = 1
     login_url = "https://www.updated.com"

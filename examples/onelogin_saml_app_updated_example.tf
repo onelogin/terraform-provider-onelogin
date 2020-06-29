@@ -3,7 +3,7 @@ resource onelogin_saml_apps saml{
   name =  "Updated SAML App"
   description = "Updated SAML"
 
-  configuration {
+  configuration = {
     signature_algorithm = "SHA-256"
   }
 }

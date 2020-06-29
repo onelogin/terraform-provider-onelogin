@@ -1,47 +1,28 @@
 package configuration
 
 import (
+	"errors"
 	"fmt"
-	"testing"
-
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
-
-func TestOIDCSchema(t *testing.T) {
-	t.Run("creates and returns a map of an AppConfiguration Schema", func(t *testing.T) {
-		schema := OIDCSchema()
-		assert.NotNil(t, schema["redirect_uri"])
-		assert.NotNil(t, schema["refresh_token_expiration_minutes"])
-		assert.NotNil(t, schema["login_url"])
-		assert.NotNil(t, schema["oidc_application_type"])
-		assert.NotNil(t, schema["token_endpoint_auth_method"])
-		assert.NotNil(t, schema["access_token_expiration_minutes"])
-	})
-}
-
-func TestSAMLSchema(t *testing.T) {
-	t.Run("creates and returns a map of an AppConfiguration Schema", func(t *testing.T) {
-		schema := SAMLSchema()
-		// assert.NotNil(t, schema["provider_arn"])
-		assert.NotNil(t, schema["signature_algorithm"])
-	})
-}
 
 func TestInflateConfiguration(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
 		ExpectedOutput apps.AppConfiguration
+		ExpectedError  error
 	}{
 		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
 			ResourceData: map[string]interface{}{
 				"redirect_uri":                     "test",
-				"refresh_token_expiration_minutes": 2,
+				"refresh_token_expiration_minutes": "2",
 				"login_url":                        "test",
-				"oidc_application_type":            2,
-				"token_endpoint_auth_method":       2,
-				"access_token_expiration_minutes":  2,
+				"oidc_application_type":            "2",
+				"token_endpoint_auth_method":       "2",
+				"access_token_expiration_minutes":  "2",
 			},
 			ExpectedOutput: apps.AppConfiguration{
 				RedirectURI:                   oltypes.String("test"),
@@ -51,6 +32,50 @@ func TestInflateConfiguration(t *testing.T) {
 				TokenEndpointAuthMethod:       oltypes.Int32(2),
 				AccessTokenExpirationMinutes:  oltypes.Int32(2),
 			},
+		},
+		"returns an error if invalid refresh_token_expiration_minutes given": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":                     "test",
+				"refresh_token_expiration_minutes": "asdf",
+				"login_url":                        "test",
+				"oidc_application_type":            "2",
+				"token_endpoint_auth_method":       "2",
+				"access_token_expiration_minutes":  "2",
+			},
+			ExpectedError: errors.New(`strconv.Atoi: parsing "asdf": invalid syntax`),
+		},
+		"returns an error if invalid oidc_application_type given": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":                     "test",
+				"refresh_token_expiration_minutes": "2",
+				"login_url":                        "test",
+				"oidc_application_type":            "asdf",
+				"token_endpoint_auth_method":       "2",
+				"access_token_expiration_minutes":  "2",
+			},
+			ExpectedError: errors.New(`strconv.Atoi: parsing "asdf": invalid syntax`),
+		},
+		"returns an error if invalid token_endpoint_auth_method given": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":                     "test",
+				"refresh_token_expiration_minutes": "2",
+				"login_url":                        "test",
+				"oidc_application_type":            "2",
+				"token_endpoint_auth_method":       "asdf",
+				"access_token_expiration_minutes":  "2",
+			},
+			ExpectedError: errors.New(`strconv.Atoi: parsing "asdf": invalid syntax`),
+		},
+		"returns an error if invalid access_token_expiration_minutes given": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":                     "test",
+				"refresh_token_expiration_minutes": "2",
+				"login_url":                        "test",
+				"oidc_application_type":            "2",
+				"token_endpoint_auth_method":       "2",
+				"access_token_expiration_minutes":  "asdf",
+			},
+			ExpectedError: errors.New(`strconv.Atoi: parsing "asdf": invalid syntax`),
 		},
 		"creates and returns the address of an AppConfiguration struct for a SAML app": {
 			ResourceData: map[string]interface{}{
@@ -65,8 +90,13 @@ func TestInflateConfiguration(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := Inflate(test.ResourceData)
-			assert.Equal(t, subj, test.ExpectedOutput)
+			subj, err := Inflate(test.ResourceData)
+			if (test.ExpectedOutput != apps.AppConfiguration{}) {
+				assert.Equal(t, subj, test.ExpectedOutput)
+			}
+			if test.ExpectedError != nil {
+				assert.Error(t, err)
+			}
 		})
 	}
 }
@@ -74,7 +104,7 @@ func TestInflateConfiguration(t *testing.T) {
 func TestFlattenConfiguration(t *testing.T) {
 	tests := map[string]struct {
 		InputData      apps.AppConfiguration
-		ExpectedOutput []map[string]interface{}
+		ExpectedOutput map[string]interface{}
 	}{
 		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
 			InputData: apps.AppConfiguration{
@@ -85,15 +115,13 @@ func TestFlattenConfiguration(t *testing.T) {
 				TokenEndpointAuthMethod:       oltypes.Int32(2),
 				AccessTokenExpirationMinutes:  oltypes.Int32(2),
 			},
-			ExpectedOutput: []map[string]interface{}{
-				map[string]interface{}{
-					"redirect_uri":                     oltypes.String("test"),
-					"refresh_token_expiration_minutes": oltypes.Int32(2),
-					"login_url":                        oltypes.String("test"),
-					"oidc_application_type":            oltypes.Int32(2),
-					"token_endpoint_auth_method":       oltypes.Int32(2),
-					"access_token_expiration_minutes":  oltypes.Int32(2),
-				},
+			ExpectedOutput: map[string]interface{}{
+				"redirect_uri":                     "test",
+				"refresh_token_expiration_minutes": "2",
+				"login_url":                        "test",
+				"oidc_application_type":            "2",
+				"token_endpoint_auth_method":       "2",
+				"access_token_expiration_minutes":  "2",
 			},
 		},
 	}
@@ -108,18 +136,16 @@ func TestFlattenConfiguration(t *testing.T) {
 func TestFlattenSAMLConfiguration(t *testing.T) {
 	tests := map[string]struct {
 		InputData      apps.AppConfiguration
-		ExpectedOutput []map[string]interface{}
+		ExpectedOutput map[string]interface{}
 	}{
 		"creates and returns the address of an AppConfiguration struct for a SAML app": {
 			InputData: apps.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
 			},
-			ExpectedOutput: []map[string]interface{}{
-				map[string]interface{}{
-					"provider_arn":        oltypes.String("test"),
-					"signature_algorithm": oltypes.String("test"),
-				},
+			ExpectedOutput: map[string]interface{}{
+				"provider_arn":        "test",
+				"signature_algorithm": "test",
 			},
 		},
 	}

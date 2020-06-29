@@ -20,18 +20,14 @@ import (
 func OIDCApps() *schema.Resource {
 	appSchema := app.Schema()
 	appSchema["configuration"] = &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeMap,
 		Optional: true,
-		MaxItems: 1,
-		Computed: true,
-		Elem:     &schema.Resource{Schema: configuration.OIDCSchema()},
+		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
 	appSchema["sso"] = &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:     schema.TypeMap,
 		Computed: true,
-		Elem:     &schema.Resource{Schema: sso.OIDCSchema()},
+		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
 
 	return &schema.Resource{
@@ -47,7 +43,7 @@ func OIDCApps() *schema.Resource {
 // oidcAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an oidcApp with its sub-resources
 func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
-	oidcApp := app.Inflate(map[string]interface{}{
+	oidcApp, err := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -59,6 +55,10 @@ func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
 		"configuration":        d.Get("configuration"),
 		"rules":                d.Get("rules"),
 	})
+	if err != nil {
+		log.Println("Unable to convert string in plan to required value type", err)
+		return err
+	}
 	client := m.(*client.APIClient)
 	appResp, err := client.Services.AppsV2.Create(&oidcApp)
 	if err != nil {
@@ -107,17 +107,18 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("updated_at", app.UpdatedAt.String())
 	d.Set("parameters", parameters.Flatten(app.Parameters))
 	d.Set("provisioning", provisioning.Flatten(*app.Provisioning))
-	d.Set("configuration", configuration.FlattenOIDC(*app.Configuration))
+	if err = d.Set("configuration", configuration.FlattenOIDC(*app.Configuration)); err != nil {
+		log.Println("FUCK", err)
+	}
 	d.Set("sso", sso.FlattenOIDC(*app.Sso))
 	d.Set("rules", rules.Flatten(app.Rules))
-
 	return nil
 }
 
 // oidcAppUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an oidcApp and its sub-resources
 func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
-	oidcApp := app.Inflate(map[string]interface{}{
+	oidcApp, err := app.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -129,7 +130,10 @@ func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
 		"configuration":        d.Get("configuration"),
 		"rules":                d.Get("rules"),
 	})
-
+	if err != nil {
+		log.Println("Unable to convert string in plan to required value type", err)
+		return err
+	}
 	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
 
