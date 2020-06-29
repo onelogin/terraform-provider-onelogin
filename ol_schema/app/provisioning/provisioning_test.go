@@ -8,13 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProvisioningSchema(t *testing.T) {
-	t.Run("creates and returns a map of an AppProvisioning Schema", func(t *testing.T) {
-		provSchema := Schema()
-		assert.NotNil(t, provSchema["enabled"])
-	})
-}
-
 func TestInflateProvisioning(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
@@ -43,7 +36,7 @@ func TestFlatten(t *testing.T) {
 			Enabled: oltypes.Bool(true),
 		}
 		subj := Flatten(appProvisioning)
-		expected := []map[string]interface{}{{"enabled": true}}
+		expected := map[string]interface{}{"enabled": true}
 		assert.Equal(t, subj, expected)
 	})
 }
