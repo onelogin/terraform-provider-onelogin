@@ -8,3 +8,4 @@ terraform-provider-onelogin
 dist
 coverage.out
 bin
+*.asc

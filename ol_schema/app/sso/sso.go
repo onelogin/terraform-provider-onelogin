@@ -1,4 +1,4 @@
-package sso
+package appssoschema
 
 import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"

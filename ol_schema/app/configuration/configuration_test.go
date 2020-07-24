@@ -1,4 +1,4 @@
-package configuration
+package appconfigurationschema
 
 import (
 	"errors"
