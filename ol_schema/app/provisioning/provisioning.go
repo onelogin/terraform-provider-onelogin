@@ -1,4 +1,4 @@
-package provisioning
+package appprovisioningschema
 
 import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"

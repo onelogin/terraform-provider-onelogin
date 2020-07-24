@@ -1,4 +1,4 @@
-package parameters
+package appparametersschema
 
 import (
 	"testing"

@@ -1,11 +1,11 @@
-package rules
+package apprulesschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/actions"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/shared/conditions"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules/actions"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
@@ -38,14 +38,14 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem: &schema.Resource{
-				Schema: conditions.Schema(),
+				Schema: appruleconditionsschema.Schema(),
 			},
 		},
 		"actions": &schema.Schema{
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem: &schema.Resource{
-				Schema: actions.Schema(),
+				Schema: appruleactionsschema.Schema(),
 			},
 		},
 	}
@@ -77,14 +77,14 @@ func Inflate(s map[string]interface{}) apps.AppRule {
 	if s["conditions"] != nil {
 		for _, val := range s["conditions"].([]interface{}) {
 			valMap := val.(map[string]interface{})
-			cond := conditions.Inflate(valMap)
+			cond := appruleconditionsschema.Inflate(valMap)
 			out.Conditions = append(out.Conditions, cond)
 		}
 	}
 	if s["actions"] != nil {
 		for _, val := range s["actions"].([]interface{}) {
 			valMap := val.(map[string]interface{})
-			cond := actions.Inflate(valMap)
+			cond := appruleactionsschema.Inflate(valMap)
 			out.Actions = append(out.Actions, cond)
 		}
 	}
@@ -101,8 +101,8 @@ func Flatten(appRules []apps.AppRule) []map[string]interface{} {
 			"match":      appRule.Match,
 			"enabled":    appRule.Enabled,
 			"position":   appRule.Position,
-			"conditions": conditions.Flatten(appRule.Conditions),
-			"actions":    actions.Flatten(appRule.Actions),
+			"conditions": appruleconditionsschema.Flatten(appRule.Conditions),
+			"actions":    appruleactionsschema.Flatten(appRule.Actions),
 		}
 	}
 	return out
