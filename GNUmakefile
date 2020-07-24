@@ -48,6 +48,3 @@ secure:
 	# excludes G304 (potential file inclusion) - The file needs to be read in order to run acceptance tests by hashicorp
 	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s
 	./bin/gosec -exclude=G104,G304,G109 ./...
-
-ship:
-	bash ship.sh github.com/onelogin/terraform-provider-onelogin

@@ -15,65 +15,17 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.14
-      - name: Build
-        run: make ship
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Import GPG key
+        id: import_gpg
+        uses: paultyng/ghaction-import-gpg@v2.1.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - name: Upload Darwin-amd64 Asset
-        id: upload-Darwin-amd64-asset
-        uses: actions/upload-release-asset@v1
+          version: latest
+          args: release --rm-dist
         env:
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/darwin-amd64.tar.gz
-          asset_name: dawrin-amd64.tar.gz
-          asset_content_type: application/x-gzip
-      - name: Upload Linux-amd64 Asset
-        id: upload-Linux-amd64-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/linux-amd64.tar.gz
-          asset_name: linux-amd64.tar.gz
-          asset_content_type: application/x-gzip
-      - name: Upload Windows-amd64 Asset
-        id: upload-Windows-amd64-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/windows-amd64.zip
-          asset_name: windows-amd64.zip
-          asset_content_type: application/zip
-      - name: Upload Windows-386 Asset
-        id: upload-Windows-386-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/windows-386.zip
-          asset_name: windows-386.zip
-          asset_content_type: application/zip
-      - name: Upload Linux-386 Asset
-        id: upload-Linux-386-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/linux-386.tar.gz
-          asset_name: linux-386.tar.gz
-          asset_content_type: application/x-gzip
