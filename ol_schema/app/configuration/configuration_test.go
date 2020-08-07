@@ -3,10 +3,11 @@ package appconfigurationschema
 import (
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestInflateConfiguration(t *testing.T) {
@@ -85,6 +86,18 @@ func TestInflateConfiguration(t *testing.T) {
 			ExpectedOutput: apps.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
+			},
+		},
+		"creates and returns the address of an AppConfiguration struct for a SAML app with exra fields": {
+			ResourceData: map[string]interface{}{
+				"provider_arn":        "test",
+				"signature_algorithm": "test",
+				"encrypt_assertion":   "1",
+			},
+			ExpectedOutput: apps.AppConfiguration{
+				ProviderArn:        oltypes.String("test"),
+				SignatureAlgorithm: oltypes.String("test"),
+				EncryptAssertion:   oltypes.String("1"),
 			},
 		},
 	}
