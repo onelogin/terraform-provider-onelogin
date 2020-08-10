@@ -51,7 +51,6 @@ func TestFlattenSAMLCert(t *testing.T) {
 			},
 			ExpectedOutput: map[string]interface{}{
 				"name":  oltypes.String("test"),
-				"id":    oltypes.Int32(123),
 				"value": oltypes.String("test"),
 			},
 		},
