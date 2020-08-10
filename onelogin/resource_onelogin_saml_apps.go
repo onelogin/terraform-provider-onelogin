@@ -29,7 +29,11 @@ func SAMLApps() *schema.Resource {
 		Computed: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
-
+	appSchema["certificate"] = &schema.Schema{
+		Type:     schema.TypeMap,
+		Computed: true,
+		Elem:     &schema.Schema{Type: schema.TypeString},
+	}
 	return &schema.Resource{
 		Create:   samlAppCreate,
 		Read:     samlAppRead,
@@ -109,6 +113,7 @@ func samlAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("provisioning", appprovisioningschema.Flatten(*app.Provisioning))
 	d.Set("configuration", appconfigurationschema.FlattenSAML(*app.Configuration))
 	d.Set("sso", appssoschema.FlattenSAML(*app.Sso))
+	d.Set("certificate", appssoschema.FlattenSAMLCert(*app.Sso))
 	d.Set("rules", apprulesschema.Flatten(app.Rules))
 
 	return nil
