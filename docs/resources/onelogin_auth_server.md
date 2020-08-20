@@ -50,7 +50,7 @@ No further attributes are exported
 
 ## Import
 
-An App can be imported via the OneLogin Auth Server ID.
+An Auth Server can be imported via the OneLogin Auth Server ID.
 
 ```
 $ terraform import onelogin_auth_servers.example <auth_server_id>
