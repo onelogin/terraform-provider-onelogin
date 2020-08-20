@@ -9,6 +9,7 @@ import (
 	"testing"
 )
 
+// GetFixture returns the HCL example to be used in an acceptance test
 func GetFixture(name string, t *testing.T) string {
 	_, filename, _, _ := runtime.Caller(0)
 	exPath := filepath.Dir(filename)
