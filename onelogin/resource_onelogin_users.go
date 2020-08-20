@@ -11,7 +11,7 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
 )
 
-// Apps returns a resource with the CRUD methods and Terraform Schema defined
+// Users returns a resource with the CRUD methods and Terraform Schema defined
 func Users() *schema.Resource {
 	return &schema.Resource{
 		Create:   usersCreate,

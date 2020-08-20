@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRulesSchema(t *testing.T) {
-	t.Run("creates and returns a map of a user mapping Schema", func(t *testing.T) {
+func TestSchema(t *testing.T) {
+	t.Run("creates and returns a map of a user Schema", func(t *testing.T) {
 		provSchema := Schema()
 		assert.NotNil(t, provSchema["username"])
 		assert.NotNil(t, provSchema["email"])
