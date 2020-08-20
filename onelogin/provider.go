@@ -44,6 +44,8 @@ func Provider() terraform.ResourceProvider {
 			"onelogin_oidc_apps":     OIDCApps(),
 			"onelogin_saml_apps":     SAMLApps(),
 			"onelogin_user_mappings": UserMappings(),
+			"onelogin_users":         Users(),
+			"onelogin_auth_servers":  AuthServers(),
 		},
 		ConfigureFunc: configProvider,
 	}

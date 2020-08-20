@@ -29,7 +29,7 @@ func Inflate(s map[string]interface{}) (apps.AppConfiguration, error) {
 	if st, notNil = s["login_url"].(string); notNil {
 		out.LoginURL = oltypes.String(st)
 	}
-	// terraform typeMap wants all fields to be strings and we store these fields as in32
+	// terraform typeMap wants all fields to be strings and we store these fields as int32
 	// so we do the conversion here when assembling the resource
 	if st, notNil = s["refresh_token_expiration_minutes"].(string); notNil {
 		if n, err = strconv.Atoi(st); err != nil {

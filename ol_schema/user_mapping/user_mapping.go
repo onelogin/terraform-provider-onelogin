@@ -9,7 +9,7 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
-// Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.
+// Schema returns a key/value map of the various fields that make up the Rules of a OneLogin UserMapping.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
