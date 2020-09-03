@@ -3,9 +3,9 @@ package apprulesschema
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules/actions"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules/conditions"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
@@ -15,6 +15,10 @@ func Schema() map[string]*schema.Schema {
 		"id": &schema.Schema{
 			Type:     schema.TypeInt,
 			Computed: true,
+		},
+		"app_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Required: true,
 		},
 		"name": &schema.Schema{
 			Type:     schema.TypeString,
@@ -57,10 +61,12 @@ func validMatch(val interface{}, key string) (warns []string, errs []error) {
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
 // a AppProvisioning struct, a sub-field of a OneLogin App.
-func Inflate(s map[string]interface{}) apps.AppRule {
-	out := apps.AppRule{}
-	if id, notNil := s["id"].(int); id != 0 && notNil {
-		out.ID = oltypes.Int32(int32(id))
+func Inflate(s map[string]interface{}) apprules.AppRule {
+	out := apprules.AppRule{}
+	if s["id"] != nil {
+		if id, _ := s["id"].(int); id != 0 {
+			out.ID = oltypes.Int32(int32(id))
+		}
 	}
 	if name, notNil := s["name"].(string); notNil {
 		out.Name = oltypes.String(name)
@@ -92,7 +98,7 @@ func Inflate(s map[string]interface{}) apps.AppRule {
 }
 
 // Flatten takes a AppRules array and converts it to an array of maps
-func Flatten(appRules []apps.AppRule) []map[string]interface{} {
+func Flatten(appRules []apprules.AppRule) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(appRules))
 	for i, appRule := range appRules {
 		out[i] = map[string]interface{}{

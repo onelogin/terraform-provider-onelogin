@@ -54,8 +54,10 @@ func validMatch(val interface{}, key string) (warns []string, errs []error) {
 // Inflate takes a key/value map of interfaces and uses the fields to construct a user mapping struct
 func Inflate(s map[string]interface{}) usermappings.UserMapping {
 	out := usermappings.UserMapping{}
-	if id, notNil := s["id"].(int); id != 0 && notNil {
-		out.ID = oltypes.Int32(int32(id))
+	if s["id"] != nil {
+		if id, _ := s["id"].(int); id != 0 {
+			out.ID = oltypes.Int32(int32(id))
+		}
 	}
 	if name, notNil := s["name"].(string); notNil {
 		out.Name = oltypes.String(name)

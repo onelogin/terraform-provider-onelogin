@@ -1,6 +1,7 @@
 package userschema
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/users"
@@ -110,8 +111,11 @@ func Inflate(s map[string]interface{}) (users.User, error) {
 		Username: oltypes.String(s["username"].(string)),
 		Email:    oltypes.String(s["email"].(string)),
 	}
-	if id, notNil := s["id"].(int); id != 0 && notNil {
-		out.ID = oltypes.Int32(int32(id))
+	if s["id"] != nil {
+		fmt.Println("ASDF", s["id"], s["id"].(int))
+		if id, _ := s["id"].(int); id != 0 {
+			out.ID = oltypes.Int32(int32(id))
+		}
 	}
 	if state, notNil := s["state"].(int); state != 0 && notNil {
 		out.State = oltypes.Int32(int32(state))

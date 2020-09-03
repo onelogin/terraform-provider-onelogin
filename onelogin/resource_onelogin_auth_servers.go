@@ -43,14 +43,14 @@ func authServersCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func authServersUpdate(d *schema.ResourceData, m interface{}) error {
-	uid, _ := strconv.Atoi(d.Id())
 	AuthServer, _ := authserverschema.Inflate(map[string]interface{}{
+		"id":            d.Id(),
 		"name":          d.Get("name"),
 		"description":   d.Get("description"),
 		"configuration": d.Get("configuration"),
 	})
 	client := m.(*client.APIClient)
-	err := client.Services.AuthServersV2.Update(int32(uid), &AuthServer)
+	err := client.Services.AuthServersV2.Update(&AuthServer)
 	if err != nil {
 		log.Println("[ERROR] There was a problem updating the AuthServer!", err)
 		return err

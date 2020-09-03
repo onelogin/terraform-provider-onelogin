@@ -120,29 +120,6 @@ func TestInflate(t *testing.T) {
 					ProviderArn:        oltypes.String("test"),
 					SignatureAlgorithm: oltypes.String("test"),
 				},
-				Rules: []apps.AppRule{
-					apps.AppRule{
-						ID:       oltypes.Int32(123),
-						Name:     oltypes.String("test"),
-						Match:    oltypes.String("test"),
-						Enabled:  oltypes.Bool(true),
-						Position: oltypes.Int32(1),
-						Conditions: []apps.AppRuleConditions{
-							apps.AppRuleConditions{
-								Source:   oltypes.String("test"),
-								Operator: oltypes.String("="),
-								Value:    oltypes.String("test"),
-							},
-						},
-						Actions: []apps.AppRuleActions{
-							apps.AppRuleActions{
-								Action:     oltypes.String("test"),
-								Expression: oltypes.String(".*"),
-								Value:      []string{"test"},
-							},
-						},
-					},
-				},
 			},
 		},
 	}

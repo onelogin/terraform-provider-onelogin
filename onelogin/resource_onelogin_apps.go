@@ -11,7 +11,6 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules"
 )
 
 // Apps returns a resource with the CRUD methods and Terraform Schema defined
@@ -38,22 +37,16 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
-		"rules":                d.Get("rules"),
 	})
 	client := m.(*client.APIClient)
-	appResp, err := client.Services.AppsV2.Create(&basicApp)
+	err := client.Services.AppsV2.Create(&basicApp)
 	if err != nil {
-		if appResp.ID != nil {
-			log.Println("[ERROR] There was a problem setting sub-resources!", err)
-			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			return appRead(d, m)
-		}
 		log.Println("[ERROR] There was a problem creating the app!", err)
 		return err
 	}
-	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
+	log.Printf("[CREATED] Created app with %d", *(basicApp.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(basicApp.ID)))
 	return appRead(d, m)
 }
 
@@ -88,7 +81,6 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("updated_at", app.UpdatedAt.String())
 	d.Set("parameters", appparametersschema.Flatten(app.Parameters))
 	d.Set("provisioning", appprovisioningschema.Flatten(*app.Provisioning))
-	d.Set("rules", apprulesschema.Flatten(app.Rules))
 
 	return nil
 }
@@ -97,6 +89,7 @@ func appRead(d *schema.ResourceData, m interface{}) error {
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appUpdate(d *schema.ResourceData, m interface{}) error {
 	basicApp, _ := appschema.Inflate(map[string]interface{}{
+		"id":                   d.Id(),
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -105,19 +98,12 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
-		"rules":                d.Get("rules"),
 	})
 
-	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
 
-	appResp, err := client.Services.AppsV2.Update(int32(aid), &basicApp)
+	appResp, err := client.Services.AppsV2.Update(&basicApp)
 	if err != nil {
-		if appResp.ID != nil {
-			log.Println("[ERROR] There was a problem setting sub-resources!", err)
-			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			return appRead(d, m)
-		}
 		log.Println("[ERROR] There was a problem updating the app!", err)
 		return err
 	}

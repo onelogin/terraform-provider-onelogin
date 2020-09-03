@@ -39,14 +39,14 @@ func userMappingCreate(d *schema.ResourceData, m interface{}) error {
 		"actions":    d.Get("actions"),
 	})
 	client := m.(*client.APIClient)
-	mappingsResp, err := client.Services.UserMappingsV2.Create(&mappings)
+	err := client.Services.UserMappingsV2.Create(&mappings)
 	if err != nil {
 		log.Println("[ERROR] There was a problem creating the user mapping!", err)
 		return err
 	}
-	log.Printf("[CREATED] Created user mapping with %d", *(mappingsResp.ID))
+	log.Printf("[CREATED] Created user mapping with %d", *(mappings.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(mappingsResp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(mappings.ID)))
 	return userMappingRead(d, m)
 }
 
@@ -81,6 +81,7 @@ func userMappingRead(d *schema.ResourceData, m interface{}) error {
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func userMappingUpdate(d *schema.ResourceData, m interface{}) error {
 	userMapping := usermappingschema.Inflate(map[string]interface{}{
+		"id":         d.Id(),
 		"name":       d.Get("name"),
 		"match":      d.Get("match"),
 		"enabled":    d.Get("enabled"),
@@ -89,20 +90,19 @@ func userMappingUpdate(d *schema.ResourceData, m interface{}) error {
 		"actions":    d.Get("actions"),
 	})
 
-	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
 
-	userMappingResp, err := client.Services.UserMappingsV2.Update(int32(aid), &userMapping)
+	err := client.Services.UserMappingsV2.Update(&userMapping)
 	if err != nil {
 		log.Println("[ERROR] There was a problem Updating the user mapping!", err)
 		return err
 	}
-	if userMappingResp == nil {
+	if userMapping.ID == nil {
 		d.SetId("")
 		return nil
 	}
-	log.Printf("[UPDATED] Updated user mapping with %d", *(userMappingResp.ID))
-	d.SetId(fmt.Sprintf("%d", *(userMappingResp.ID)))
+	log.Printf("[UPDATED] Updated user mapping with %d", *(userMapping.ID))
+	d.SetId(fmt.Sprintf("%d", *(userMapping.ID)))
 	return userMappingRead(d, m)
 }
 

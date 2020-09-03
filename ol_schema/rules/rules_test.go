@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +24,7 @@ func TestRulesSchema(t *testing.T) {
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apps.AppRule
+		ExpectedOutput apprules.AppRule
 	}{
 		"creates and returns the address of an AppParameters struct": {
 			ResourceData: map[string]interface{}{
@@ -48,21 +48,21 @@ func TestInflate(t *testing.T) {
 					},
 				},
 			},
-			ExpectedOutput: apps.AppRule{
+			ExpectedOutput: apprules.AppRule{
 				ID:       oltypes.Int32(int32(123)),
 				Name:     oltypes.String("test"),
 				Match:    oltypes.String("test"),
 				Enabled:  oltypes.Bool(true),
 				Position: oltypes.Int32(int32(1)),
-				Conditions: []apps.AppRuleConditions{
-					apps.AppRuleConditions{
+				Conditions: []apprules.AppRuleConditions{
+					apprules.AppRuleConditions{
 						Source:   oltypes.String("test"),
 						Operator: oltypes.String("="),
 						Value:    oltypes.String("test"),
 					},
 				},
-				Actions: []apps.AppRuleActions{
-					apps.AppRuleActions{
+				Actions: []apprules.AppRuleActions{
+					apprules.AppRuleActions{
 						Action:     oltypes.String("test"),
 						Expression: oltypes.String(".*"),
 						Value:      []string{"test"},
@@ -81,43 +81,43 @@ func TestInflate(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
-		appRuleStruct := []apps.AppRule{
-			apps.AppRule{
+		appRuleStruct := []apprules.AppRule{
+			apprules.AppRule{
 				ID:       oltypes.Int32(int32(123)),
 				Name:     oltypes.String("test"),
 				Match:    oltypes.String("test"),
 				Enabled:  oltypes.Bool(true),
 				Position: oltypes.Int32(int32(1)),
-				Conditions: []apps.AppRuleConditions{
-					apps.AppRuleConditions{
+				Conditions: []apprules.AppRuleConditions{
+					apprules.AppRuleConditions{
 						Source:   oltypes.String("test"),
 						Operator: oltypes.String("="),
 						Value:    oltypes.String("test"),
 					},
 				},
-				Actions: []apps.AppRuleActions{
-					apps.AppRuleActions{
+				Actions: []apprules.AppRuleActions{
+					apprules.AppRuleActions{
 						Action:     oltypes.String("test"),
 						Expression: oltypes.String(".*"),
 						Value:      []string{"test"},
 					},
 				},
 			},
-			apps.AppRule{
+			apprules.AppRule{
 				ID:       oltypes.Int32(int32(456)),
 				Name:     oltypes.String("test2"),
 				Match:    oltypes.String("test2"),
 				Enabled:  oltypes.Bool(true),
 				Position: oltypes.Int32(int32(2)),
-				Conditions: []apps.AppRuleConditions{
-					apps.AppRuleConditions{
+				Conditions: []apprules.AppRuleConditions{
+					apprules.AppRuleConditions{
 						Source:   oltypes.String("test2"),
 						Operator: oltypes.String(">"),
 						Value:    oltypes.String("test2"),
 					},
 				},
-				Actions: []apps.AppRuleActions{
-					apps.AppRuleActions{
+				Actions: []apprules.AppRuleActions{
+					apprules.AppRuleActions{
 						Action:     oltypes.String("test2"),
 						Expression: oltypes.String(".*"),
 						Value:      []string{"test2"},
