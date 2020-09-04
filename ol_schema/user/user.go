@@ -1,10 +1,10 @@
 package userschema
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/users"
+	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up a OneLogin User.
@@ -112,8 +112,7 @@ func Inflate(s map[string]interface{}) (users.User, error) {
 		Email:    oltypes.String(s["email"].(string)),
 	}
 	if s["id"] != nil {
-		fmt.Println("ASDF", s["id"], s["id"].(int))
-		if id, _ := s["id"].(int); id != 0 {
+		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
 			out.ID = oltypes.Int32(int32(id))
 		}
 	}

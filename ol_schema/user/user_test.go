@@ -42,7 +42,7 @@ func TestInflate(t *testing.T) {
 	}{
 		"creates and returns the address of a user struct": {
 			ResourceData: map[string]interface{}{
-				"id":                 1,
+				"id":                 "1",
 				"username":           "username",
 				"email":              "email",
 				"firstname":          "firstname",
