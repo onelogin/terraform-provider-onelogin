@@ -29,7 +29,6 @@ func AppRules() *schema.Resource {
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appRuleCreate(d *schema.ResourceData, m interface{}) error {
 	appRule := apprulesschema.Inflate(map[string]interface{}{
-		"id":         d.Get("id"),
 		"app_id":     d.Get("app_id"),
 		"name":       d.Get("name"),
 		"match":      d.Get("match"),
@@ -55,7 +54,7 @@ func appRuleCreate(d *schema.ResourceData, m interface{}) error {
 func appRuleRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 	id, _ := strconv.Atoi(d.Id())
-	appId, _ := d.Get("app_id").(int)
+	appId, _ := strconv.Atoi(d.Get("app_id").(string))
 	app, err := client.Services.AppRulesV2.GetOne(int32(appId), int32(id))
 	if err != nil {
 		log.Printf("[ERROR] There was a problem reading the app rule!")
@@ -83,7 +82,8 @@ func appRuleRead(d *schema.ResourceData, m interface{}) error {
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appRuleUpdate(d *schema.ResourceData, m interface{}) error {
 	appRule := apprulesschema.Inflate(map[string]interface{}{
-		"id":         d.Get("id"),
+		"id":         d.Id(),
+		"app_id":     d.Get("app_id"),
 		"name":       d.Get("name"),
 		"match":      d.Get("match"),
 		"position":   d.Get("position"),
@@ -111,7 +111,7 @@ func appRuleUpdate(d *schema.ResourceData, m interface{}) error {
 // makes the DELETE request to OneLogin to delete an App and its sub-resources
 func appRuleDelete(d *schema.ResourceData, m interface{}) error {
 	id, _ := strconv.Atoi(d.Id())
-	appId := d.Get("app_id").(int)
+	appId, _ := strconv.Atoi(d.Get("app_id").(string))
 	client := m.(*client.APIClient)
 
 	err := client.Services.AppRulesV2.Destroy(int32(appId), int32(id))

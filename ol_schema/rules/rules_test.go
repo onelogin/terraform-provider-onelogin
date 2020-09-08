@@ -12,7 +12,7 @@ import (
 func TestRulesSchema(t *testing.T) {
 	t.Run("creates and returns a map of a Rules Schema", func(t *testing.T) {
 		provSchema := Schema()
-		assert.NotNil(t, provSchema["id"])
+		assert.NotNil(t, provSchema["app_id"])
 		assert.NotNil(t, provSchema["name"])
 		assert.NotNil(t, provSchema["match"])
 		assert.NotNil(t, provSchema["position"])
@@ -26,9 +26,10 @@ func TestInflate(t *testing.T) {
 		ResourceData   map[string]interface{}
 		ExpectedOutput apprules.AppRule
 	}{
-		"creates and returns the address of an AppParameters struct": {
+		"creates and returns the address of a Rule struct": {
 			ResourceData: map[string]interface{}{
-				"id":       123,
+				"id":       "123",
+				"app_id":   "123",
 				"name":     "test",
 				"match":    "test",
 				"enabled":  true,
@@ -50,6 +51,7 @@ func TestInflate(t *testing.T) {
 			},
 			ExpectedOutput: apprules.AppRule{
 				ID:       oltypes.Int32(int32(123)),
+				AppID:    oltypes.Int32(int32(123)),
 				Name:     oltypes.String("test"),
 				Match:    oltypes.String("test"),
 				Enabled:  oltypes.Bool(true),
@@ -77,101 +79,6 @@ func TestInflate(t *testing.T) {
 			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}
-}
-
-func TestFlatten(t *testing.T) {
-	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
-		appRuleStruct := []apprules.AppRule{
-			apprules.AppRule{
-				ID:       oltypes.Int32(int32(123)),
-				Name:     oltypes.String("test"),
-				Match:    oltypes.String("test"),
-				Enabled:  oltypes.Bool(true),
-				Position: oltypes.Int32(int32(1)),
-				Conditions: []apprules.AppRuleConditions{
-					apprules.AppRuleConditions{
-						Source:   oltypes.String("test"),
-						Operator: oltypes.String("="),
-						Value:    oltypes.String("test"),
-					},
-				},
-				Actions: []apprules.AppRuleActions{
-					apprules.AppRuleActions{
-						Action:     oltypes.String("test"),
-						Expression: oltypes.String(".*"),
-						Value:      []string{"test"},
-					},
-				},
-			},
-			apprules.AppRule{
-				ID:       oltypes.Int32(int32(456)),
-				Name:     oltypes.String("test2"),
-				Match:    oltypes.String("test2"),
-				Enabled:  oltypes.Bool(true),
-				Position: oltypes.Int32(int32(2)),
-				Conditions: []apprules.AppRuleConditions{
-					apprules.AppRuleConditions{
-						Source:   oltypes.String("test2"),
-						Operator: oltypes.String(">"),
-						Value:    oltypes.String("test2"),
-					},
-				},
-				Actions: []apprules.AppRuleActions{
-					apprules.AppRuleActions{
-						Action:     oltypes.String("test2"),
-						Expression: oltypes.String(".*"),
-						Value:      []string{"test2"},
-					},
-				},
-			},
-		}
-		subj := Flatten(appRuleStruct)
-		expected := []map[string]interface{}{
-			map[string]interface{}{
-				"id":       oltypes.Int32(int32(123)),
-				"name":     oltypes.String("test"),
-				"match":    oltypes.String("test"),
-				"enabled":  oltypes.Bool(true),
-				"position": oltypes.Int32(int32(1)),
-				"conditions": []map[string]interface{}{
-					map[string]interface{}{
-						"source":   oltypes.String("test"),
-						"operator": oltypes.String("="),
-						"value":    oltypes.String("test"),
-					},
-				},
-				"actions": []map[string]interface{}{
-					map[string]interface{}{
-						"action":     oltypes.String("test"),
-						"expression": oltypes.String(".*"),
-						"value":      []string{"test"},
-					},
-				},
-			},
-			map[string]interface{}{
-				"id":       oltypes.Int32(int32(456)),
-				"name":     oltypes.String("test2"),
-				"match":    oltypes.String("test2"),
-				"enabled":  oltypes.Bool(true),
-				"position": oltypes.Int32(int32(2)),
-				"conditions": []map[string]interface{}{
-					map[string]interface{}{
-						"source":   oltypes.String("test2"),
-						"operator": oltypes.String(">"),
-						"value":    oltypes.String("test2"),
-					},
-				},
-				"actions": []map[string]interface{}{
-					map[string]interface{}{
-						"action":     oltypes.String("test2"),
-						"expression": oltypes.String(".*"),
-						"value":      []string{"test2"},
-					},
-				},
-			},
-		}
-		assert.Equal(t, expected, subj)
-	})
 }
 
 func TestValidMatch(t *testing.T) {

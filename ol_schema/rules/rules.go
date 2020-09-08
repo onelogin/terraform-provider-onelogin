@@ -7,17 +7,14 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
+	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"id": &schema.Schema{
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
 		"app_id": &schema.Schema{
-			Type:     schema.TypeInt,
+			Type:     schema.TypeString,
 			Required: true,
 		},
 		"name": &schema.Schema{
@@ -64,8 +61,13 @@ func validMatch(val interface{}, key string) (warns []string, errs []error) {
 func Inflate(s map[string]interface{}) apprules.AppRule {
 	out := apprules.AppRule{}
 	if s["id"] != nil {
-		if id, _ := s["id"].(int); id != 0 {
+		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
 			out.ID = oltypes.Int32(int32(id))
+		}
+	}
+	if s["app_id"] != nil {
+		if appId, err := strconv.Atoi(s["app_id"].(string)); err == nil {
+			out.AppID = oltypes.Int32(int32(appId))
 		}
 	}
 	if name, notNil := s["name"].(string); notNil {
@@ -92,23 +94,6 @@ func Inflate(s map[string]interface{}) apprules.AppRule {
 			valMap := val.(map[string]interface{})
 			cond := appruleactionsschema.Inflate(valMap)
 			out.Actions = append(out.Actions, cond)
-		}
-	}
-	return out
-}
-
-// Flatten takes a AppRules array and converts it to an array of maps
-func Flatten(appRules []apprules.AppRule) []map[string]interface{} {
-	out := make([]map[string]interface{}, len(appRules))
-	for i, appRule := range appRules {
-		out[i] = map[string]interface{}{
-			"id":         appRule.ID,
-			"name":       appRule.Name,
-			"match":      appRule.Match,
-			"enabled":    appRule.Enabled,
-			"position":   appRule.Position,
-			"conditions": appruleconditionsschema.Flatten(appRule.Conditions),
-			"actions":    appruleactionsschema.Flatten(appRule.Actions),
 		}
 	}
 	return out

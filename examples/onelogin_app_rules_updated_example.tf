@@ -12,9 +12,9 @@ resource onelogin_app_rules test{
   app_id = onelogin_saml_apps.saml.id
   enabled = true
   match = "all"
-  name = "first rule"
+  name = "updated first rule"
   conditions {
-    operator = ">"
+    operator = "<"
     source = "last_login"
     value = "90"
   }
@@ -28,7 +28,7 @@ resource onelogin_app_rules check{
   app_id = onelogin_saml_apps.saml.id
   enabled = true
   match = "all"
-  name = "second rule"
+  name = "updated second rule"
   conditions {
     operator = "ri"
     source = "has_role"
