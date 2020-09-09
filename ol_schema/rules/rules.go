@@ -33,6 +33,7 @@ func Schema() map[string]*schema.Schema {
 		},
 		"position": &schema.Schema{
 			Type:     schema.TypeInt,
+			Optional: true,
 			Computed: true,
 		},
 		"conditions": &schema.Schema{
