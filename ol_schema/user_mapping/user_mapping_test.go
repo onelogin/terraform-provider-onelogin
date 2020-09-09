@@ -27,7 +27,7 @@ func TestInflate(t *testing.T) {
 	}{
 		"creates and returns the address of an user mapping struct": {
 			ResourceData: map[string]interface{}{
-				"id":       123,
+				"id":       "123",
 				"name":     "test",
 				"match":    "test",
 				"enabled":  true,

@@ -7,8 +7,7 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
-
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules"
+	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.
@@ -79,14 +78,6 @@ func Schema() map[string]*schema.Schema {
 				Schema: appparametersschema.Schema(),
 			},
 		},
-		"rules": &schema.Schema{
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
-			Elem: &schema.Resource{
-				Schema: apprulesschema.Schema(),
-			},
-		},
 	}
 }
 
@@ -100,6 +91,11 @@ func Inflate(s map[string]interface{}) (apps.App, error) {
 		ConnectorID:        oltypes.Int32(int32(s["connector_id"].(int))),
 		Visible:            oltypes.Bool(s["visible"].(bool)),
 		AllowAssumedSignin: oltypes.Bool(s["allow_assumed_signin"].(bool)),
+	}
+	if s["id"] != nil {
+		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
+			app.ID = oltypes.Int32(int32(id))
+		}
 	}
 	if s["parameters"] != nil {
 		p := s["parameters"].(*schema.Set).List()
@@ -117,15 +113,6 @@ func Inflate(s map[string]interface{}) (apps.App, error) {
 		var conf apps.AppConfiguration
 		conf, err = appconfigurationschema.Inflate(s["configuration"].(map[string]interface{}))
 		app.Configuration = &conf
-	}
-	if s["rules"] != nil {
-		appRules := make([]apps.AppRule, len(s["rules"].([]interface{})))
-		for i, val := range s["rules"].([]interface{}) {
-			valMap := val.(map[string]interface{})
-			appRules[i] = apprulesschema.Inflate(valMap)
-			appRules[i].Position = oltypes.Int32(int32(i + 1))
-		}
-		app.Rules = appRules
 	}
 	return app, err
 }
