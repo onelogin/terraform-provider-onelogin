@@ -12,11 +12,51 @@ Manage App Rule resources.
 
 This resource allows you to create and configure App Rules.
 
-## Example Usage
+## Example Usage - Strict Ordering
 
 ```hcl
 resource onelogin_app_rules check{
   app_id = onelogin_saml_apps.my_saml_app.id
+  position = 1
+  enabled = true
+  match = "all"
+  name = "first rule"
+  conditions {
+    operator = "ri"
+    source = "has_role"
+    value = "340475"
+  }
+  actions {
+    action = "set_amazonusername"
+    expression = ".*"
+    value = ["member_of"]
+  }
+}
+```
+
+## Example Usage - Dependency Based Ordering
+
+```hcl
+resource onelogin_app_rules test{
+  app_id = onelogin_saml_apps.my_saml_app.id
+  enabled = true
+  match = "all"
+  name = "first rule"
+  conditions {
+    operator = "ri"
+    source = "has_role"
+    value = "340475"
+  }
+  actions {
+    action = "set_amazonusername"
+    expression = ".*"
+    value = ["member_of"]
+  }
+}
+
+resource onelogin_app_rules check{
+  app_id = onelogin_saml_apps.my_saml_app.id
+  depends_on = [onelogin_app_rules.test]
   enabled = true
   match = "all"
   name = "second rule"
@@ -32,6 +72,16 @@ resource onelogin_app_rules check{
   }
 }
 ```
+
+## Important Note Regarding Position
+
+The position field indicates the order in which rules are applied. They behave like progressive filters and as such, their positioning is strictly enforced. Your options for this field are to either:
+
+* Accept any ordering - Do not fill out any position field and each rule will be inserted in the order received by the API.
+
+* Strict Ordering - Enter a position number for each app rule. You'll need to ensure there are no duplicates and no gaps in numbering.
+
+* Dependency based ordering - Use the `depends_on` field to specify an app rule's predecessor to ensure rules are received by the API in the order in which they should be applied. e.g. `depends_on = [onelogin_app_rules.test]`
 
 ## Argument Reference
 
