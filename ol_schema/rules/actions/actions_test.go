@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +20,7 @@ func TestRulesSchema(t *testing.T) {
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apps.AppRuleActions
+		ExpectedOutput apprules.AppRuleActions
 	}{
 		"creates and returns the address of an AppParameters struct": {
 			ResourceData: map[string]interface{}{
@@ -28,7 +28,7 @@ func TestInflate(t *testing.T) {
 				"expression": ".*",
 				"value":      []interface{}{"test"},
 			},
-			ExpectedOutput: apps.AppRuleActions{
+			ExpectedOutput: apprules.AppRuleActions{
 				Action:     oltypes.String("test"),
 				Expression: oltypes.String(".*"),
 				Value:      []string{"test"},
@@ -45,13 +45,13 @@ func TestInflate(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
-		appConditionStruct := []apps.AppRuleActions{
-			apps.AppRuleActions{
+		appConditionStruct := []apprules.AppRuleActions{
+			apprules.AppRuleActions{
 				Action:     oltypes.String("test"),
 				Expression: oltypes.String(".*"),
 				Value:      []string{"test"},
 			},
-			apps.AppRuleActions{
+			apprules.AppRuleActions{
 				Action:     oltypes.String("test2"),
 				Expression: oltypes.String(".*"),
 				Value:      []string{"test2"},

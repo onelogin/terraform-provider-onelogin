@@ -5,6 +5,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/auth_server/configuration"
+	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.
@@ -35,6 +36,11 @@ func Inflate(s map[string]interface{}) (authservers.AuthServer, error) {
 	authServer := authservers.AuthServer{
 		Name:        oltypes.String(s["name"].(string)),
 		Description: oltypes.String(s["description"].(string)),
+	}
+	if s["id"] != nil {
+		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
+			authServer.ID = oltypes.Int32(int32(id))
+		}
 	}
 	if s["configuration"] != nil {
 		var conf authservers.AuthServerConfiguration

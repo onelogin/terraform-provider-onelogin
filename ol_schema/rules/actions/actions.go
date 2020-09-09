@@ -3,7 +3,7 @@ package appruleactionsschema
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 )
 
 // Schema returns a key/value map of the various fields that make up the Actions of a OneLogin Rule.
@@ -29,8 +29,8 @@ func Schema() map[string]*schema.Schema {
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
 // a AppProvisioning struct, a sub-field of a OneLogin App.
-func Inflate(s map[string]interface{}) apps.AppRuleActions {
-	out := apps.AppRuleActions{}
+func Inflate(s map[string]interface{}) apprules.AppRuleActions {
+	out := apprules.AppRuleActions{}
 	if act, notNil := s["action"].(string); notNil {
 		out.Action = oltypes.String(act)
 	}
@@ -47,7 +47,7 @@ func Inflate(s map[string]interface{}) apps.AppRuleActions {
 }
 
 // Flatten takes a AppRuleActions instance and converts it to an array of maps
-func Flatten(acts []apps.AppRuleActions) []map[string]interface{} {
+func Flatten(acts []apprules.AppRuleActions) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(acts))
 	for i, action := range acts {
 		out[i] = map[string]interface{}{

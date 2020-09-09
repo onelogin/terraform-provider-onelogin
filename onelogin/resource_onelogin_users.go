@@ -60,8 +60,8 @@ func usersCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func usersUpdate(d *schema.ResourceData, m interface{}) error {
-	uid, _ := strconv.Atoi(d.Id())
 	user, _ := userschema.Inflate(map[string]interface{}{
+		"id":                  d.Id(),
 		"username":            d.Get("username"),
 		"email":               d.Get("email"),
 		"firstname":           d.Get("firstname"),
@@ -85,12 +85,12 @@ func usersUpdate(d *schema.ResourceData, m interface{}) error {
 		"external_id":         d.Get("external_id"),
 	})
 	client := m.(*client.APIClient)
-	err := client.Services.UsersV2.Update(int32(uid), &user)
+	err := client.Services.UsersV2.Update(&user)
 	if err != nil {
 		log.Println("[ERROR] There was a problem updating the user!", err)
 		return err
 	}
-	log.Printf("[CREATED] Updated user with %d", *(user.ID))
+	log.Printf("[UPDATED] Updated user with %d", *(user.ID))
 
 	d.SetId(fmt.Sprintf("%d", *(user.ID)))
 	return usersRead(d, m)

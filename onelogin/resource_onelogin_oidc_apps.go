@@ -11,7 +11,6 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/rules"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/app/sso"
 )
 
@@ -53,26 +52,20 @@ func oidcAppCreate(d *schema.ResourceData, m interface{}) error {
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
-		"rules":                d.Get("rules"),
 	})
 	if err != nil {
 		log.Println("Unable to convert string in plan to required value type", err)
 		return err
 	}
 	client := m.(*client.APIClient)
-	appResp, err := client.Services.AppsV2.Create(&oidcApp)
+	err = client.Services.AppsV2.Create(&oidcApp)
 	if err != nil {
-		if appResp.ID != nil {
-			log.Println("[ERROR] There was a problem setting sub-resources!", err)
-			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			return oidcAppRead(d, m)
-		}
 		log.Println("[ERROR] There was a problem creating the app!", err)
 		return err
 	}
-	log.Printf("[CREATED] Created app with %d", *(appResp.ID))
+	log.Printf("[CREATED] Created app with %d", *(oidcApp.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
+	d.SetId(fmt.Sprintf("%d", *(oidcApp.ID)))
 	return oidcAppRead(d, m)
 }
 
@@ -109,7 +102,6 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("provisioning", appprovisioningschema.Flatten(*app.Provisioning))
 	d.Set("configuration", appconfigurationschema.FlattenOIDC(*app.Configuration))
 	d.Set("sso", appssoschema.FlattenOIDC(*app.Sso))
-	d.Set("rules", apprulesschema.Flatten(app.Rules))
 
 	return nil
 }
@@ -118,6 +110,7 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 // makes the PUT request to OneLogin to update an oidcApp and its sub-resources
 func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
 	oidcApp, err := appschema.Inflate(map[string]interface{}{
+		"id":                   d.Id(),
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -127,22 +120,15 @@ func oidcAppUpdate(d *schema.ResourceData, m interface{}) error {
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
-		"rules":                d.Get("rules"),
 	})
 	if err != nil {
 		log.Println("Unable to convert string in plan to required value type", err)
 		return err
 	}
-	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
 
-	appResp, err := client.Services.AppsV2.Update(int32(aid), &oidcApp)
+	appResp, err := client.Services.AppsV2.Update(&oidcApp)
 	if err != nil {
-		if appResp.ID != nil {
-			log.Println("[ERROR] There was a problem setting sub-resources!", err)
-			d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-			return oidcAppRead(d, m)
-		}
 		log.Println("[ERROR] There was a problem updating the app!", err)
 		return err
 	}
