@@ -15,7 +15,7 @@ If you are sideloading this provider (i.e. not getting this via the Terraform st
     make sideload
     ```
 
-If you are using Terraform v0.13.x or later you can use following Terraform configuration for sideloaded version of this provider:
+    If you are using Terraform v0.13.x or later you can use following Terraform configuration for sideloaded version of this provider:
     ```
     terraform {
       required_providers {
