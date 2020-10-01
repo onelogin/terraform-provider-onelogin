@@ -10,6 +10,8 @@ BIN_PATH=${DIST_DIR}/${BIN_NAME}
 GO111MODULE=on
 
 PLUGINS_DIR=~/.terraform.d/plugins
+PLUGIN_PATH=onelogin.com/onelogin/onelogin
+VERSION=0.1.0
 
 clean:
 	rm -r ${DIST_DIR}
@@ -23,8 +25,16 @@ build:
 	go build -o ${DIST_DIR} ./...
 
 sideload: build
+	# Terraform v0.12.x
 	mkdir -p ${PLUGINS_DIR}
 	cp ${BIN_PATH} ${PLUGINS_DIR}/${BIN_NAME}
+	# Terraform >= v0.13.x
+	# macOS
+	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_amd64
+	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_amd64/${BIN_NAME}
+	# Linux
+	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/linux_amd64
+	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/linux_amd64/${BIN_NAME}
 
 testacc:
 	TF_ACC=1 go test ./... -v -timeout 120m
