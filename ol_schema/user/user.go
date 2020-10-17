@@ -16,7 +16,7 @@ func Schema() map[string]*schema.Schema {
 		},
 		"email": &schema.Schema{
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: true,
 		},
 		"firstname": &schema.Schema{
 			Type:     schema.TypeString,
