@@ -68,12 +68,14 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-No further attributes are exported
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - The user's id
 
 ## Import
 
-A User can be imported via the OneLogin User.
+A User can be imported via the OneLogin User ID.
 
 ```
-$ terraform import onelogin_users.example <user_id>
+$ terraform import onelogin_users.example 12345678
 ```
