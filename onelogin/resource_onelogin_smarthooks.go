@@ -3,7 +3,6 @@ package onelogin
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
@@ -31,7 +30,6 @@ func smartHookCreate(d *schema.ResourceData, m interface{}) error {
 	smarthook := smarthooksschema.Inflate(map[string]interface{}{
 		"type":             d.Get("type"),
 		"function":         d.Get("function"),
-		"packages":         d.Get("packages"),
 		"retries":          d.Get("retries"),
 		"timeout":          d.Get("timeout"),
 		"disabled":         d.Get("disabled"),
@@ -69,7 +67,6 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[READ] Reading hook with %s", *(smarthook.ID))
 	d.Set("type", smarthook.Type)
 	d.Set("function", smarthook.Function)
-	d.Set("packages", smarthook.Packages)
 	d.Set("retries", smarthook.Retries)
 	d.Set("timeout", smarthook.Timeout)
 	d.Set("disabled", smarthook.Disabled)
@@ -90,7 +87,6 @@ func smartHookUpdate(d *schema.ResourceData, m interface{}) error {
 		"id":               d.Id(),
 		"type":             d.Get("type"),
 		"function":         d.Get("function"),
-		"packages":         d.Get("packages"),
 		"retries":          d.Get("retries"),
 		"timeout":          d.Get("timeout"),
 		"disabled":         d.Get("disabled"),
@@ -119,15 +115,14 @@ func smartHookUpdate(d *schema.ResourceData, m interface{}) error {
 // smartHookDelete takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the DELETE request to OneLogin to delete a smart hooks
 func smartHookDelete(d *schema.ResourceData, m interface{}) error {
-	aid, _ := strconv.Atoi(d.Id())
 	client := m.(*client.APIClient)
 
-	err := client.Services.SmartHooksV1.Destroy(int32(aid))
+	err := client.Services.SmartHooksV1.Destroy(d.Id())
 	if err != nil {
 		log.Printf("[ERROR] There was a problem deleting the smart hooks!")
 		log.Println(err)
 	} else {
-		log.Printf("[DELETED] Deleted smart hooks with %d", aid)
+		log.Printf("[DELETED] Deleted smart hooks with %s", d.Id())
 		d.SetId("")
 	}
 

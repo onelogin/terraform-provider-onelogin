@@ -18,7 +18,6 @@ func TestAccSmartHook_crud(t *testing.T) {
 				Config: base,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "type", "pre-authentication"),
-					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "packages.mysql", "2.18.1"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "env_vars.0", "API_KEY"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "retries", "0"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "timeout", "2"),
@@ -35,7 +34,6 @@ func TestAccSmartHook_crud(t *testing.T) {
 				Config: update,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "type", "pre-authentication"),
-					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "packages.mysql", "2.18.1"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "env_vars.0", "API_KEY"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "retries", "0"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "timeout", "2"),

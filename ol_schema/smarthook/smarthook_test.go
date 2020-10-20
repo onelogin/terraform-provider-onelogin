@@ -20,7 +20,6 @@ func TestRulesSchema(t *testing.T) {
 		assert.NotNil(t, provSchema["retries"])
 		assert.NotNil(t, provSchema["timeout"])
 		assert.NotNil(t, provSchema["env_vars"])
-		assert.NotNil(t, provSchema["packages"])
 	})
 }
 
@@ -34,11 +33,9 @@ func TestInflate(t *testing.T) {
 				"id":               "32f9dfee-a02c-4932-98ec-37838ce62ba0",
 				"type":             "pre-authentication",
 				"function":         "function myFunc(){...}",
-				"packages":         map[string]interface{}{"mysql": "^2.18.1"},
 				"retries":          0,
 				"timeout":          2,
 				"disabled":         false,
-				"status":           "ready",
 				"env_vars":         []interface{}{"API_KEY"},
 				"risk_enabled":     false,
 				"location_enabled": false,
@@ -46,12 +43,10 @@ func TestInflate(t *testing.T) {
 			ExpectedOutput: smarthooks.SmartHook{
 				ID:              oltypes.String("32f9dfee-a02c-4932-98ec-37838ce62ba0"),
 				Type:            oltypes.String("pre-authentication"),
-				Packages:        map[string]string{"mysql": "^2.18.1"},
 				Function:        oltypes.String("function myFunc(){...}"),
 				Retries:         oltypes.Int32(int32(0)),
 				Timeout:         oltypes.Int32(int32(2)),
 				Disabled:        oltypes.Bool(false),
-				Status:          oltypes.String("ready"),
 				EnvVars:         []string{"API_KEY"},
 				RiskEnabled:     oltypes.Bool(false),
 				LocationEnabled: oltypes.Bool(false),
