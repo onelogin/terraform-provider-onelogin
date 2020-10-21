@@ -19,6 +19,7 @@ func TestRulesSchema(t *testing.T) {
 		assert.NotNil(t, provSchema["location_enabled"])
 		assert.NotNil(t, provSchema["retries"])
 		assert.NotNil(t, provSchema["timeout"])
+		assert.NotNil(t, provSchema["packages"])
 		assert.NotNil(t, provSchema["env_vars"])
 	})
 }
@@ -33,6 +34,7 @@ func TestInflate(t *testing.T) {
 				"id":               "32f9dfee-a02c-4932-98ec-37838ce62ba0",
 				"type":             "pre-authentication",
 				"function":         "function myFunc(){...}",
+				"packages":         map[string]interface{}{"mysql": "^2.18.1"},
 				"retries":          0,
 				"timeout":          2,
 				"disabled":         false,
@@ -44,6 +46,7 @@ func TestInflate(t *testing.T) {
 				ID:              oltypes.String("32f9dfee-a02c-4932-98ec-37838ce62ba0"),
 				Type:            oltypes.String("pre-authentication"),
 				Function:        oltypes.String("function myFunc(){...}"),
+				Packages:        map[string]string{"mysql": "^2.18.1"},
 				Retries:         oltypes.Int32(int32(0)),
 				Timeout:         oltypes.Int32(int32(2)),
 				Disabled:        oltypes.Bool(false),

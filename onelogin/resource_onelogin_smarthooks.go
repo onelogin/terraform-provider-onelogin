@@ -35,6 +35,7 @@ func smartHookCreate(d *schema.ResourceData, m interface{}) error {
 		"disabled":         d.Get("disabled"),
 		"status":           d.Get("status"),
 		"env_vars":         d.Get("env_vars"),
+		"packages":         d.Get("packages"),
 		"risk_enabled":     d.Get("risk_enabled"),
 		"location_enabled": d.Get("location_enabled"),
 	})
@@ -72,6 +73,7 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("disabled", smarthook.Disabled)
 	d.Set("status", smarthook.Status)
 	d.Set("env_vars", smarthook.EnvVars)
+	d.Set("packages", smarthook.Packages)
 	d.Set("risk_enabled", smarthook.RiskEnabled)
 	d.Set("location_enabled", smarthook.LocationEnabled)
 	d.Set("created_at", smarthook.CreatedAt.String())
@@ -91,6 +93,7 @@ func smartHookUpdate(d *schema.ResourceData, m interface{}) error {
 		"timeout":          d.Get("timeout"),
 		"disabled":         d.Get("disabled"),
 		"status":           d.Get("status"),
+		"packages":         d.Get("packages"),
 		"env_vars":         d.Get("env_vars"),
 		"risk_enabled":     d.Get("risk_enabled"),
 		"location_enabled": d.Get("location_enabled"),

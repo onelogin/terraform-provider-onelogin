@@ -25,6 +25,7 @@ func TestAccSmartHook_crud(t *testing.T) {
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "status", "ready"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "risk_enabled", "false"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "location_enabled", "false"),
+					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "packages.mysql", "2.18.1"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "function", `function myFunc() {
             console.log('DING DONG')
           }`),
@@ -41,6 +42,7 @@ func TestAccSmartHook_crud(t *testing.T) {
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "status", "ready"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "risk_enabled", "false"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "location_enabled", "false"),
+					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "packages.mysql", "2.18.1"),
 					resource.TestCheckResourceAttr("onelogin_smarthook.basic_test", "function", `function myFunc() {
             console.log('WOO WOO')
           }`),

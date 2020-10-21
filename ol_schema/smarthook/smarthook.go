@@ -49,6 +49,11 @@ func Schema() map[string]*schema.Schema {
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
+		"packages": &schema.Schema{
+			Type:     schema.TypeMap,
+			Required: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
 		"created_at": &schema.Schema{
 			Type:     schema.TypeString,
 			Computed: true,
@@ -108,5 +113,11 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 		log.Println("ENVVARS", out.EnvVars, s["env_vars"])
 	}
 
+	if s["packages"] != nil {
+		out.Packages = make(map[string]string, len(s["packages"].(map[string]interface{})))
+		for pkg, ver := range s["packages"].(map[string]interface{}) {
+			out.Packages[pkg] = ver.(string)
+		}
+	}
 	return out
 }
