@@ -5,7 +5,6 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
-	"log"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.
@@ -110,7 +109,6 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 		for i, envVar := range s["env_vars"].([]interface{}) {
 			out.EnvVars[i] = envVar.(string)
 		}
-		log.Println("ENVVARS", out.EnvVars, s["env_vars"])
 	}
 
 	if s["packages"] != nil {
@@ -118,6 +116,15 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 		for pkg, ver := range s["packages"].(map[string]interface{}) {
 			out.Packages[pkg] = ver.(string)
 		}
+	}
+	return out
+}
+
+// FlattenEnvVars takes a SmartHook and gets a list of env_var names
+func FlattenEnvVars(vars []smarthooks.EnvVar) []string {
+	out := make([]string, len(vars))
+	for i, v := range vars {
+		out[i] = *v.Name
 	}
 	return out
 }

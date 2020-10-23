@@ -40,14 +40,14 @@ func smartHookCreate(d *schema.ResourceData, m interface{}) error {
 		"location_enabled": d.Get("location_enabled"),
 	})
 	client := m.(*client.APIClient)
-	err := client.Services.SmartHooksV1.Create(&smarthook)
+	fullSmarthook, err := client.Services.SmartHooksV1.Create(&smarthook)
 	if err != nil {
 		log.Println("[ERROR] There was a problem creating the smart hooks!", err)
 		return err
 	}
-	log.Printf("[CREATED] Created smart hook with %s", *(smarthook.ID))
+	log.Printf("[CREATED] Created smart hook with %s", *(fullSmarthook.ID))
 
-	d.SetId(fmt.Sprintf("%s", *(smarthook.ID)))
+	d.SetId(fmt.Sprintf("%s", *(fullSmarthook.ID)))
 	return smartHookRead(d, m)
 }
 
@@ -65,6 +65,7 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return nil
 	}
+
 	log.Printf("[READ] Reading hook with %s", *(smarthook.ID))
 	d.Set("type", smarthook.Type)
 	d.Set("function", smarthook.Function)
@@ -72,7 +73,7 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("timeout", smarthook.Timeout)
 	d.Set("disabled", smarthook.Disabled)
 	d.Set("status", smarthook.Status)
-	d.Set("env_vars", smarthook.EnvVars)
+	d.Set("env_vars", smarthooksschema.FlattenEnvVars(smarthook.EnvVars))
 	d.Set("packages", smarthook.Packages)
 	d.Set("risk_enabled", smarthook.RiskEnabled)
 	d.Set("location_enabled", smarthook.LocationEnabled)
@@ -101,17 +102,17 @@ func smartHookUpdate(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(*client.APIClient)
 
-	err := client.Services.SmartHooksV1.Update(&smartHook)
+	fullSmartHook, err := client.Services.SmartHooksV1.Update(&smartHook)
 	if err != nil {
 		log.Println("[ERROR] There was a problem Updating the smart hooks!", err)
 		return err
 	}
-	if smartHook.ID == nil {
+	if fullSmartHook.ID == nil {
 		d.SetId("")
 		return nil
 	}
-	log.Printf("[UPDATED] Updated smart hook with %s", *(smartHook.ID))
-	d.SetId(fmt.Sprintf("%s", *(smartHook.ID)))
+	log.Printf("[UPDATED] Updated smart hook with %s", *(fullSmartHook.ID))
+	d.SetId(fmt.Sprintf("%s", *(fullSmartHook.ID)))
 	return smartHookRead(d, m)
 }
 
