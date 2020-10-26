@@ -1,6 +1,9 @@
 resource onelogin_smarthooks basic_test {
   type = "pre-authentication"
   env_vars = [ "API_KEY" ]
+  packages = {
+    mysql = "2.18.1"
+  }
   retries = 0
   timeout = 2
   disabled = false
