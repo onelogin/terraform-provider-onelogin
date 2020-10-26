@@ -14,6 +14,23 @@ If you are sideloading this provider (i.e. not getting this via the Terraform st
     ```
     make sideload
     ```
+
+    If you are using Terraform v0.13.x or later you can use following Terraform configuration for sideloaded version of this provider:
+    ```
+    terraform {
+      required_providers {
+        onelogin = {
+          source  = "onelogin.com/onelogin/onelogin"
+          version = "0.1.0"
+        }
+      }
+    }
+
+    provider "onelogin" {
+      # Configuration options
+    }
+    ```
+
 2) You'll need admin access to a OneLogin account where you can create API credentials. Create a set of API credentials with _manage all_ permission. For applying the credentials, there are 2 ways
 
     * Export these credentials to your environment and the provider will read them in from there
