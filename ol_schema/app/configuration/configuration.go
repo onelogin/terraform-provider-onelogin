@@ -59,7 +59,7 @@ func Inflate(s map[string]interface{}) (apps.AppConfiguration, error) {
 	out.Audience = getOlString(s["audience"])
 	out.ConsumerURL = getOlString(s["consumer_url"])
 	out.Login = getOlString(s["login"])
-	out.Recepient = getOlString(s["recipient"])
+	out.Recipient = getOlString(s["recipient"])
 	out.Validator = getOlString(s["validator"])
 	out.RelayState = getOlString(s["relaystate"])
 
