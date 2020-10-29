@@ -62,10 +62,8 @@ func rolesRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func rolesUpdate(d *schema.ResourceData, m interface{}) error {
-	var id interface{}
-	id, _ = strconv.Atoi(d.Id())
 	role := roleschema.Inflate(map[string]interface{}{
-		"id":     id,
+		"id":     d.Id(),
 		"name":   d.Get("name"),
 		"apps":   d.Get("apps"),
 		"users":  d.Get("users"),
