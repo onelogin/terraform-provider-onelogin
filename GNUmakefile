@@ -22,7 +22,8 @@ clean-terraform:
 
 build:
 	mkdir -p ${DIST_DIR}
-	go build -o ${DIST_DIR} ./...
+	GO111MODULE=on go build
+	# GO111MODULE=on go build -o ${DIST_DIR} ./...
 
 sideload: build
 	# Terraform v0.12.x
