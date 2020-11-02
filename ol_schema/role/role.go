@@ -36,8 +36,10 @@ func Schema() map[string]*schema.Schema {
 // Inflate takes a key/value map of interfaces and uses the fields to construct a Role
 func Inflate(s map[string]interface{}) roles.Role {
 	out := roles.Role{}
-	if id, err := strconv.Atoi(s["id"].(string)); err == nil {
-		out.ID = oltypes.Int32(int32(id))
+	if s["id"] != nil {
+		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
+			out.ID = oltypes.Int32(int32(id))
+		}
 	}
 	if name, notNil := s["name"].(string); notNil {
 		out.Name = oltypes.String(name)
