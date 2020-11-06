@@ -2,10 +2,10 @@ package onelogin
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/role"
 )
@@ -63,6 +63,7 @@ func rolesRead(d *schema.ResourceData, m interface{}) error {
 
 func rolesUpdate(d *schema.ResourceData, m interface{}) error {
 	role := roleschema.Inflate(map[string]interface{}{
+		"id":     d.Id(),
 		"name":   d.Get("name"),
 		"apps":   d.Get("apps"),
 		"users":  d.Get("users"),
