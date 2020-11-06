@@ -84,6 +84,7 @@ func Inflate(s map[string]interface{}) apprules.AppRule {
 		out.Enabled = oltypes.Bool(pos)
 	}
 	if s["conditions"] != nil {
+		out.Conditions = []apprules.AppRuleConditions{}
 		for _, val := range s["conditions"].([]interface{}) {
 			valMap := val.(map[string]interface{})
 			cond := appruleconditionsschema.Inflate(valMap)
