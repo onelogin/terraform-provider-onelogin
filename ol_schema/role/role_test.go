@@ -25,7 +25,7 @@ func TestInflate(t *testing.T) {
 	}{
 		"creates and returns the address of a role struct": {
 			ResourceData: map[string]interface{}{
-				"id":     1,
+				"id":     "1",
 				"name":   "name",
 				"apps":   []interface{}{1, 2, 3},
 				"users":  []interface{}{4, 5, 6},
