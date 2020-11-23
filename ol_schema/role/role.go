@@ -16,17 +16,17 @@ func Schema() map[string]*schema.Schema {
 			Required: true,
 		},
 		"apps": &schema.Schema{
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"users": &schema.Schema{
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"admins": &schema.Schema{
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
