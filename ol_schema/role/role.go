@@ -1,11 +1,10 @@
 package roleschema
 
 import (
-	"strconv"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/roles"
+	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up a OneLogin User.
@@ -45,20 +44,20 @@ func Inflate(s map[string]interface{}) roles.Role {
 		out.Name = oltypes.String(name)
 	}
 	if s["apps"] != nil {
-		out.Apps = make([]int32, len(s["apps"].([]interface{})))
-		for i, appID := range s["apps"].([]interface{}) {
+		out.Apps = make([]int32, len(s["apps"].(*schema.Set).List()))
+		for i, appID := range s["apps"].(*schema.Set).List() {
 			out.Apps[i] = int32(appID.(int))
 		}
 	}
 	if s["users"] != nil {
-		out.Users = make([]int32, len(s["users"].([]interface{})))
-		for i, userID := range s["users"].([]interface{}) {
+		out.Users = make([]int32, len(s["users"].(*schema.Set).List()))
+		for i, userID := range s["users"].(*schema.Set).List() {
 			out.Users[i] = int32(userID.(int))
 		}
 	}
 	if s["admins"] != nil {
-		out.Admins = make([]int32, len(s["admins"].([]interface{})))
-		for i, adminID := range s["admins"].([]interface{}) {
+		out.Admins = make([]int32, len(s["admins"].(*schema.Set).List()))
+		for i, adminID := range s["admins"].(*schema.Set).List() {
 			out.Admins[i] = int32(adminID.(int))
 		}
 	}
