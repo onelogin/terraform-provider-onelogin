@@ -1,12 +1,16 @@
 package roleschema
 
 import (
-	"testing"
-
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/roles"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
+
+func mockSetFn(i interface{}) int {
+	return i.(int)
+}
 
 func TestSchema(t *testing.T) {
 	t.Run("creates and returns a map of a role Schema", func(t *testing.T) {
@@ -27,9 +31,9 @@ func TestInflate(t *testing.T) {
 			ResourceData: map[string]interface{}{
 				"id":     "1",
 				"name":   "name",
-				"apps":   []interface{}{1, 2, 3},
-				"users":  []interface{}{4, 5, 6},
-				"admins": []interface{}{4, 7},
+				"apps":   schema.NewSet(mockSetFn, []interface{}{1, 2, 3}),
+				"users":  schema.NewSet(mockSetFn, []interface{}{4, 5, 6}),
+				"admins": schema.NewSet(mockSetFn, []interface{}{4, 7}),
 			},
 			ExpectedOutput: roles.Role{
 				ID:     oltypes.Int32(int32(1)),
