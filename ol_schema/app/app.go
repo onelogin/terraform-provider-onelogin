@@ -43,6 +43,10 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Computed: true,
 		},
+		"brand_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
 		"allow_assumed_signin": &schema.Schema{
 			Type:     schema.TypeBool,
 			Optional: true,
@@ -96,6 +100,10 @@ func Inflate(s map[string]interface{}) (apps.App, error) {
 		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
 			app.ID = oltypes.Int32(int32(id))
 		}
+	}
+	if s["brand_id"] != nil {
+		brandID := s["brand_id"].(int)
+		app.BrandID = oltypes.Int32(int32(brandID))
 	}
 	if s["parameters"] != nil {
 		p := s["parameters"].(*schema.Set).List()
