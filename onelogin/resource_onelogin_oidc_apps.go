@@ -24,9 +24,10 @@ func OIDCApps() *schema.Resource {
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
 	appSchema["sso"] = &schema.Schema{
-		Type:     schema.TypeMap,
-		Computed: true,
-		Elem:     &schema.Schema{Type: schema.TypeString},
+		Type:      schema.TypeMap,
+		Computed:  true,
+		Elem:      &schema.Schema{Type: schema.TypeString},
+		Sensitive: true,
 	}
 
 	return &schema.Resource{
@@ -95,6 +96,7 @@ func oidcAppRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("policy_id", app.PolicyID)
 	d.Set("allow_assumed_signin", app.AllowAssumedSignin)
 	d.Set("tab_id", app.TabID)
+	d.Set("brand_id", app.BrandID)
 	d.Set("connector_id", app.ConnectorID)
 	d.Set("created_at", app.CreatedAt.String())
 	d.Set("updated_at", app.UpdatedAt.String())

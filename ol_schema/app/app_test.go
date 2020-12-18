@@ -19,6 +19,7 @@ func TestSchema(t *testing.T) {
 		assert.NotNil(t, schema["icon_url"])
 		assert.NotNil(t, schema["auth_method"])
 		assert.NotNil(t, schema["policy_id"])
+		assert.NotNil(t, schema["brand_id"])
 		assert.NotNil(t, schema["allow_assumed_signin"])
 		assert.NotNil(t, schema["tab_id"])
 		assert.NotNil(t, schema["connector_id"])
@@ -47,6 +48,7 @@ func TestInflate(t *testing.T) {
 				"notes":                "test",
 				"allow_assumed_signin": true,
 				"connector_id":         123,
+				"brand_id":             123,
 				"parameters": schema.NewSet(mockSetFn, []interface{}{
 					map[string]interface{}{
 						"param_key_name":             "test",
@@ -78,6 +80,7 @@ func TestInflate(t *testing.T) {
 				Notes:              oltypes.String("test"),
 				AllowAssumedSignin: oltypes.Bool(true),
 				ConnectorID:        oltypes.Int32(123),
+				BrandID:            oltypes.Int32(123),
 				Parameters: map[string]apps.AppParameters{
 					"test": apps.AppParameters{
 						ID:                        oltypes.Int32(123),
