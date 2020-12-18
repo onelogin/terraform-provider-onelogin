@@ -5,6 +5,7 @@ main.tf
 ./vendor
 terraform-provider-onelogin
 .terraform
+.terraform.*
 dist
 coverage.out
 bin
