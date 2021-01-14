@@ -62,6 +62,7 @@ func Inflate(s map[string]interface{}) (apps.AppConfiguration, error) {
 	out.Recipient = getOlString(s["recipient"])
 	out.Validator = getOlString(s["validator"])
 	out.RelayState = getOlString(s["relaystate"])
+	out.Relay = getOlString(s["relay"])
 
 	// terraform typeMap wants all fields to be strings and we store these fields as int32
 	// so we do the conversion here when assembling the resource
