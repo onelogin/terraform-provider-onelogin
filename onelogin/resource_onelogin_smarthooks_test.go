@@ -7,8 +7,8 @@ import (
 )
 
 func TestAccSmartHook_crud(t *testing.T) {
-	base := GetFixture("onelogin_smarthook_example.tf", t)
-	update := GetFixture("onelogin_smarthook_updated_example.tf", t)
+	base := GetFixture("onelogin_smarthooks_example.tf", t)
+	update := GetFixture("onelogin_smarthooks_updated_example.tf", t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
