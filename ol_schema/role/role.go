@@ -1,10 +1,11 @@
 package roleschema
 
 import (
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/roles"
-	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up a OneLogin User.
@@ -16,17 +17,17 @@ func Schema() map[string]*schema.Schema {
 		},
 		"apps": &schema.Schema{
 			Type:     schema.TypeSet,
-			Required: true,
+			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"users": &schema.Schema{
 			Type:     schema.TypeSet,
-			Required: true,
+			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"admins": &schema.Schema{
 			Type:     schema.TypeSet,
-			Required: true,
+			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 	}
