@@ -82,21 +82,25 @@ func TestInflateConfiguration(t *testing.T) {
 			ResourceData: map[string]interface{}{
 				"provider_arn":        "test",
 				"signature_algorithm": "test",
+				"idp_list":            "test",
 			},
 			ExpectedOutput: apps.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
+				IdpList:            oltypes.String("test"),
 			},
 		},
 		"creates and returns the address of an AppConfiguration struct for a SAML app with exra fields": {
 			ResourceData: map[string]interface{}{
 				"provider_arn":        "test",
 				"signature_algorithm": "test",
+				"idp_list":            "test",
 				"encrypt_assertion":   "1",
 			},
 			ExpectedOutput: apps.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
+				IdpList:            oltypes.String("test"),
 				EncryptAssertion:   oltypes.String("1"),
 			},
 		},
@@ -155,10 +159,12 @@ func TestFlattenSAMLConfiguration(t *testing.T) {
 			InputData: apps.AppConfiguration{
 				ProviderArn:        oltypes.String("test"),
 				SignatureAlgorithm: oltypes.String("test"),
+				IdpList:            oltypes.String("test"),
 			},
 			ExpectedOutput: map[string]interface{}{
 				"provider_arn":        "test",
 				"signature_algorithm": "test",
+				"idp_list":            "test",
 			},
 		},
 	}
