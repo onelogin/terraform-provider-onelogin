@@ -54,6 +54,7 @@ func Inflate(s map[string]interface{}) (apps.AppConfiguration, error) {
 	out.RedirectURI = getOlString(s["redirect_uri"])
 	out.LoginURL = getOlString(s["login_url"])
 	out.ProviderArn = getOlString(s["provider_arn"])
+	out.IdpList = getOlString(s["idp_list"])
 	out.SignatureAlgorithm = getOlString(s["signature_algorithm"])
 	out.LogoutURL = getOlString(s["logout_url"])
 	out.Audience = getOlString(s["audience"])
@@ -144,6 +145,10 @@ func FlattenSAML(config apps.AppConfiguration) map[string]interface{} {
 	if config.ProviderArn != nil {
 		tfOut["provider_arn"] = *config.ProviderArn
 	}
+	if config.IdpList != nil {
+		tfOut["idp_list"] = *config.IdpList
+	}
+
 	if config.SignatureAlgorithm != nil {
 		tfOut["signature_algorithm"] = *config.SignatureAlgorithm
 	}
