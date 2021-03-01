@@ -23,7 +23,7 @@ resource onelogin_oidc_apps my_oidc_app {
 	connector_id = 123456
 	description = "example OIDC app"
 
-	configuration {
+	configuration = {
 		login_url = "https://www.example.com"
 		oidc_application_type = 0
 		redirect_uri = "https://example.com/example"
@@ -32,11 +32,11 @@ resource onelogin_oidc_apps my_oidc_app {
 		access_token_expiration_minutes = 1
 	}
 
-	provisioning {
+	provisioning = {
 		enabled = false
 	}
 
-	parameters {
+	parameters = {
 		provisioned_entitlements = false
 		user_attribute_macros = ""
 		user_attribute_mappings = ""

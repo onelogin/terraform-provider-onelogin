@@ -18,7 +18,7 @@ This resource allows you to create and configure an Authentication Server.
 resource onelogin_auth_servers example {
   name = "Contacts API"
   description = "This is an api"
-  configuration {
+  configuration = {
     resource_identifier = "https://example.com/contacts"
     audiences = ["https://example.com/contacts"]
     refresh_token_expiration_minutes = 30

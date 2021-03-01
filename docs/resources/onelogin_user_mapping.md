@@ -21,12 +21,12 @@ resource onelogin_user_mappings example {
   match = "all"
   position = 1
 
-  actions {
+  actions = {
     value = ["1"]
     action = "set_status"
   }
 
-  conditions {
+  conditions = {
     operator = ">"
     source = "last_login"
     value = "90"
