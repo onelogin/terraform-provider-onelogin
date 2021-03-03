@@ -34,9 +34,9 @@ func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 	if act, notNil := s["action"].(string); notNil {
 		out.Action = oltypes.String(act)
 	}
-	if exp, notNil := s["expression"].(string); notNil {
-		out.Expression = oltypes.String(exp)
-	}
+	//if exp, notNil := s["expression"].(string); notNil {
+	//	out.Expression = oltypes.String(exp)
+	//}
 	if val, notNil := s["value"].([]interface{}); notNil {
 		out.Value = make([]string, len(val))
 		for i, str := range val {
@@ -51,9 +51,9 @@ func Flatten(acts []apprules.AppRuleActions) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(acts))
 	for i, action := range acts {
 		out[i] = map[string]interface{}{
-			"action":     action.Action,
-			"expression": action.Expression,
-			"value":      action.Value,
+			"action": action.Action,
+			// "expression": action.Expression,
+			"value": action.Value,
 		}
 	}
 	return out
