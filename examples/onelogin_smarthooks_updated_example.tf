@@ -4,6 +4,7 @@ resource onelogin_smarthooks basic_test {
   packages = {
     mysql = "2.18.1"
   }
+  runtime =  "nodejs12.x"
   retries = 0
   timeout = 2
   disabled = false

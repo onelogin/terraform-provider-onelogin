@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
 )
 
 // SmartHooks attaches additional configuration and sso schemas and
@@ -28,18 +29,19 @@ func SmartHooks() *schema.Resource {
 // makes the POST request to OneLogin to create an samlApp with its sub-resources
 func smartHookCreate(d *schema.ResourceData, m interface{}) error {
 	smarthook := smarthooksschema.Inflate(map[string]interface{}{
-		"type":             d.Get("type"),
-		"function":         d.Get("function"),
-		"retries":          d.Get("retries"),
-		"timeout":          d.Get("timeout"),
-		"disabled":         d.Get("disabled"),
-		"status":           d.Get("status"),
-		"env_vars":         d.Get("env_vars"),
-		"packages":         d.Get("packages"),
-		"risk_enabled":     d.Get("risk_enabled"),
-		"location_enabled": d.Get("location_enabled"),
+		"type":     d.Get("type"),
+		"function": d.Get("function"),
+		"runtime":  d.Get("runtime"),
+		"retries":  d.Get("retries"),
+		"timeout":  d.Get("timeout"),
+		"disabled": d.Get("disabled"),
+		"status":   d.Get("status"),
+		"env_vars": d.Get("env_vars"),
+		"packages": d.Get("packages"),
+		"options":  d.Get("options"),
 	})
 	client := m.(*client.APIClient)
+	smarthook.EncodeFunction()
 	fullSmarthook, err := client.Services.SmartHooksV1.Create(&smarthook)
 	if err != nil {
 		log.Println("[ERROR] There was a problem creating the smart hooks!", err)
@@ -54,6 +56,7 @@ func smartHookCreate(d *schema.ResourceData, m interface{}) error {
 // SmartHookRead takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the GET request to OneLogin to read an samlApp with its sub-resources
 func smartHookRead(d *schema.ResourceData, m interface{}) error {
+	log.Println("EAT DICK")
 	client := m.(*client.APIClient)
 	smarthook, err := client.Services.SmartHooksV1.GetOne(d.Id())
 	if err != nil {
@@ -71,12 +74,12 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("function", smarthook.Function)
 	d.Set("retries", smarthook.Retries)
 	d.Set("timeout", smarthook.Timeout)
+	d.Set("runtime", smarthook.Runtime)
 	d.Set("disabled", smarthook.Disabled)
 	d.Set("status", smarthook.Status)
+	d.Set("options", smarthookoptions.FlattenSmartHookOptions(*smarthook.Options))
 	d.Set("env_vars", smarthooksschema.FlattenEnvVars(smarthook.EnvVars))
 	d.Set("packages", smarthook.Packages)
-	d.Set("risk_enabled", smarthook.RiskEnabled)
-	d.Set("location_enabled", smarthook.LocationEnabled)
 	d.Set("created_at", smarthook.CreatedAt.String())
 	d.Set("updated_at", smarthook.UpdatedAt.String())
 
@@ -87,21 +90,21 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func smartHookUpdate(d *schema.ResourceData, m interface{}) error {
 	smartHook := smarthooksschema.Inflate(map[string]interface{}{
-		"id":               d.Id(),
-		"type":             d.Get("type"),
-		"function":         d.Get("function"),
-		"retries":          d.Get("retries"),
-		"timeout":          d.Get("timeout"),
-		"disabled":         d.Get("disabled"),
-		"status":           d.Get("status"),
-		"packages":         d.Get("packages"),
-		"env_vars":         d.Get("env_vars"),
-		"risk_enabled":     d.Get("risk_enabled"),
-		"location_enabled": d.Get("location_enabled"),
+		"id":       d.Id(),
+		"type":     d.Get("type"),
+		"function": d.Get("function"),
+		"runtime":  d.Get("runtime"),
+		"retries":  d.Get("retries"),
+		"timeout":  d.Get("timeout"),
+		"disabled": d.Get("disabled"),
+		"status":   d.Get("status"),
+		"env_vars": d.Get("env_vars"),
+		"packages": d.Get("packages"),
+		"options":  d.Get("options"),
 	})
 
 	client := m.(*client.APIClient)
-
+	smartHook.EncodeFunction()
 	fullSmartHook, err := client.Services.SmartHooksV1.Update(&smartHook)
 	if err != nil {
 		log.Println("[ERROR] There was a problem Updating the smart hooks!", err)

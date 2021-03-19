@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
@@ -27,12 +28,8 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Required: true,
 		},
-		"risk_enabled": &schema.Schema{
-			Type:     schema.TypeBool,
-			Required: true,
-		},
-		"location_enabled": &schema.Schema{
-			Type:     schema.TypeBool,
+		"runtime": &schema.Schema{
+			Type:     schema.TypeString,
 			Required: true,
 		},
 		"retries": &schema.Schema{
@@ -61,11 +58,18 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"options": &schema.Schema{
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: smarthookoptions.Schema(),
+			},
+		},
 	}
 }
 
 func validTypes(val interface{}, key string) (warns []string, errs []error) {
-	return utils.OneOf(key, val.(string), []string{"pre-authentication"})
+	return utils.OneOf(key, val.(string), []string{"pre-authentication", "user-migration"})
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
@@ -80,20 +84,16 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 		out.Type = oltypes.String(hookType)
 	}
 
+	if runtime, notNil := s["runtime"].(string); notNil {
+		out.Runtime = oltypes.String(runtime)
+	}
+
 	if function, notNil := s["function"].(string); notNil {
 		out.Function = oltypes.String(function)
 	}
 
 	if disabled, notNil := s["disabled"].(bool); notNil {
 		out.Disabled = oltypes.Bool(disabled)
-	}
-
-	if riskEnabled, notNil := s["risk_enabled"].(bool); notNil {
-		out.RiskEnabled = oltypes.Bool(riskEnabled)
-	}
-
-	if locationEnabled, notNil := s["location_enabled"].(bool); notNil {
-		out.LocationEnabled = oltypes.Bool(locationEnabled)
 	}
 
 	if retries, notNil := s["retries"].(int); notNil {
@@ -105,10 +105,15 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 	}
 
 	if s["env_vars"] != nil {
-		out.EnvVars = make([]string, len(s["env_vars"].([]interface{})))
+		out.EnvVars = make([]smarthooks.EnvVar, len(s["env_vars"].([]interface{})))
 		for i, envVar := range s["env_vars"].([]interface{}) {
-			out.EnvVars[i] = envVar.(string)
+			out.EnvVars[i] = smarthooks.EnvVar{Name: oltypes.String(envVar.(string))}
 		}
+	}
+
+	if s["options"] != nil {
+		opts := smarthookoptions.Inflate(s["options"].(map[string]interface{}))
+		out.Options = &opts
 	}
 
 	if s["packages"] != nil {

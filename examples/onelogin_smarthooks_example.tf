@@ -6,9 +6,12 @@ resource onelogin_smarthooks basic_test {
   }
   retries = 0
   timeout = 2
+  runtime =  "nodejs12.x"
   disabled = false
-  risk_enabled = false
-  location_enabled = false
+  options = {
+    risk_enabled = false
+    location_enabled = false
+  }
   function = <<EOF
 		function myFunc() {
 			let a = 1;
