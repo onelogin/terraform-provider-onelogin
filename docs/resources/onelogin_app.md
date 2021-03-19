@@ -23,11 +23,11 @@ resource onelogin_apps my_app {
   visible = true
   allow_assumed_signin = false
 
-  provisioning {
+  provisioning = {
     enabled = false
   }
 
-	parameters {
+	parameters = {
 		safe_entitlements_enabled = false
 		user_attribute_mappings = ""
 		provisioned_entitlements = false

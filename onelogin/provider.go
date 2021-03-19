@@ -18,22 +18,22 @@ var (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"client_id": &schema.Schema{
+			"client_id": {
 				Type:        schema.TypeString,
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_ID", nil),
 				Required:    true,
 			},
-			"client_secret": &schema.Schema{
+			"client_secret": {
 				Type:        schema.TypeString,
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_SECRET", nil),
 				Required:    true,
 			},
-			"url": &schema.Schema{
+			"url": {
 				Type:        schema.TypeString,
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_OAPI_URL", nil),
 				Optional:    true,
 			},
-			"region": &schema.Schema{
+			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  client.USRegion,
@@ -49,6 +49,7 @@ func Provider() terraform.ResourceProvider {
 			"onelogin_users":                Users(),
 			"onelogin_auth_servers":         AuthServers(),
 			"onelogin_roles":                Roles(),
+			"onelogin_smarthooks":           SmartHooks(),
 		},
 		ConfigureFunc: configProvider,
 	}

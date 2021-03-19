@@ -15,7 +15,7 @@ func Schema() map[string]*schema.Schema {
 		},
 		"expression": &schema.Schema{
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 		"value": &schema.Schema{
 			Type:     schema.TypeList,

@@ -23,7 +23,7 @@ resource onelogin_saml_apps example_saml_app {
   name = "Example App"
   notes = "example saml app"
 
-  parameters {
+  parameters = {
     include_in_saml_assertion = false
     provisioned_entitlements = false
     user_attribute_macros = ""
@@ -37,12 +37,12 @@ resource onelogin_saml_apps example_saml_app {
     default_values = ""
   }
 
-  configuration {
+  configuration = {
     signature_algorithm = "SHA-1"
     provider_arn = "example_arn"
   }
 
-  provisioning {
+  provisioning = {
     enabled = false
   }
 }
