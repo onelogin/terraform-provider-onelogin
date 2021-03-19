@@ -114,7 +114,7 @@ func userMappingDelete(d *schema.ResourceData, m interface{}) error {
 
 	err := client.Services.UserMappingsV2.Destroy(int32(aid))
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the user mapping!")
+		log.Printf("[ERROR] There was a problem deleting the user mapping!")
 		log.Println(err)
 	} else {
 		log.Printf("[DELETED] Deleted user mapping with %d", aid)

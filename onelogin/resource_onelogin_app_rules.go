@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
+	apprulesschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules"
+	appruleactionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
+	appruleconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
 )
 
 // AppRules returns a resource with the CRUD methods and Terraform Schema defined
@@ -54,8 +54,8 @@ func appRuleCreate(d *schema.ResourceData, m interface{}) error {
 func appRuleRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 	id, _ := strconv.Atoi(d.Id())
-	appId, _ := strconv.Atoi(d.Get("app_id").(string))
-	app, err := client.Services.AppRulesV2.GetOne(int32(appId), int32(id))
+	appID, _ := strconv.Atoi(d.Get("app_id").(string))
+	app, err := client.Services.AppRulesV2.GetOne(int32(appID), int32(id))
 	if err != nil {
 		log.Printf("[ERROR] There was a problem reading the app rule!")
 		log.Println(err)
@@ -111,10 +111,10 @@ func appRuleUpdate(d *schema.ResourceData, m interface{}) error {
 // makes the DELETE request to OneLogin to delete an App and its sub-resources
 func appRuleDelete(d *schema.ResourceData, m interface{}) error {
 	id, _ := strconv.Atoi(d.Id())
-	appId, _ := strconv.Atoi(d.Get("app_id").(string))
+	appID, _ := strconv.Atoi(d.Get("app_id").(string))
 	client := m.(*client.APIClient)
 
-	err := client.Services.AppRulesV2.Destroy(int32(appId), int32(id))
+	err := client.Services.AppRulesV2.Destroy(int32(appID), int32(id))
 	if err != nil {
 		log.Printf("[ERROR] There was a problem deleting the app rule!")
 		log.Println(err)
