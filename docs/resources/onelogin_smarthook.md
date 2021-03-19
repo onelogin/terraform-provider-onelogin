@@ -24,16 +24,32 @@ resource onelogin_smarthooks basic_test {
   retries = 0
   timeout = 2
   disabled = false
-  risk_enabled = false
-  location_enabled = false
+  options = {
+    risk_enabled = false
+    location_enabled = false
+  }
   function = <<EOF
-		function myFunc() {
-			let a = 1;
-			let b = 1;
-			let c = a + b;
-		  console.log("Ding", a, b, c);
-		}
+    exports.handler = async context => {
+      console.log("Pre-auth executing for " + context.user.user_identifier);
+      return { user: context.user };
+    };
 	EOF
+}
+
+resource onelogin_smarthooks basic_test {
+  type = "pre-authentication"
+  packages = {
+    mysql = "^2.18.1"
+  }
+  env_vars = [ "API_KEY" ]
+  retries = 0
+  timeout = 2
+  disabled = false
+  options = {
+    risk_enabled = false
+    location_enabled = false
+  }
+  function = "CQlmdW5jdGlvbiBteUZ1bmMoKSB7CgkJCWxldCBhID0gMTsKCQkJbGV0IGIgPSAxOwoJCQlsZXQgYyA9IGEgKyBiOwoJCSAgY29uc29sZS5sb2coIkRpbmcgRG9uZyIsIGEsIGIsIGMpOwoJCX0K"
 }
 
 ```
@@ -47,13 +63,14 @@ The following arguments are supported:
 
 * `packages` - (Required) A list of public npm packages than will be installed as part of the function build process. These packages names must be on our allowlist. See Node Modules section of this doc. Packages can be any version and support the semantic versioning syntax used by NPM.
 
-* `function` - (Required) A base64 encoded blob containing the javascript function code.
+* `function` - (Required) A base64 encoded blob, or Heredoc string containing the javascript function code.
 
 * `disabled` - (Required) Indicates if function is available for execution or not. Default true
 
-* `risk_enabled` - (Required) When true a risk score and risk reasons will be passed in the context. Only applies authentication time hooks. E.g. pre-authentication, user-migration. Default false
+* `options` - (Required if type = pre-authentication) A list of options for the hook
+  * `risk_enabled` - (Required) When true a risk score and risk reasons will be passed in the context. Only applies authentication time hooks. E.g. pre-authentication, user-migration. Default false
 
-* `location_enabled` - (Required) When true an ip to location lookup is done and the location info is passed in the context. Only applies authentication time hooks. E.g. pre-authentication, user-migration. Default false
+  * `location_enabled` - (Required) When true an ip to location lookup is done and the location info is passed in the context. Only applies authentication time hooks. E.g. pre-authentication, user-migration. Default false
 
 * `retries` - (Required) Number of retries if execution fails. Default 0, Max 4
 
