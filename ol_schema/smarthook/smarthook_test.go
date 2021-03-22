@@ -6,6 +6,7 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,7 +52,7 @@ func TestInflate(t *testing.T) {
 				Retries:  oltypes.Int32(int32(0)),
 				Timeout:  oltypes.Int32(int32(2)),
 				Disabled: oltypes.Bool(false),
-				EnvVars:  []smarthooks.EnvVar{smarthooks.EnvVar{Name: oltypes.String("API_KEY")}},
+				EnvVars:  []smarthookenvs.EnvVar{smarthookenvs.EnvVar{Name: oltypes.String("API_KEY")}},
 				Options: &smarthooks.SmartHookOptions{
 					RiskEnabled: oltypes.Bool(false),
 				},

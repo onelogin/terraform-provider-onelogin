@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
@@ -105,9 +106,9 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 	}
 
 	if s["env_vars"] != nil {
-		out.EnvVars = make([]smarthooks.EnvVar, len(s["env_vars"].([]interface{})))
+		out.EnvVars = make([]smarthookenvs.EnvVar, len(s["env_vars"].([]interface{})))
 		for i, envVar := range s["env_vars"].([]interface{}) {
-			out.EnvVars[i] = smarthooks.EnvVar{Name: oltypes.String(envVar.(string))}
+			out.EnvVars[i] = smarthookenvs.EnvVar{Name: oltypes.String(envVar.(string))}
 		}
 	}
 
@@ -126,7 +127,7 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 }
 
 // FlattenEnvVars takes a SmartHook and gets a list of env_var names
-func FlattenEnvVars(vars []smarthooks.EnvVar) []string {
+func FlattenEnvVars(vars []smarthookenvs.EnvVar) []string {
 	out := make([]string, len(vars))
 	for i, v := range vars {
 		out[i] = *v.Name
