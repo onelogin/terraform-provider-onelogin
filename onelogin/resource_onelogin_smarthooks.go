@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
 )
 
@@ -29,16 +30,18 @@ func SmartHooks() *schema.Resource {
 // makes the POST request to OneLogin to create an samlApp with its sub-resources
 func smartHookCreate(d *schema.ResourceData, m interface{}) error {
 	smarthook := smarthooksschema.Inflate(map[string]interface{}{
-		"type":     d.Get("type"),
-		"function": d.Get("function"),
-		"runtime":  d.Get("runtime"),
-		"retries":  d.Get("retries"),
-		"timeout":  d.Get("timeout"),
-		"disabled": d.Get("disabled"),
-		"status":   d.Get("status"),
-		"env_vars": d.Get("env_vars"),
-		"packages": d.Get("packages"),
-		"options":  d.Get("options"),
+		"type":            d.Get("type"),
+		"disabled":        d.Get("disabled"),
+		"timeout":         d.Get("timeout"),
+		"env_vars":        d.Get("env_vars"),
+		"runtime":         d.Get("runtime"),
+		"context_version": d.Get("context_version"),
+		"retries":         d.Get("retries"),
+		"options":         d.Get("options"),
+		"packages":        d.Get("packages"),
+		"function":        d.Get("function"),
+		"conditions":      d.Get("conditions"),
+		"status":          d.Get("status"),
 	})
 	client := m.(*client.APIClient)
 	smarthook.EncodeFunction()
@@ -56,7 +59,6 @@ func smartHookCreate(d *schema.ResourceData, m interface{}) error {
 // SmartHookRead takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the GET request to OneLogin to read an samlApp with its sub-resources
 func smartHookRead(d *schema.ResourceData, m interface{}) error {
-	log.Println("EAT DICK")
 	client := m.(*client.APIClient)
 	smarthook, err := client.Services.SmartHooksV1.GetOne(d.Id())
 	if err != nil {
@@ -71,15 +73,17 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 
 	log.Printf("[READ] Reading hook with %s", *(smarthook.ID))
 	d.Set("type", smarthook.Type)
-	d.Set("function", smarthook.Function)
-	d.Set("retries", smarthook.Retries)
-	d.Set("timeout", smarthook.Timeout)
-	d.Set("runtime", smarthook.Runtime)
 	d.Set("disabled", smarthook.Disabled)
-	d.Set("status", smarthook.Status)
-	d.Set("options", smarthookoptions.FlattenSmartHookOptions(*smarthook.Options))
+	d.Set("timeout", smarthook.Timeout)
 	d.Set("env_vars", smarthooksschema.FlattenEnvVars(smarthook.EnvVars))
+	d.Set("runtime", smarthook.Runtime)
+	d.Set("context_version", smarthook.ContextVersion)
+	d.Set("retries", smarthook.Retries)
+	d.Set("options", smarthookoptions.Flatten(*smarthook.Options))
 	d.Set("packages", smarthook.Packages)
+	d.Set("function", smarthook.Function)
+	d.Set("conditions", smarthookconditionsschema.Flatten(smarthook.Conditions))
+	d.Set("status", smarthook.Status)
 	d.Set("created_at", smarthook.CreatedAt.String())
 	d.Set("updated_at", smarthook.UpdatedAt.String())
 
@@ -90,17 +94,19 @@ func smartHookRead(d *schema.ResourceData, m interface{}) error {
 // makes the PUT request to OneLogin to update an samlApp and its sub-resources
 func smartHookUpdate(d *schema.ResourceData, m interface{}) error {
 	smartHook := smarthooksschema.Inflate(map[string]interface{}{
-		"id":       d.Id(),
-		"type":     d.Get("type"),
-		"function": d.Get("function"),
-		"runtime":  d.Get("runtime"),
-		"retries":  d.Get("retries"),
-		"timeout":  d.Get("timeout"),
-		"disabled": d.Get("disabled"),
-		"status":   d.Get("status"),
-		"env_vars": d.Get("env_vars"),
-		"packages": d.Get("packages"),
-		"options":  d.Get("options"),
+		"id":              d.Id(),
+		"type":            d.Get("type"),
+		"disabled":        d.Get("disabled"),
+		"timeout":         d.Get("timeout"),
+		"env_vars":        d.Get("env_vars"),
+		"runtime":         d.Get("runtime"),
+		"context_version": d.Get("context_version"),
+		"retries":         d.Get("retries"),
+		"options":         d.Get("options"),
+		"packages":        d.Get("packages"),
+		"function":        d.Get("function"),
+		"conditions":      d.Get("conditions"),
+		"status":          d.Get("status"),
 	})
 
 	client := m.(*client.APIClient)
