@@ -28,8 +28,8 @@ func Schema() map[string]*schema.Schema {
 	}
 }
 
-func Inflate(s map[string]interface{}) smarthooks.SmartHookOptions {
-	opts := smarthooks.SmartHookOptions{}
+func Inflate(s map[string]interface{}) smarthooks.Options {
+	opts := smarthooks.Options{}
 
 	if re, notNil := s["risk_enabled"].(bool); notNil {
 		opts.RiskEnabled = oltypes.Bool(re)
@@ -43,8 +43,8 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHookOptions {
 	return opts
 }
 
-// FlattenSmartHookOptions takes a SmartHookOptions instance and creates a map
-func FlattenSmartHookOptions(smarthookOptions smarthooks.SmartHookOptions) map[string]interface{} {
+// Flatten takes a SmartHook Options instance and creates a map
+func Flatten(smarthookOptions smarthooks.Options) map[string]interface{} {
 	return map[string]interface{}{
 		"risk_enabled":            smarthookOptions.RiskEnabled,
 		"mfa_device_info_enabled": smarthookOptions.MFADeviceInfoEnabled,

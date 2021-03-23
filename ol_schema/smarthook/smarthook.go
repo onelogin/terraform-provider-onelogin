@@ -5,6 +5,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
@@ -17,24 +18,8 @@ func Schema() map[string]*schema.Schema {
 			Required:     true,
 			ValidateFunc: validTypes,
 		},
-		"status": &schema.Schema{
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"function": &schema.Schema{
-			Type:     schema.TypeString,
-			Required: true,
-		},
 		"disabled": &schema.Schema{
 			Type:     schema.TypeBool,
-			Required: true,
-		},
-		"runtime": &schema.Schema{
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"retries": &schema.Schema{
-			Type:     schema.TypeInt,
 			Required: true,
 		},
 		"timeout": &schema.Schema{
@@ -46,10 +31,45 @@ func Schema() map[string]*schema.Schema {
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
+		"runtime": &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"context_version": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"retries": &schema.Schema{
+			Type:     schema.TypeInt,
+			Required: true,
+		},
+		"options": &schema.Schema{
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: smarthookoptions.Schema(),
+			},
+		},
 		"packages": &schema.Schema{
 			Type:     schema.TypeMap,
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"function": &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"conditions": &schema.Schema{
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: smarthookconditionsschema.Schema(),
+			},
+		},
+		"status": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"created_at": &schema.Schema{
 			Type:     schema.TypeString,
@@ -58,13 +78,6 @@ func Schema() map[string]*schema.Schema {
 		"updated_at": &schema.Schema{
 			Type:     schema.TypeString,
 			Computed: true,
-		},
-		"options": &schema.Schema{
-			Type:     schema.TypeMap,
-			Optional: true,
-			Elem: &schema.Resource{
-				Schema: smarthookoptions.Schema(),
-			},
 		},
 	}
 }
@@ -109,6 +122,14 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 		out.EnvVars = make([]smarthookenvs.EnvVar, len(s["env_vars"].([]interface{})))
 		for i, envVar := range s["env_vars"].([]interface{}) {
 			out.EnvVars[i] = smarthookenvs.EnvVar{Name: oltypes.String(envVar.(string))}
+		}
+	}
+
+	if s["conditions"] != nil {
+		out.Conditions = []smarthooks.Condition{}
+		for _, val := range s["conditions"].([]interface{}) {
+			cond := smarthookconditionsschema.Inflate(val.(map[string]interface{}))
+			out.Conditions = append(out.Conditions, cond)
 		}
 	}
 

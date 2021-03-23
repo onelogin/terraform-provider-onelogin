@@ -19,6 +19,7 @@ func TestAccSmartHook_crud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "type", "pre-authentication"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "retries", "0"),
+					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "context_version", "1.0.0"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "timeout", "1"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "disabled", "false"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "options.risk_enabled", "false"),
@@ -32,6 +33,7 @@ func TestAccSmartHook_crud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "type", "pre-authentication"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "retries", "0"),
+					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "context_version", "1.0.0"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "timeout", "1"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "disabled", "false"),
 					resource.TestCheckResourceAttr("onelogin_smarthooks.basic_test", "options.risk_enabled", "false"),
