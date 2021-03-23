@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSmartHookOptionsSchema(t *testing.T) {
+func TestOptionsSchema(t *testing.T) {
 	t.Run("creates and returns a map of a Smarthook Options Schema", func(t *testing.T) {
 		provSchema := Schema()
 		assert.NotNil(t, provSchema["risk_enabled"])
@@ -20,14 +20,14 @@ func TestSmartHookOptionsSchema(t *testing.T) {
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput smarthooks.SmartHookOptions
+		ExpectedOutput smarthooks.Options
 	}{
-		"creates and returns the address of a SmartHookOptions struct": {
+		"creates and returns the address of a Options struct": {
 			ResourceData: map[string]interface{}{
 				"risk_enabled":            true,
 				"mfa_device_info_enabled": true,
 			},
-			ExpectedOutput: smarthooks.SmartHookOptions{
+			ExpectedOutput: smarthooks.Options{
 				RiskEnabled:          oltypes.Bool(true),
 				MFADeviceInfoEnabled: oltypes.Bool(true),
 			},
@@ -43,11 +43,11 @@ func TestInflate(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	tests := map[string]struct {
-		Input          smarthooks.SmartHookOptions
+		Input          smarthooks.Options
 		ExpectedOutput map[string]interface{}
 	}{
-		"converts an instance of SmartHookOptions to a map interfaces with string keys": {
-			Input: smarthooks.SmartHookOptions{
+		"converts an instance of Options to a map interfaces with string keys": {
+			Input: smarthooks.Options{
 				RiskEnabled:          oltypes.Bool(true),
 				MFADeviceInfoEnabled: oltypes.Bool(true),
 				LocationEnabled:      oltypes.Bool(true),
@@ -61,7 +61,7 @@ func TestFlatten(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := FlattenSmartHookOptions(test.Input)
+			subj := Flatten(test.Input)
 			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}

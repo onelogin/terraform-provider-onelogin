@@ -53,7 +53,7 @@ func TestInflate(t *testing.T) {
 				Timeout:  oltypes.Int32(int32(2)),
 				Disabled: oltypes.Bool(false),
 				EnvVars:  []smarthookenvs.EnvVar{smarthookenvs.EnvVar{Name: oltypes.String("API_KEY")}},
-				Options: &smarthooks.SmartHookOptions{
+				Options: &smarthooks.Options{
 					RiskEnabled: oltypes.Bool(false),
 				},
 			},
