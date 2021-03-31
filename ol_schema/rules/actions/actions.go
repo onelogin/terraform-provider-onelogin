@@ -51,9 +51,9 @@ func Flatten(acts []apprules.AppRuleActions) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(acts))
 	for i, action := range acts {
 		out[i] = map[string]interface{}{
-			"action": action.Action,
-			// "expression": action.Expression,
-			"value": action.Value,
+			"action":     action.Action,
+			"expression": action.Expression,
+			"value":      action.Value,
 		}
 	}
 	return out
