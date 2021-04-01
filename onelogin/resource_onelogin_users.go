@@ -46,6 +46,7 @@ func usersCreate(d *schema.ResourceData, m interface{}) error {
 		"manager_ad_id":       d.Get("manager_ad_id"),
 		"manager_user_id":     d.Get("manager_user_id"),
 		"external_id":         d.Get("external_id"),
+		"custom_attributes":   d.Get("custom_attributes"),
 	})
 	client := m.(*client.APIClient)
 	err := client.Services.UsersV2.Create(&user)
@@ -83,6 +84,7 @@ func usersUpdate(d *schema.ResourceData, m interface{}) error {
 		"manager_ad_id":       d.Get("manager_ad_id"),
 		"manager_user_id":     d.Get("manager_user_id"),
 		"external_id":         d.Get("external_id"),
+		"custom_attributes":   d.Get("custom_attributes"),
 	})
 	client := m.(*client.APIClient)
 	err := client.Services.UsersV2.Update(&user)
@@ -132,6 +134,7 @@ func usersRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("manager_ad_id", user.ManagerADID)
 	d.Set("manager_user_id", user.ManagerUserID)
 	d.Set("external_id", user.ExternalID)
+	d.Set("custom_attributes", user.CustomAttributes)
 
 	return nil
 }
