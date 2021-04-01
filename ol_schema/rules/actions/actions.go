@@ -34,9 +34,13 @@ func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 	if act, notNil := s["action"].(string); notNil {
 		out.Action = oltypes.String(act)
 	}
-	//if exp, notNil := s["expression"].(string); notNil {
-	//	out.Expression = oltypes.String(exp)
-	//}
+	if exp, notNil := s["expression"].(string); notNil {
+		if exp != "" {
+			out.Expression = oltypes.String(exp)
+		} else {
+			out.Expression = nil
+		}
+	}
 	if val, notNil := s["value"].([]interface{}); notNil {
 		out.Value = make([]string, len(val))
 		for i, str := range val {
