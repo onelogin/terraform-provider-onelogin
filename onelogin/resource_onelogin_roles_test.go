@@ -23,7 +23,7 @@ func TestAccRole_crud(t *testing.T) {
 			{
 				Config: update,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_roles.executive_admin", "username", "updated executive admin"),
+					resource.TestCheckResourceAttr("onelogin_roles.executive_admin", "name", "updated executive admin"),
 				),
 			},
 		},
