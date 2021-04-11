@@ -32,14 +32,13 @@ func Schema() map[string]*schema.Schema {
 func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 	out := apprules.AppRuleActions{}
 	if act, notNil := s["action"].(string); notNil {
-		out.Action = oltypes.String(act)
-	}
-	if exp, notNil := s["expression"].(string); notNil {
-		if exp != "" {
-			out.Expression = oltypes.String(exp)
-		} else {
-			out.Expression = nil
+		if act != "set_role_from_existings" {
+			if exp, notNil := s["expression"].(string); notNil {
+				out.Expression = oltypes.String(exp)
+			}
 		}
+		act = "set_role"
+		out.Action = oltypes.String(act)
 	}
 	if val, notNil := s["value"].([]interface{}); notNil {
 		out.Value = make([]string, len(val))
@@ -54,8 +53,13 @@ func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 func Flatten(acts []apprules.AppRuleActions) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(acts))
 	for i, action := range acts {
+		actionType := *action.Action
+		if action.Expression == nil && actionType == "set_role" {
+			actionType = "set_role_from_existings"
+		}
+
 		out[i] = map[string]interface{}{
-			"action":     action.Action,
+			"action":     actionType,
 			"expression": action.Expression,
 			"value":      action.Value,
 		}
