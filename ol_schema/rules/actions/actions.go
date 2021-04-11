@@ -53,15 +53,18 @@ func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 func Flatten(acts []apprules.AppRuleActions) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(acts))
 	for i, action := range acts {
-		actionType := *action.Action
-		if action.Expression == nil && actionType == "set_role" {
-			actionType = "set_role_from_existings"
-		}
-
-		out[i] = map[string]interface{}{
-			"action":     actionType,
-			"expression": action.Expression,
-			"value":      action.Value,
+		if action.Expression == nil && *action.Action == "set_role" {
+			out[i] = map[string]interface{}{
+				"action":     "set_role_from_existings",
+				"expression": action.Expression,
+				"value":      action.Value,
+			}
+		} else {
+			out[i] = map[string]interface{}{
+				"action":     action.Action,
+				"expression": action.Expression,
+				"value":      action.Value,
+			}
 		}
 	}
 	return out
