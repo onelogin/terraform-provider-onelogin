@@ -37,7 +37,6 @@ func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 				out.Expression = oltypes.String(exp)
 			}
 		}
-		act = "set_role"
 		out.Action = oltypes.String(act)
 	}
 	if val, notNil := s["value"].([]interface{}); notNil {
