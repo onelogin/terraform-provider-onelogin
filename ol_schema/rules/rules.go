@@ -29,7 +29,7 @@ func Schema() map[string]*schema.Schema {
 		"enabled": &schema.Schema{
 			Type:     schema.TypeBool,
 			Optional: true,
-			Default:  false,
+			Default:  true,
 		},
 		"position": &schema.Schema{
 			Type:     schema.TypeInt,
@@ -83,20 +83,6 @@ func Inflate(s map[string]interface{}) apprules.AppRule {
 	if pos, notNil := s["enabled"].(bool); notNil {
 		out.Enabled = oltypes.Bool(pos)
 	}
-	if s["conditions"] != nil {
-		out.Conditions = []apprules.AppRuleConditions{}
-		for _, val := range s["conditions"].([]interface{}) {
-			valMap := val.(map[string]interface{})
-			cond := appruleconditionsschema.Inflate(valMap)
-			out.Conditions = append(out.Conditions, cond)
-		}
-	}
-	if s["actions"] != nil {
-		for _, val := range s["actions"].([]interface{}) {
-			valMap := val.(map[string]interface{})
-			cond := appruleactionsschema.Inflate(valMap)
-			out.Actions = append(out.Actions, cond)
-		}
-	}
+
 	return out
 }

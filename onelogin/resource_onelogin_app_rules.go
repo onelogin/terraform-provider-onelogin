@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	apprulesschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules"
@@ -28,15 +29,48 @@ func AppRules() *schema.Resource {
 // appRuleCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an App with its sub-resources
 func appRuleCreate(d *schema.ResourceData, m interface{}) error {
+	conditions := make([]apprules.AppRuleConditions, len(d.Get("conditions").([]interface{})))
+	actions := make([]apprules.AppRuleActions, len(d.Get("actions").([]interface{})))
+
+	for i := range d.Get("actions").([]interface{}) {
+		action := map[string]interface{}{}
+		if a, n := d.GetOk(fmt.Sprintf("actions.%d.action", i)); n {
+			action["action"] = a
+		}
+		if e, n := d.GetOk(fmt.Sprintf("actions.%d.expression", i)); n {
+			action["expression"] = e
+		}
+		if v, n := d.GetOk(fmt.Sprintf("actions.%d.value", i)); n {
+			action["value"] = v
+		}
+		actions[i] = appruleactionsschema.Inflate(action)
+	}
+
+	for i := range d.Get("conditions").([]interface{}) {
+		condition := map[string]interface{}{}
+		if a, n := d.GetOk(fmt.Sprintf("conditions.%d.operator", i)); n {
+			condition["operator"] = a
+		}
+		if e, n := d.GetOk(fmt.Sprintf("conditions.%d.source", i)); n {
+			condition["source"] = e
+		}
+		if v, n := d.GetOk(fmt.Sprintf("conditions.%d.value", i)); n {
+			condition["value"] = v
+		}
+		conditions[i] = appruleconditionsschema.Inflate(condition)
+	}
+
 	appRule := apprulesschema.Inflate(map[string]interface{}{
-		"app_id":     d.Get("app_id"),
-		"name":       d.Get("name"),
-		"match":      d.Get("match"),
-		"position":   d.Get("position"),
-		"enabled":    d.Get("enabled"),
-		"conditions": d.Get("conditions"),
-		"actions":    d.Get("actions"),
+		"app_id":   d.Get("app_id"),
+		"name":     d.Get("name"),
+		"match":    d.Get("match"),
+		"position": d.Get("position"),
+		"enabled":  d.Get("enabled"),
 	})
+
+	appRule.Actions = actions
+	appRule.Conditions = conditions
+
 	client := m.(*client.APIClient)
 	err := client.Services.AppRulesV2.Create(&appRule)
 	if err != nil {
@@ -81,16 +115,48 @@ func appRuleRead(d *schema.ResourceData, m interface{}) error {
 // appRuleUpdate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the PUT request to OneLogin to update an App and its sub-resources
 func appRuleUpdate(d *schema.ResourceData, m interface{}) error {
+	conditions := make([]apprules.AppRuleConditions, len(d.Get("conditions").([]interface{})))
+	actions := make([]apprules.AppRuleActions, len(d.Get("actions").([]interface{})))
+
+	for i := range d.Get("actions").([]interface{}) {
+		action := map[string]interface{}{}
+		if a, n := d.GetOk(fmt.Sprintf("actions.%d.action", i)); n {
+			action["action"] = a
+		}
+		if e, n := d.GetOk(fmt.Sprintf("actions.%d.expression", i)); n {
+			action["expression"] = e
+		}
+		if v, n := d.GetOk(fmt.Sprintf("actions.%d.value", i)); n {
+			action["value"] = v
+		}
+		actions[i] = appruleactionsschema.Inflate(action)
+	}
+
+	for i := range d.Get("conditions").([]interface{}) {
+		condition := map[string]interface{}{}
+		if a, n := d.GetOk(fmt.Sprintf("conditions.%d.operator", i)); n {
+			condition["operator"] = a
+		}
+		if e, n := d.GetOk(fmt.Sprintf("conditions.%d.source", i)); n {
+			condition["source"] = e
+		}
+		if v, n := d.GetOk(fmt.Sprintf("conditions.%d.value", i)); n {
+			condition["value"] = v
+		}
+		conditions[i] = appruleconditionsschema.Inflate(condition)
+	}
+
 	appRule := apprulesschema.Inflate(map[string]interface{}{
-		"id":         d.Id(),
-		"app_id":     d.Get("app_id"),
-		"name":       d.Get("name"),
-		"match":      d.Get("match"),
-		"position":   d.Get("position"),
-		"enabled":    d.Get("enabled"),
-		"conditions": d.Get("conditions"),
-		"actions":    d.Get("actions"),
+		"id":       d.Id(),
+		"app_id":   d.Get("app_id"),
+		"name":     d.Get("name"),
+		"match":    d.Get("match"),
+		"position": d.Get("position"),
+		"enabled":  d.Get("enabled"),
 	})
+
+	appRule.Actions = actions
+	appRule.Conditions = conditions
 	client := m.(*client.APIClient)
 
 	err := client.Services.AppRulesV2.Update(&appRule)

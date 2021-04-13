@@ -34,20 +34,6 @@ func TestInflate(t *testing.T) {
 				"match":    "test",
 				"enabled":  true,
 				"position": 1,
-				"conditions": []interface{}{
-					map[string]interface{}{
-						"source":   "test",
-						"operator": "=",
-						"value":    "test",
-					},
-				},
-				"actions": []interface{}{
-					map[string]interface{}{
-						"action":     "test",
-						"expression": ".*",
-						"value":      []interface{}{"test"},
-					},
-				},
 			},
 			ExpectedOutput: apprules.AppRule{
 				ID:       oltypes.Int32(int32(123)),
@@ -56,20 +42,6 @@ func TestInflate(t *testing.T) {
 				Match:    oltypes.String("test"),
 				Enabled:  oltypes.Bool(true),
 				Position: oltypes.Int32(int32(1)),
-				Conditions: []apprules.AppRuleConditions{
-					apprules.AppRuleConditions{
-						Source:   oltypes.String("test"),
-						Operator: oltypes.String("="),
-						Value:    oltypes.String("test"),
-					},
-				},
-				Actions: []apprules.AppRuleActions{
-					apprules.AppRuleActions{
-						Action:     oltypes.String("test"),
-						Expression: oltypes.String(".*"),
-						Value:      []string{"test"},
-					},
-				},
 			},
 		},
 	}
