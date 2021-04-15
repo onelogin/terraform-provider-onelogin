@@ -39,6 +39,9 @@ func Provider() terraform.ResourceProvider {
 				Default:  client.USRegion,
 			},
 		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"onelogin_users":                      dataSourceUsers(),
+		},
 		ResourcesMap: map[string]*schema.Resource{
 			"onelogin_app_role_attachments":            AppRoleAttachment(),
 			"onelogin_apps":                            Apps(),
