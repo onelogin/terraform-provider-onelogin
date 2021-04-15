@@ -185,3 +185,113 @@ func Inflate(s map[string]interface{}) (users.User, error) {
 
 	return out, nil
 }
+
+func QuerySchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"username": &schema.Schema{
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"email": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"firstname": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"lastname": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"distinguished_name": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"samaccountname": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"userprincipalname": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"member_of": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"phone": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"title": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"company": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"department": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"comment": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"state": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"status": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"group_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"directory_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"trusted_idp_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"manager_ad_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"manager_user_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"external_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Computed: true,
+			Optional: true,
+		},
+		"custom_attributes": &schema.Schema{
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+	}
+}
+
+func QueryInflate(s map[string]interface{}) (users.UserQuery, error) {
+	out := users.UserQuery{
+		Username: oltypes.String(s["username"].(string)),
+	}
+
+	return out, nil
+}
