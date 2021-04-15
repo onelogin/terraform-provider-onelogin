@@ -103,7 +103,7 @@ The following arguments are supported:
   * `value` - A plain text string or valid value for the selected condition source. See [List Condition Values](https://developers.onelogin.com/api-docs/2/app-rules/list-condition-values) for possible values.
 
 * `actions` - (Required) An array of actions that will be applied to the users that are matched by the conditions.
-  * `action` - The action to apply. See [List Actions](https://developers.onelogin.com/api-docs/2/app-rules/list-conditions) for possible values.
+  * `action` - The action to apply. See [List Actions](https://developers.onelogin.com/api-docs/2/app-rules/list-conditions) for possible values. *Note*: The action `set_role_from_existing` may also be used, however doing so will always clear the `expression` field as it is not accepted when mapping a rule from existing roles.
   * `value` - An array of strings. Only applicable to provisioned and set_* actions. Items in the array will be a plain text string or valid value for the selected action. See [List Action Values](https://developers.onelogin.com/api-docs/2/app-rules/list-action-values) for possible values. In most cases only a single item will be accepted in the array.
   * `expression` - A regular expression to extract a value. Applies to provisionable, multi-selects, and string actions.
   * `scriptlet` - A hash containing scriptlet code that returns a value. Scriptlets can not be modified and the same hash should not be applied to other applications.
