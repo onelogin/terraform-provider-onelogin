@@ -13,12 +13,12 @@ resource onelogin_app_rules test{
   enabled = true
   match = "all"
   name = "updated first rule"
-  conditions = {
+  conditions {
     operator = "<"
     source = "last_login"
     value = "90"
   }
-  actions = {
+  actions {
     action = "set_amazonusername"
     expression = ".*"
     value = ["member_of"]
@@ -29,12 +29,12 @@ resource onelogin_app_rules check{
   enabled = true
   match = "all"
   name = "updated second rule"
-  conditions = {
+  conditions {
     operator = "ri"
     source = "has_role"
     value = "340475"
   }
-  actions = {
+  actions {
     action = "set_amazonusername"
     expression = ".*"
     value = ["member_of"]
