@@ -52,6 +52,7 @@ func Inflate(s map[string]interface{}) (apps.AppConfiguration, error) {
 
 	// oidc fields
 	out.RedirectURI = getOlString(s["redirect_uri"])
+	out.PostLogoutRedirectURI = getOlString(s["post_logout_redirect_uri"])
 	out.LoginURL = getOlString(s["login_url"])
 	out.ProviderArn = getOlString(s["provider_arn"])
 	out.IdpList = getOlString(s["idp_list"])
@@ -118,6 +119,9 @@ func FlattenOIDC(config apps.AppConfiguration) map[string]interface{} {
 	tfOut := map[string]interface{}{}
 	if config.RedirectURI != nil {
 		tfOut["redirect_uri"] = *config.RedirectURI
+	}
+	if config.PostLogoutRedirectURI != nil {
+		tfOut["post_logout_redirect_uri"] = *config.PostLogoutRedirectURI
 	}
 	if config.LoginURL != nil {
 		tfOut["login_url"] = *config.LoginURL

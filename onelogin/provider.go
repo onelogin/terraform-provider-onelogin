@@ -40,7 +40,8 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"onelogin_users":                      dataSourceUsers(),
+			"onelogin_user":  dataSourceUser(),
+			"onelogin_users": dataSourceUsers(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"onelogin_app_role_attachments":            AppRoleAttachment(),
