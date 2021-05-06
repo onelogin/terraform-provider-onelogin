@@ -4,12 +4,12 @@ resource onelogin_user_mappings basic_test {
   match = "all"
   position = 1
 
-  actions = {
+  actions {
     value = ["2"]
     action = "set_status"
   }
 
-  conditions = {
+  conditions {
     operator = ">"
     source = "last_login"
     value = "120"
