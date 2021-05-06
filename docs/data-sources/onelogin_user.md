@@ -1,19 +1,19 @@
 ---
 layout: "onelogin"
-page_title: "OneLogin: onelogin_users"
+page_title: "OneLogin: onelogin_user"
 sidebar_current: "docs-onelogin-resource-user"
 description: |-
   Returns User resource.
 ---
 
-# Data source: onelogin_users
+# Data source: onelogin_user
 
 Returns User resource.
 
 ## Example Usage
 
 ```hcl
-data onelogin_users example {
+data onelogin_user example {
   username = "timmy.tester"
 }
 ```
@@ -22,7 +22,9 @@ data onelogin_users example {
 
 The following arguments are supported:
 
-* `username` - (Required) The user's username.
+* `username` - The user's username.
+
+* `user_id` - The user's ID.
 
 ## Attributes Reference
 
