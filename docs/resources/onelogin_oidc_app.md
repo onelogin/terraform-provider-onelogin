@@ -39,6 +39,7 @@ resource onelogin_oidc_apps my_oidc_app {
 	parameters = {
 		provisioned_entitlements = false
 		user_attribute_macros = ""
+    post_logout_redirect_uri = ""
 		user_attribute_mappings = ""
 		values = ""
 		attributes_transformations = ""
@@ -97,6 +98,8 @@ The following arguments are supported:
 
 
 * `configuration` - OIDC settings that control the authentication flow e.g. redirect urls and token settings.
+  * `post_logout_redirect_uri` - (Optional) The redirect_uri for the app to send the user to after logout.
+
   * `redirect_uri` - (Optional) The redirect_uri for the OIDC flow. Will be computed by API if not given.
 
   * `refresh_token_expiration_minutes` - (Optional) Number of minutes for the refresh token to be valid. Defaults to 1 minute.
