@@ -24,6 +24,7 @@ resource onelogin_oidc_apps my_oidc_app {
 	description = "example OIDC app"
 
 	configuration = {
+    post_logout_redirect_uri = ""
 		login_url = "https://www.example.com"
 		oidc_application_type = 0
 		redirect_uri = "https://example.com/example"
@@ -39,7 +40,6 @@ resource onelogin_oidc_apps my_oidc_app {
 	parameters = {
 		provisioned_entitlements = false
 		user_attribute_macros = ""
-    post_logout_redirect_uri = ""
 		user_attribute_mappings = ""
 		values = ""
 		attributes_transformations = ""
