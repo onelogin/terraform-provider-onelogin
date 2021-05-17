@@ -55,6 +55,7 @@ func Provider() terraform.ResourceProvider {
 			"onelogin_roles":                           Roles(),
 			"onelogin_smarthooks":                      SmartHooks(),
 			"onelogin_smarthook_environment_variables": SmarthookEnvironmentVariables(),
+			"onelogin_privileges":                      Privileges(),
 		},
 		ConfigureFunc: configProvider,
 	}
