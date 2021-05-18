@@ -17,39 +17,39 @@ This resource allows you to create and configure an OIDC Application.
 ```hcl
 resource onelogin_oidc_apps my_oidc_app {
   name = "my OIDC APP"
-	notes = "example"
+  notes = "example"
   visible = true
-	allow_assumed_signin = false
-	connector_id = 123456
-	description = "example OIDC app"
+  allow_assumed_signin = false
+  connector_id = 123456
+  description = "example OIDC app"
 
-	configuration = {
+  configuration = {
     post_logout_redirect_uri = ""
-		login_url = "https://www.example.com"
-		oidc_application_type = 0
-		redirect_uri = "https://example.com/example"
-		refresh_token_expiration_minutes = 1
-		token_endpoint_auth_method = 1
-		access_token_expiration_minutes = 1
-	}
+    login_url = "https://www.example.com"
+    oidc_application_type = 0
+    redirect_uri = "https://example.com/example"
+    refresh_token_expiration_minutes = 1
+    token_endpoint_auth_method = 1
+    access_token_expiration_minutes = 1
+  }
 
-	provisioning = {
-		enabled = false
-	}
+  provisioning = {
+    enabled = false
+  }
 
-	parameters = {
-		provisioned_entitlements = false
-		user_attribute_macros = ""
-		user_attribute_mappings = ""
-		values = ""
-		attributes_transformations = ""
-		default_values = ""
-		include_in_saml_assertion = false
-		label = "example app parameter "
-		param_key_name = "example"
-		safe_entitlements_enabled = false
-		skip_if_blank = false
-	}
+  parameters = {
+    provisioned_entitlements = false
+    user_attribute_macros = ""
+    user_attribute_mappings = ""
+    values = ""
+    attributes_transformations = ""
+    default_values = ""
+    include_in_saml_assertion = false
+    label = "example app parameter "
+    param_key_name = "example"
+    safe_entitlements_enabled = false
+    skip_if_blank = false
+  }
 }
 ```
 

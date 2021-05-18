@@ -3,14 +3,14 @@ layout: "onelogin"
 page_title: "OneLogin: onelogin_roles"
 sidebar_current: "docs-onelogin-resource-roles"
 description: |-
-  Manage App Rule resources.
+  Manage Role resources.
 ---
 
 # onelogin_roles
 
-Manage App Rule resources.
+Manage Role resources.
 
-This resource allows you to create and configure App Rules.
+This resource allows you to create and configure Roles.
 
 ## Example Usage - Strict Ordering
 

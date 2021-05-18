@@ -27,19 +27,19 @@ resource onelogin_apps my_app {
     enabled = false
   }
 
-	parameters = {
-		safe_entitlements_enabled = false
-		user_attribute_mappings = ""
-		provisioned_entitlements = false
-		skip_if_blank = false
-		user_attribute_macros = ""
-		attributes_transformations = ""
-		default_values = ""
-		include_in_saml_assertion = false
-		label = "username"
-		param_key_name = "user name"
-		values = ""
-	}
+  parameters = {
+    safe_entitlements_enabled = false
+    user_attribute_mappings = ""
+    provisioned_entitlements = false
+    skip_if_blank = false
+    user_attribute_macros = ""
+    attributes_transformations = ""
+    default_values = ""
+    include_in_saml_assertion = false
+    label = "username"
+    param_key_name = "user name"
+    values = ""
+  }
 }
 ```
 
