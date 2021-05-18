@@ -1,11 +1,12 @@
 package roleschema
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/roles"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func mockSetFn(i interface{}) int {
