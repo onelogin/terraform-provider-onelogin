@@ -1,13 +1,14 @@
 package apprulesschema
 
 import (
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
+	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	appruleactionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
+	appruleconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
-	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.

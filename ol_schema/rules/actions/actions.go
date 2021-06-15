@@ -3,7 +3,7 @@ package appruleactionsschema
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 )
 
 // Schema returns a key/value map of the various fields that make up the Actions of a OneLogin Rule.
@@ -42,10 +42,11 @@ func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 		}
 		out.Action = oltypes.String(act)
 	}
-	if val, notNil := s["value"].([]interface{}); notNil {
-		out.Value = make([]string, len(val))
-		for i, str := range val {
-			out.Value[i] = str.(string)
+	if s["value"] != nil {
+		v := s["value"].(*schema.Set).List()
+		out.Value = make([]string, len(v))
+		for i, val := range v {
+			out.Value[i] = val.(string)
 		}
 	}
 	return out
