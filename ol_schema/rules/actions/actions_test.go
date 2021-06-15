@@ -3,8 +3,9 @@ package appruleactionsschema
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,6 +18,10 @@ func TestRulesSchema(t *testing.T) {
 	})
 }
 
+func mockSetFn(interface{}) int {
+	return 0
+}
+
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
@@ -26,7 +31,7 @@ func TestInflate(t *testing.T) {
 			ResourceData: map[string]interface{}{
 				"action":     "test",
 				"expression": ".*",
-				"value":      []interface{}{"test"},
+				"value":      schema.NewSet(mockSetFn, []interface{}{"test"}),
 			},
 			ExpectedOutput: apprules.AppRuleActions{
 				Action:     oltypes.String("test"),

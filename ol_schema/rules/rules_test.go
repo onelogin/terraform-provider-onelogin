@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,6 +20,10 @@ func TestRulesSchema(t *testing.T) {
 		assert.NotNil(t, provSchema["conditions"])
 		assert.NotNil(t, provSchema["actions"])
 	})
+}
+
+func mockSetFn(interface{}) int {
+	return 0
 }
 
 func TestInflate(t *testing.T) {
@@ -45,7 +50,7 @@ func TestInflate(t *testing.T) {
 					map[string]interface{}{
 						"action":     "test",
 						"expression": ".*",
-						"value":      []interface{}{"test"},
+						"value":      schema.NewSet(mockSetFn, []interface{}{"test"}),
 					},
 				},
 			},
