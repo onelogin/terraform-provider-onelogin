@@ -11,17 +11,32 @@ import (
 	apprulesschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules"
 	appruleactionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
 	appruleconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
+	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
 // AppRules returns a resource with the CRUD methods and Terraform Schema defined
 func AppRules() *schema.Resource {
 	return &schema.Resource{
-		Create:   appRuleCreate,
-		Read:     appRuleRead,
-		Update:   appRuleUpdate,
-		Delete:   appRuleDelete,
-		Importer: &schema.ResourceImporter{},
-		Schema:   apprulesschema.Schema(),
+		Create: appRuleCreate,
+		Read:   appRuleRead,
+		Update: appRuleUpdate,
+		Delete: appRuleDelete,
+		Importer: &schema.ResourceImporter{
+			// State is added here, which splits app_id and rules_id
+			// and sets them appropriately before reading
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				// d.Id() here is the last argument passed to the `terraform import RESOURCE_TYPE.RESOURCE_NAME RESOURCE_ID` command
+				app_id, rule_id, err := utils.ParseNestedResourceImportId(d.Id())
+				if err != nil {
+					return nil, err
+				}
+				d.SetId(rule_id)
+				d.Set("app_id", app_id)
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
+		Schema: apprulesschema.Schema(),
 	}
 }
 
