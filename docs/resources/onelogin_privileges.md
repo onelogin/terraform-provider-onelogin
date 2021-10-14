@@ -29,7 +29,7 @@ resource onelogin_privileges super_admin {
         statement {
             effect = "Allow"
             action = ["users:List", "users:Update"]
-            scope = ["users/123", "users/345]
+            scope = ["users/123", "users/345"]
         }
     }
 }
