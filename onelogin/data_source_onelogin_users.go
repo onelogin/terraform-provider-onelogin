@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
@@ -53,12 +54,25 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[READ] %d user returned", len(users))
 
 	userIds := make([]string, 0)
+	userList := make([]map[string]interface{}, 0)
 	for _, user := range users {
 		userIds = append(userIds, fmt.Sprintf("%d", *(user.ID)))
+
+		u := make(map[string]interface{})
+		u["username"] = *(user.Username)
+		u["email"] = *(user.Email)
+		u["firstname"] = *(user.Firstname)
+		u["lastname"] = *(user.Lastname)
+		u["samaccountname"] = *(user.Samaccountname)
+		u["external_id"] = *(user.ExternalID)
+		u["directory_id"] = *(user.DirectoryID)
+		u["last_login"] = user.LastLogin.Format(time.RFC3339)
+		userList = append(userList, u)
 	}
 
 	d.SetId(fmt.Sprintf("%d", HashQuery(&query)))
 	d.Set("ids", userIds)
+	d.Set("users", userList)
 
 	return nil
 }
