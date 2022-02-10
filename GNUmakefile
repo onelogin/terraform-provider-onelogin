@@ -11,7 +11,7 @@ GO111MODULE=on
 
 PLUGINS_DIR=~/.terraform.d/plugins
 PLUGIN_PATH=onelogin.com/onelogin/onelogin
-VERSION=0.1.26
+VERSION=0.1.10
 
 clean:
 	rm -r ${DIST_DIR}
