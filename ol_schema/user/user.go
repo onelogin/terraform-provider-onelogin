@@ -222,6 +222,54 @@ func QuerySchema() map[string]*schema.Schema {
 			Computed: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
+		"users": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"username": {
+						Description: "username",
+						Type:        schema.TypeString,
+						Computed:    true,
+					},
+					"email": {
+						Description: "username",
+						Type:        schema.TypeString,
+						Computed:    true,
+					},
+					"firstname": {
+						Description: "username",
+						Type:        schema.TypeString,
+						Computed:    true,
+					},
+					"lastname": {
+						Description: "username",
+						Type:        schema.TypeString,
+						Computed:    true,
+					},
+					"samaccountname": {
+						Description: "username",
+						Type:        schema.TypeString,
+						Computed:    true,
+					},
+					"external_id": {
+						Description: "username",
+						Type:        schema.TypeInt,
+						Computed:    true,
+					},
+					"directory_id": {
+						Description: "username",
+						Type:        schema.TypeInt,
+						Computed:    true,
+					},
+					"last_login": {
+						Description: "username",
+						Type:        schema.TypeString,
+						Computed:    true,
+					},
+				},
+			},
+		},
 	}
 }
 

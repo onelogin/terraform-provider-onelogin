@@ -64,8 +64,12 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		u["firstname"] = *(user.Firstname)
 		u["lastname"] = *(user.Lastname)
 		u["samaccountname"] = *(user.Samaccountname)
-		u["external_id"] = *(user.ExternalID)
-		u["directory_id"] = *(user.DirectoryID)
+		if user.ExternalID != nil {
+			u["external_id"] = *(user.ExternalID)
+		}
+		if user.DirectoryID != nil {
+			u["directory_id"] = *(user.DirectoryID)
+		}
 		u["last_login"] = user.LastLogin.Format(time.RFC3339)
 		userList = append(userList, u)
 	}
