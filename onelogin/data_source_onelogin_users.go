@@ -59,6 +59,7 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		userIds = append(userIds, fmt.Sprintf("%d", *(user.ID)))
 
 		u := make(map[string]interface{})
+		u["id"] = *(user.ID)
 		u["username"] = *(user.Username)
 		u["email"] = *(user.Email)
 		u["firstname"] = *(user.Firstname)
