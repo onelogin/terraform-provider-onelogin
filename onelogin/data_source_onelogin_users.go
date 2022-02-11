@@ -59,12 +59,23 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		userIds = append(userIds, fmt.Sprintf("%d", *(user.ID)))
 
 		u := make(map[string]interface{})
+
 		u["id"] = *(user.ID)
-		u["username"] = *(user.Username)
-		u["email"] = *(user.Email)
-		u["firstname"] = *(user.Firstname)
-		u["lastname"] = *(user.Lastname)
-		u["samaccountname"] = *(user.Samaccountname)
+		if user.Username != nil {
+			u["username"] = *(user.Username)
+		}
+		if user.Email != nil {
+			u["email"] = *(user.Email)
+		}
+		if user.Firstname != nil {
+			u["firstname"] = *(user.Firstname)
+		}
+		if user.Lastname != nil {
+			u["lastname"] = *(user.Lastname)
+		}
+		if user.Samaccountname != nil {
+			u["samaccountname"] = *(user.Samaccountname)
+		}
 		if user.ExternalID != nil {
 			u["external_id"] = *(user.ExternalID)
 		}
