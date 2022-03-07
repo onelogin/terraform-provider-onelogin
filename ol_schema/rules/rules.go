@@ -14,37 +14,37 @@ import (
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"app_id": &schema.Schema{
+		"app_id": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"name": &schema.Schema{
+		"name": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"match": &schema.Schema{
+		"match": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validMatch,
 		},
-		"enabled": &schema.Schema{
+		"enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
-		"position": &schema.Schema{
+		"position": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			Computed: true,
 		},
-		"conditions": &schema.Schema{
+		"conditions": {
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem: &schema.Resource{
 				Schema: appruleconditionsschema.Schema(),
 			},
 		},
-		"actions": &schema.Schema{
+		"actions": {
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem: &schema.Resource{

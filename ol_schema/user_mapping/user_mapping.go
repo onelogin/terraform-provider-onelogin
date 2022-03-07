@@ -1,44 +1,46 @@
 package usermappingschema
 
 import (
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/actions"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/conditions"
+	usermappings "github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	usermappingactionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/actions"
+	usermappingconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
-	"strconv"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin UserMapping.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"name": &schema.Schema{
+		"name": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"match": &schema.Schema{
+		"match": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validMatch,
 		},
-		"enabled": &schema.Schema{
+		"enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
-		"position": &schema.Schema{
+		"position": {
 			Type:     schema.TypeInt,
-			Required: true,
+			Optional: true,
+			Computed: true,
 		},
-		"conditions": &schema.Schema{
+		"conditions": {
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem: &schema.Resource{
 				Schema: usermappingconditionsschema.Schema(),
 			},
 		},
-		"actions": &schema.Schema{
+		"actions": {
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem: &schema.Resource{
