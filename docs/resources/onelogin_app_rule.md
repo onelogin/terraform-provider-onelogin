@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `name` - (Required) The Rule's name
 
-* `position` - (Required) Indicates the order of the rule. When `null` this will default to last position.
+* `position` - (Optional) Indicates the ordering of the rule. When not supplied the rule will be put at the end of the list on create and managed by the provider. '0' can be supplied to consistently push this rule to the end of the list on every update.
 
 * `conditions` - (Required) An array of conditions that the user must meet in order for the rule to be applied.
   * `source` - The source field to check. See [List Conditions](https://developers.onelogin.com/api-docs/2/app-rules/list-conditions) for possible values.
