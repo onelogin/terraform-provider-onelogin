@@ -1,6 +1,9 @@
 package appruleactionsschema
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
