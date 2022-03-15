@@ -1,81 +1,82 @@
 package smarthooksschema
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/conditions"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
+	smarthookenvs "github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	smarthookconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/conditions"
+	smarthookoptions "github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"type": &schema.Schema{
+		"type": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validTypes,
 		},
-		"disabled": &schema.Schema{
+		"disabled": {
 			Type:     schema.TypeBool,
 			Required: true,
 		},
-		"timeout": &schema.Schema{
+		"timeout": {
 			Type:     schema.TypeInt,
 			Required: true,
 		},
-		"env_vars": &schema.Schema{
+		"env_vars": {
 			Type:     schema.TypeList,
 			Required: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
-		"runtime": &schema.Schema{
+		"runtime": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"context_version": &schema.Schema{
+		"context_version": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 		},
-		"retries": &schema.Schema{
+		"retries": {
 			Type:     schema.TypeInt,
 			Required: true,
 		},
-		"options": &schema.Schema{
-			Type:     schema.TypeMap,
+		"options": {
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem: &schema.Resource{
 				Schema: smarthookoptions.Schema(),
 			},
 		},
-		"packages": &schema.Schema{
+		"packages": {
 			Type:     schema.TypeMap,
 			Required: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+
+			Elem: &schema.Schema{Type: schema.TypeString},
 		},
-		"function": &schema.Schema{
+		"function": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"conditions": &schema.Schema{
+		"conditions": {
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem: &schema.Resource{
 				Schema: smarthookconditionsschema.Schema(),
 			},
 		},
-		"status": &schema.Schema{
+		"status": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"created_at": &schema.Schema{
+		"created_at": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"updated_at": &schema.Schema{
+		"updated_at": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},

@@ -7,7 +7,7 @@
     2) Install Terraform v0.12.24 or later
     3) Install code dependencies
 
-# Getting Started
+# Getting Started W/ Local Testing & Development
 If you are sideloading this provider (i.e. not getting this via the Terraform store) You must clone this repository to run the following commands.
 
 1) In the ./terraform-provider-onelogin directory run:
@@ -21,7 +21,7 @@ If you are sideloading this provider (i.e. not getting this via the Terraform st
       required_providers {
         onelogin = {
           source  = "onelogin.com/onelogin/onelogin"
-          version = "0.1.0"
+          version = "0.1.10"
         }
       }
     }
@@ -42,101 +42,58 @@ If you are sideloading this provider (i.e. not getting this via the Terraform st
 
 3) You are ready to use the provider, just follow the terraform commands!
 
-# Managing App Resources
-Refer to [creating an App](https://developers.onelogin.com/api-docs/2/apps/create-app)
-On create, omitted fields are ignored and set to their empty or default values.
+# Shipping Code
+### Development
+1. Adding a new resource generally requires that service to be defined in the [OneLogin SDK](https://github.com/onelogin/onelogin-go-sdk) see `AppsService` for an example.
 
-On update, omitted fields are treated as if the intent is to clear the field and
-an empty or zero value is sent to the API to clear the field. E.G. creating an app with
-a description, then removing the description field in your HCL file, will result in
-setting the description to `""`
+2. Define the new resource in `onelogin/provider.go` in a similar fashion to how the other resources are identified there.
 
-### App Fields
-Required fields are, well, required.
-Computed fields are set by the API and cannot be set via Terraform
+3. `onelogin/resource_onelogin_<resource>.go` and `onelogin/resource_onelogin<resource>_test.go` are required. See existing code for examples. This layer is the interface to the Terraform and OneLogin SDKs for making the actual requests to OneLogin. The accompanying test file is used by Terraform for running the acceptance tests.
 
-1) name [string] *required*
-2) connector_id [int] *required*
-1) description [string]
-2) notes [string]
-3) visible [bool] - Defaults to `true`
-4) allow_assumed_signin [bool] - Defaults to `false`
-5) parameters [set no limit] - see below
-6) configuration [set limit 1] - see below
-7) provisioning [set limit 1] - see below
-8) auth_method *computed*
-9) icon_url *computed*
-10) policy_id *computed*
-11) tab_id *computed*
-12) updated_at *computed*
-13) created_at *computed*
+4. `ol_schemas/<resource>/<sub-resource>` contains the logic for packing & unpacking resources between json and their golang struct definitions.
 
-### Parameter Sub Field
-*Known Issue* - Parameters are tracked as completely separate entities in the OneLogin API.
-Currently only adding new/additional parameters permitted is permitted here as their lifecycle methods Have not yet been implemented. Removing or Changing a parameter will NOT affect the state of the App resource as of v0.0.1.
+5. Add examples in `examples/onelogin_<resource>_example.tf` `examples/onelogin_<resource>_updated_example.tf` to be used by the acceptance tests to ensure applications happen correctly.
 
-1) param_key_name [string] *required*
-2) param_id [int] *computed*
-3) label [string]
-4) user_attribute_mappings [string]
-5) user_attribute_macros [string]
-6) attributes_transformations [string]
-7) default_values [string]
-8) skip_if_blank [bool] - Defaults to `false`
-9) values [string]
-10) provisioned_entitlements [bool] - Defaults to `false`
-11) safe_entitlements_enabled [bool] - Defaults to `false`
+6. Add a doc page to `docs/resources/onelogin_<resource>.md`
 
-### Provisioning Sub Field
-1) Enabled [bool] - Defaults to `false`
+To debug / troubleshoot, set an environment variable `export TF_LOG=trace` to see the output of any loggers in the Terraform workflow. 
 
-### App Type Specific Sub Fields
-Configuration and SSO depends on they app's authentication type e.g. SAML or OIDC and has different fields.
+### Deployment
+1. Open a PR against `develop` branch. Once approved and CI/CD pass merge it to `develop` via github.
 
-#### SAML Configuration
-1) certificate_id *computed*
-2) provider_arn [string]
-3) signature_algorithm [string] *required* - one of `SHA-1`, `SHA-256`, `SHA-348`, `SHA-512`
+2. Once ready to ship cut a `release` off of `develop`. Release branches should follow the naming convention `vX.X.XX` so if you use `git flow` cut one with `git flow release start v0.0.00`
 
-#### SAML SSO
-1) acs_url [string] *computed*
-2) metadata_url [string] *computed*
-3) issuer [string] *computed*
-4) certificate [set limit 1]
-    * name [string] *computed*
-    * id [string]*computed*
-    * value [string] *computed*
-    * sls_url [string] *computed*
+3. Do a smoke test and any last minute updates then merge the release into both `master` and `develop` and tag the merge commit. if you use `git flow ` its `git flow release finish v0.0.00` (This also tags your release commit).
 
-#### OIDC Configuration
-1) redirect_uri [string]
-2) refresh_token_expiration_minutes [int] - defaults to 1 minute
-3) login_url [string]
-4) oidc_application_type [int] - one of `0` (Web) or `1` (Native/Mobile)
-5) token_endpoint_auth_method [int] - one of `0` (Basic) `1` (POST) `2` (Nonce/PKCE)
-6) access_token_expiration_minutes [int] - defaults to 1 minute
+4. Push everything to github. From `develop` you can run `git push && git checkout master && git push && git push --tags`
 
-#### OIDC SSO
-1) client_id [string] *computed*
-2) client_secret [string] *computed*
+5. The new tag will trigger the release action which makes builds for the OSes described in the `release.yaml`.
 
-# Terraform
-Install:
+6. Once the release action completes, go to the [Releases](https://github.com/onelogin/terraform-provider-onelogin/releases) section of the repository in github and look for the draft release with your version number.
+
+7. Click on that and ensure the build artifacts were uploaded to the release. Once you've verified this, click "Edit Draft" and "Publish Release".
+
+# Terraform for non-users
+
+Wildly simplified explanation - it's a thing that lets you describe the final state of all your OneLogin things (apps, users, associations via roles etc) via a `.tf` file using HashiCorp Language (HCL) and users that description to fire off a bunch of API requests via OneLogin APIs to make that desired state a reality. Also tracks the known state of OneLogin in `.tfstate` and users that as the source of truth.
+
+
+**Install**:
 ```
 brew install terraform
 ```
 
-Initialize:
+**Initialize** sets up the tfstate and prepares to track:
  ```
 terraform init
 ```
 
-Plan:
+**Plan** Shows the diff between current and desired state:
 ```
 terraform plan
 ```
 
-Apply:
+**Apply** does all the actual work of updating OneLogin:
 ```
 terraform apply
 ```
@@ -161,13 +118,29 @@ To update dependencies for this project:
 go mod -u ./...
 ```
 
-# Running Tests
-Standard Go Way:
+# Helpful Makefile Commands
+
+**testacc** runs acceptance tests (actually creates resources in OL then cleans them up)
 ```
-go test ./... -v -cover
+make testacc
 ```
 
-Including Terraform Acceptance Tests
+**sideload** builds and sideloads the provider for local dev/testing
 ```
-TF_ACC=1 go test ./... -v -cover
+make sideload
 ```
+
+**clean-terraform** reset terraform state in the local folder
+```
+make clean-terraform
+```
+
+**test** runs unit tests (non-acceptance and no real requests made) and applies coverage badge
+```
+make test
+```
+
+**secure** runs gosec code analysis to warn about possible exploits specific to go
+```
+make secure
+````

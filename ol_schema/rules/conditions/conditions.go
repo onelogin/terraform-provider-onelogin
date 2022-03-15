@@ -1,24 +1,24 @@
 package appruleconditionsschema
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 )
 
 // Schema returns a key/value map of the various fields that make up the Actions of a OneLogin Rule.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"source": &schema.Schema{
+		"source": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"operator": &schema.Schema{
+		"operator": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"value": &schema.Schema{
+		"value": {
 			Type:     schema.TypeString,
 			Required: true,
 		},

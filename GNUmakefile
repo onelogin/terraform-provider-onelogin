@@ -34,6 +34,9 @@ sideload: build
 	# macOS
 	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_amd64
 	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_amd64/${BIN_NAME}
+	# macOS Apple Silicon
+	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_arm64
+	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_arm64/${BIN_NAME}
 	# Linux
 	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/linux_amd64
 	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/linux_amd64/${BIN_NAME}

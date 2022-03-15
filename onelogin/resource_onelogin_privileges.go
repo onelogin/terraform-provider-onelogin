@@ -3,7 +3,7 @@ package onelogin
 import (
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	privilegeschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/privilege"
 )

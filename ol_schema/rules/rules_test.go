@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/stretchr/testify/assert"
@@ -62,14 +62,59 @@ func TestInflate(t *testing.T) {
 				Enabled:  oltypes.Bool(true),
 				Position: oltypes.Int32(int32(1)),
 				Conditions: []apprules.AppRuleConditions{
-					apprules.AppRuleConditions{
+					{
 						Source:   oltypes.String("test"),
 						Operator: oltypes.String("="),
 						Value:    oltypes.String("test"),
 					},
 				},
 				Actions: []apprules.AppRuleActions{
-					apprules.AppRuleActions{
+					{
+						Action:     oltypes.String("test"),
+						Expression: oltypes.String(".*"),
+						Value:      []string{"test"},
+					},
+				},
+			},
+		},
+		"handles a rule without the position provided": {
+			ResourceData: map[string]interface{}{
+				"id":      "123",
+				"app_id":  "123",
+				"name":    "test",
+				"match":   "test",
+				"enabled": true,
+				"conditions": []interface{}{
+					map[string]interface{}{
+						"source":   "test",
+						"operator": "=",
+						"value":    "test",
+					},
+				},
+				"actions": []interface{}{
+					map[string]interface{}{
+						"action":     "test",
+						"expression": ".*",
+						"value":      schema.NewSet(mockSetFn, []interface{}{"test"}),
+					},
+				},
+			},
+			ExpectedOutput: apprules.AppRule{
+				ID:       oltypes.Int32(int32(123)),
+				AppID:    oltypes.Int32(int32(123)),
+				Name:     oltypes.String("test"),
+				Match:    oltypes.String("test"),
+				Enabled:  oltypes.Bool(true),
+				Position: nil,
+				Conditions: []apprules.AppRuleConditions{
+					{
+						Source:   oltypes.String("test"),
+						Operator: oltypes.String("="),
+						Value:    oltypes.String("test"),
+					},
+				},
+				Actions: []apprules.AppRuleActions{
+					{
 						Action:     oltypes.String("test"),
 						Expression: oltypes.String(".*"),
 						Value:      []string{"test"},
