@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 )
@@ -14,15 +14,15 @@ const NO_EXPRESSION_SUFFIX = "_from_existing"
 // Schema returns a key/value map of the various fields that make up the Actions of a OneLogin Rule.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"action": &schema.Schema{
+		"action": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"expression": &schema.Schema{
+		"expression": {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
-		"value": &schema.Schema{
+		"value": {
 			Type:     schema.TypeSet,
 			Required: true,
 			Elem: &schema.Schema{

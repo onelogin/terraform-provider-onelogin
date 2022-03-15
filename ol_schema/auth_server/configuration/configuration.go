@@ -1,9 +1,9 @@
 package authserverconfigurationschema
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
+	authservers "github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.

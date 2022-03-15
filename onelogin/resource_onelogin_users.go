@@ -5,10 +5,10 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	"github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
+	userschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
 )
 
 // Users returns a resource with the CRUD methods and Terraform Schema defined

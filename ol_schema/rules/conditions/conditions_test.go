@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,12 +46,12 @@ func Test(t *testing.T) {
 func TestFlatten(t *testing.T) {
 	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
 		appConditionStruct := []apprules.AppRuleConditions{
-			apprules.AppRuleConditions{
+			{
 				Source:   oltypes.String("test"),
 				Operator: oltypes.String("="),
 				Value:    oltypes.String("test"),
 			},
-			apprules.AppRuleConditions{
+			{
 				Source:   oltypes.String("test2"),
 				Operator: oltypes.String("<"),
 				Value:    oltypes.String("test2"),
@@ -59,12 +59,12 @@ func TestFlatten(t *testing.T) {
 		}
 		subj := Flatten(appConditionStruct)
 		expected := []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"source":   oltypes.String("test"),
 				"operator": oltypes.String("="),
 				"value":    oltypes.String("test"),
 			},
-			map[string]interface{}{
+			{
 				"source":   oltypes.String("test2"),
 				"operator": oltypes.String("<"),
 				"value":    oltypes.String("test2"),

@@ -1,12 +1,13 @@
 package onelogin
 
 import (
+	"context"
 	"errors"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 
 // Provider creates a new provider with all the neccessary configurations.
 // It returns a pointer to the created provider.
-func Provider() terraform.ResourceProvider {
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"client_id": {
@@ -57,13 +58,13 @@ func Provider() terraform.ResourceProvider {
 			"onelogin_smarthook_environment_variables": SmarthookEnvironmentVariables(),
 			"onelogin_privileges":                      Privileges(),
 		},
-		ConfigureFunc: configProvider,
+		ConfigureContextFunc: configProvider,
 	}
 }
 
 // configProvider configures the provider, and if successful, it returns
 // an interface containing the api client.
-func configProvider(d *schema.ResourceData) (interface{}, error) {
+func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 	region := d.Get("region").(string)
@@ -79,7 +80,7 @@ func configProvider(d *schema.ResourceData) (interface{}, error) {
 		Url:          url,
 	})
 	if err != nil {
-		return nil, err
+		return nil, diag.FromErr(err)
 	}
 	return oneloginClient, nil
 }

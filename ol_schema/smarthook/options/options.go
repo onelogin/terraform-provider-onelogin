@@ -1,7 +1,7 @@
 package smarthookoptions
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
 )
@@ -10,17 +10,17 @@ import (
 // the Parameters field for a OneLogin App.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"risk_enabled": &schema.Schema{
+		"risk_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
-		"mfa_device_info_enabled": &schema.Schema{
+		"mfa_device_info_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
-		"location_enabled": &schema.Schema{
+		"location_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,

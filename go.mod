@@ -4,13 +4,11 @@ go 1.12
 
 require (
 	github.com/fatih/color v1.12.0 // indirect
-	github.com/hashicorp/go-getter v1.4.2-0.20200106182914-9813cbd4eb02 // indirect
-	github.com/hashicorp/hcl/v2 v2.3.0 // indirect
-	github.com/hashicorp/terraform-config-inspect v0.0.0-20191212124732-c6ae6269b9d7 // indirect
-	github.com/hashicorp/terraform-plugin-sdk v1.9.1
+	github.com/hashicorp/terraform-plugin-log v0.2.1
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.4.3
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/onelogin/onelogin-go-sdk v1.1.20
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139 // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/text v0.3.6 // indirect; indirectgithub.com/hashicorp/terraform-plugin-sdk/v2 v2.4.3
 )
