@@ -21,7 +21,7 @@ If you are sideloading this provider (i.e. not getting this via the Terraform st
       required_providers {
         onelogin = {
           source  = "onelogin.com/onelogin/onelogin"
-          version = "0.1.10"
+          version = "0.2.0"
         }
       }
     }
