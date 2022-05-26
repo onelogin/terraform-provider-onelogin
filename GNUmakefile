@@ -14,13 +14,13 @@ PLUGIN_PATH=onelogin.com/onelogin/onelogin
 VERSION=0.1.10
 
 clean:
-	rm -r ${DIST_DIR}
-	rm -r ${PLUGINS_DIR}
+	rm -rf ${DIST_DIR} || true
+	rm -rf ${PLUGINS_DIR} || true
 
 clean-terraform:
 	rm terraform.*
 	rm .terraform.lock.hcl
-	rm -r .terraform/
+	rm -rf .terraform/
 
 build:
 	mkdir -p ${DIST_DIR}

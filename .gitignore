@@ -10,3 +10,5 @@ dist
 coverage.out
 bin
 *.asc
+.idea
+

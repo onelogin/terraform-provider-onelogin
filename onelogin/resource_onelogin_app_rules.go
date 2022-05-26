@@ -57,10 +57,12 @@ func appRuleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	client := m.(*client.APIClient)
 	err := client.Services.AppRulesV2.Create(&appRule)
 	if err != nil {
-		tflog.Error(ctx, "[ERROR] There was a problem creating the app rule! %v", err)
+		tflog.Error(ctx, fmt.Sprintf("[ERROR] There was a problem creating the app rule! %s", err))
 		return diag.FromErr(err)
 	}
-	tflog.Info(ctx, "[CREATED] Created app rule with", *(appRule.ID))
+	tflog.Info(ctx, "[CREATED] Created app rule.", map[string]interface{}{
+		"appRule.ID": *(appRule.ID),
+	})
 
 	d.SetId(fmt.Sprintf("%d", *(appRule.ID)))
 	return appRuleRead(ctx, d, m)
@@ -74,14 +76,16 @@ func appRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	appID, _ := strconv.Atoi(d.Get("app_id").(string))
 	app, err := client.Services.AppRulesV2.GetOne(int32(appID), int32(id))
 	if err != nil {
-		tflog.Error(ctx, "[ERROR] There was a problem reading the app rule!", err)
+		tflog.Error(ctx, fmt.Sprintf("[ERROR] There was a problem reading the app rule! %s", err))
 		return diag.FromErr(err)
 	}
 	if app == nil {
 		d.SetId("")
 		return nil
 	}
-	tflog.Info(ctx, "[READ] Reading app rule with %d", *(app.ID))
+	tflog.Info(ctx, "[READ] Reading app rule.", map[string]interface{}{
+		"app.ID": *(app.ID),
+	})
 
 	d.Set("name", app.Name)
 	d.Set("match", app.Match)
@@ -111,14 +115,16 @@ func appRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 	err := client.Services.AppRulesV2.Update(&appRule)
 	if err != nil {
-		tflog.Error(ctx, "[ERROR] There was a problem updating the app rule!", err)
+		tflog.Error(ctx, fmt.Sprintf("[ERROR] There was a problem updating the app rule! %s", err))
 		return diag.FromErr(err)
 	}
 	if appRule.ID == nil { // app must be deleted in api so remove from tf state
 		d.SetId("")
 		return nil
 	}
-	tflog.Info(ctx, "[UPDATED] Updated app rule with %d", *(appRule.ID))
+	tflog.Info(ctx, "[UPDATED] Updated app rule.", map[string]interface{}{
+		"appRule.ID": *(appRule.ID),
+	})
 	d.SetId(fmt.Sprintf("%d", *(appRule.ID)))
 	return appRuleRead(ctx, d, m)
 }
@@ -132,10 +138,10 @@ func appRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 	err := client.Services.AppRulesV2.Destroy(int32(appID), int32(id))
 	if err != nil {
-		tflog.Error(ctx, "[ERROR] There was a problem deleting the app rule!", err)
+		tflog.Error(ctx, fmt.Sprintf("[ERROR] There was a problem deleting the app rule! %s", err))
 		return diag.FromErr(err)
 	} else {
-		tflog.Info(ctx, "[DELETED] Deleted app rule with %d", id)
+		tflog.Info(ctx, fmt.Sprintf("[DELETED] Deleted app rule with %d", id))
 		d.SetId("")
 	}
 
