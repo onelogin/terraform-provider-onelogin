@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `match` - (Required) Indicates how conditions should be matched. Must be one of `all` or `any`.
 
-* `position` - (Required) Indicates the ordering of the mapping. When `null` this will be placed last.
+* `position` - (Optional) Indicates the ordering of the mapping. When not supplied the mapping will be put at the end of the list on create and managed by the provider. '0' can be supplied to consistently push this mapping to the end of the list on every update.
 
 * `conditions` - (Required) An array of conditions that the user must meet in order for the mapping to be applied.
   * `source` - (Required) The source field to check. See [List Conditions](https://developers.onelogin.com/api-docs/2/user-mappings/list-conditions) for possible values.

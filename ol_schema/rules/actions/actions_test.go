@@ -3,7 +3,7 @@ package appruleactionsschema
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/stretchr/testify/assert"
@@ -51,12 +51,12 @@ func TestInflate(t *testing.T) {
 func TestFlatten(t *testing.T) {
 	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
 		appConditionStruct := []apprules.AppRuleActions{
-			apprules.AppRuleActions{
+			{
 				Action:     oltypes.String("test"),
 				Expression: oltypes.String(".*"),
 				Value:      []string{"test"},
 			},
-			apprules.AppRuleActions{
+			{
 				Action:     oltypes.String("test2"),
 				Expression: oltypes.String(".*"),
 				Value:      []string{"test2"},
@@ -64,12 +64,12 @@ func TestFlatten(t *testing.T) {
 		}
 		subj := Flatten(appConditionStruct)
 		expected := []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"action":     oltypes.String("test"),
 				"expression": oltypes.String(".*"),
 				"value":      []string{"test"},
 			},
-			map[string]interface{}{
+			{
 				"action":     oltypes.String("test2"),
 				"expression": oltypes.String(".*"),
 				"value":      []string{"test2"},
