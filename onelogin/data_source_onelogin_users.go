@@ -82,7 +82,9 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		if user.DirectoryID != nil {
 			u["directory_id"] = *(user.DirectoryID)
 		}
-		u["last_login"] = user.LastLogin.Format(time.RFC3339)
+		if user.LastLogin != nil {
+			u["last_login"] = user.LastLogin.Format(time.RFC3339)
+		}
 		userList = append(userList, u)
 	}
 
