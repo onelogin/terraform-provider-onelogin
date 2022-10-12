@@ -7,6 +7,8 @@ DIST_DIR=./dist
 BIN_NAME=terraform-provider-onelogin
 BIN_PATH=${DIST_DIR}/${BIN_NAME}
 
+PLATFORM=$(shell go version | awk '{gsub("/","_", $$NF); print $$NF}')
+
 GO111MODULE=on
 
 PLUGINS_DIR=~/.terraform.d/plugins
@@ -32,14 +34,14 @@ sideload: build
 	cp ${BIN_PATH} ${PLUGINS_DIR}/${BIN_NAME}
 	# Terraform >= v0.13.x
 	# macOS
-	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_amd64
-	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_amd64/${BIN_NAME}
+	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/${PLATFORM}
+	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/${PLATFORM}/${BIN_NAME}
 	# macOS Apple Silicon
-	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_arm64
-	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/darwin_arm64/${BIN_NAME}
+	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/${PLATFORM}
+	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/${PLATFORM}/${BIN_NAME}
 	# Linux
-	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/linux_amd64
-	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/linux_amd64/${BIN_NAME}
+	mkdir -p ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/${PLATFORM}
+	cp ${BIN_PATH} ${PLUGINS_DIR}/${PLUGIN_PATH}/${VERSION}/${PLATFORM}/${BIN_NAME}
 
 testacc:
 	TF_ACC=1 go test ./... -v -timeout 120m
