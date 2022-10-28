@@ -52,6 +52,7 @@ func Provider() *schema.Provider {
 			"onelogin_app_rules":                       AppRules(),
 			"onelogin_user_mappings":                   UserMappings(),
 			"onelogin_users":                           Users(),
+			"onelogin_user_role_attachments":           UserRoleAttachment(),
 			"onelogin_auth_servers":                    AuthServers(),
 			"onelogin_roles":                           Roles(),
 			"onelogin_smarthooks":                      SmartHooks(),
