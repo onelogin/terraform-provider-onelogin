@@ -36,7 +36,7 @@ func userRoleAttachmentCreate(d *schema.ResourceData, m interface{}) error {
 	roleID := d.Get("role_id")
 	users := d.Get("users")
 
-	if appErr := attachRoleToUser(client, users, roleID); appErr != nil {
+	if appErr := updateUserRoleAttachment(client, users, roleID); appErr != nil {
 		return fmt.Errorf("Unable to attach role to app %s", appErr)
 	}
 
