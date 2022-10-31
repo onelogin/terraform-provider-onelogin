@@ -2,6 +2,7 @@ package onelogin
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
@@ -39,92 +40,69 @@ func userRoleAttachmentCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("Unable to attach role to app %s", appErr)
 	}
 
-	d.SetId(fmt.Sprintf("%d%d", roleID, users))
+	d.SetId(fmt.Sprintf("%d", roleID))
 	return userRoleAttachmentRead(d, m)
 }
 
 func userRoleAttachmentRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
-	users := d.Get("users").(int)
 	roleID := d.Get("role_id").(int)
 
-	app, err := client.Services.AppsV2.GetOne(appID)
+	role, err := client.Services.RolesV1.GetOne(int32(roleID))
 	if err != nil {
+		log.Printf("[ERROR] There was a problem reading the role!")
+		log.Println(err)
+		return err
+	}
+	if role == nil {
 		d.SetId("")
-		return fmt.Errorf("App does not exist %s", err)
+		return nil
 	}
-	for _, rID := range app.RoleIDs {
-		if rID == roleID {
-			d.Set("role_id", rID)
-			d.Set("app_id", *app.ID)
-			return nil
-		}
-	}
-	d.SetId("")
-	return fmt.Errorf("App %d does not have role %d", appID, roleID)
+	log.Printf("[READ] Reading role with %d", *(role.ID))
+	d.Set("role_id", roleID)
+	d.Set("users", role.Users)
+	return nil
 }
 
 func userRoleAttachmentUpdate(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 
-	oldApp, newApp := d.GetChange("app_id")
-	oldRole, newRole := d.GetChange("role_id")
+	oldRole, newRole:= d.GetChange("role_id")
+	_, newUsers:= d.GetChange("users")
 
 	var err error
-	if err = removeRoleFromUser(client, oldApp, oldRole); err != nil {
-		return fmt.Errorf("Unable to remove role from app %s", err)
+  if oldRole != newRole {
+    if err = removeUserRoleAttachment(client, oldRole); err != nil {
+		  return fmt.Errorf("Unable to delete mapping %s", err)
+    }
+  }
+
+	if err = updateUserRoleAttachment(client, newUsers, newRole); err != nil {
+		return fmt.Errorf("Unable to update mapping %s", err)
 	}
 
-	if err = attachRoleToUser(client, newApp, newRole); err != nil {
-		return fmt.Errorf("Unable to attach role to app %s", err)
-	}
-
-	d.SetId(fmt.Sprintf("%d%d", newRole, newApp))
+	d.SetId(fmt.Sprintf("%d", newRole))
 	return userRoleAttachmentRead(d, m)
 }
 
 func userRoleAttachmentDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 
-	appID := d.Get("app_id")
 	roleID := d.Get("role_id")
 
 	var err error
-	if err = removeRoleFromUser(client, appID, roleID); err != nil {
-		return fmt.Errorf("Unable to remove role from app %s", err)
+	if err = removeUserRoleAttachment(client, roleID); err != nil {
+		return fmt.Errorf("Unable to remove role from users %s", err)
 	}
 	d.SetId("")
 	return nil
 }
 
-func removeRoleFromUser(client *client.APIClient, appID interface{}, roleID interface{}) error {
-	app, err := client.Services.AppsV2.GetOne(int32(appID.(int)))
-	if err != nil {
-		return err
-	}
-	newRoleIDs := make([]int, 0)
-	for _, rID := range app.RoleIDs {
-		if rID != roleID {
-			newRoleIDs = append(newRoleIDs, rID)
-		}
-	}
-	app.RoleIDs = newRoleIDs
-	app, err = client.Services.AppsV2.Update(app)
-	if err != nil {
-		return err
-	}
+func updateUserRoleAttachment(client *client.APIClient, userIDs interface{}, roleID interface{}) error {
 	return nil
 }
 
-func attachRoleToUser(client *client.APIClient, appID interface{}, roleID interface{}) error {
-	app, err := client.Services.AppsV2.GetOne(int32(appID.(int)))
-	if err != nil {
-		return err
-	}
-	app.RoleIDs = append(app.RoleIDs, roleID.(int))
-	app, err = client.Services.AppsV2.Update(app)
-	if err != nil {
-		return err
-	}
+func removeUserRoleAttachment(client *client.APIClient, roleID interface{}) error {
 	return nil
 }
+
