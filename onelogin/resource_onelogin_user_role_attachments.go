@@ -72,10 +72,8 @@ func userRoleAttachmentUpdate(d *schema.ResourceData, m interface{}) error {
 	oldUsers, newUsers:= d.GetChange("users")
 
 	var err error
-  if oldRole != newRole || newUsers.(*schema.Set).Len() == 0 {
-    if err = removeUserRoleAttachment(client, oldUsers, oldRole); err != nil {
+  if err = removeUserRoleAttachment(client, oldUsers, oldRole); err != nil {
 		  return fmt.Errorf("Unable to delete mapping %s", err)
-    }
   }
 
 	if err = updateUserRoleAttachment(client, newUsers, newRole); err != nil {
@@ -102,7 +100,7 @@ func userRoleAttachmentDelete(d *schema.ResourceData, m interface{}) error {
 
 func updateUserRoleAttachment(client *client.APIClient, userIDs interface{}, roleID interface{}) error {
   /*
-  must be replaced with onelogin-go-sdk after sdk v3 is released
+    should be replaced with method provided by onelogin-go-sdk after sdk v3 is released
   */
   payload := make([]int32, userIDs.(*schema.Set).Len())
   for i, userID := range userIDs.(*schema.Set).List() {
@@ -121,10 +119,19 @@ func updateUserRoleAttachment(client *client.APIClient, userIDs interface{}, rol
 
 func removeUserRoleAttachment(client *client.APIClient, userIDs interface{}, roleID interface{}) error {
   /*
-    it is not implemented yet,
-    because onelogin-go-sdk doesn't support DELETE method with payload which is required by api spec
+    should be replaced with method provided by onelogin-go-sdk after sdk v3 is released
   */
+  payload := make([]int32, userIDs.(*schema.Set).Len())
+  for i, userID := range userIDs.(*schema.Set).List() {
+    payload[i] = int32(userID.(int))
+  }
 
-	return nil
+  svc := client.Services.RolesV1
+	_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, int32(roleID.(int))),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    &payload,
+	})
+	return err
 }
-
