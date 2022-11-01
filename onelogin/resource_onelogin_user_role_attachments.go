@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
 
 // UserRoleAttachment attaches additional configuration and sso schemas and
@@ -68,11 +69,11 @@ func userRoleAttachmentUpdate(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 
 	oldRole, newRole:= d.GetChange("role_id")
-	_, newUsers:= d.GetChange("users")
+	oldUsers, newUsers:= d.GetChange("users")
 
 	var err error
-  if oldRole != newRole {
-    if err = removeUserRoleAttachment(client, oldRole); err != nil {
+  if oldRole != newRole || newUsers.(*schema.Set).Len() == 0 {
+    if err = removeUserRoleAttachment(client, oldUsers, oldRole); err != nil {
 		  return fmt.Errorf("Unable to delete mapping %s", err)
     }
   }
@@ -89,9 +90,10 @@ func userRoleAttachmentDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 
 	roleID := d.Get("role_id")
+	users := d.Get("users")
 
 	var err error
-	if err = removeUserRoleAttachment(client, roleID); err != nil {
+	if err = removeUserRoleAttachment(client, users, roleID); err != nil {
 		return fmt.Errorf("Unable to remove role from users %s", err)
 	}
 	d.SetId("")
@@ -99,10 +101,30 @@ func userRoleAttachmentDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func updateUserRoleAttachment(client *client.APIClient, userIDs interface{}, roleID interface{}) error {
-	return nil
+  /*
+  must be replaced with onelogin-go-sdk after sdk v3 is released
+  */
+  payload := make([]int32, userIDs.(*schema.Set).Len())
+  for i, userID := range userIDs.(*schema.Set).List() {
+    payload[i] = int32(userID.(int))
+  }
+
+  svc := client.Services.RolesV1
+	_, err := svc.Repository.Create(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, int32(roleID.(int))),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    &payload,
+	})
+	return err
 }
 
-func removeUserRoleAttachment(client *client.APIClient, roleID interface{}) error {
+func removeUserRoleAttachment(client *client.APIClient, userIDs interface{}, roleID interface{}) error {
+  /*
+    it is not implemented yet,
+    because onelogin-go-sdk doesn't support DELETE method with payload which is required by api spec
+  */
+
 	return nil
 }
 
