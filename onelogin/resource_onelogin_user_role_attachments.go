@@ -22,11 +22,11 @@ func UserRoleAttachment() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-  		"users": {
-  			Type:     schema.TypeSet,
-  			Required: true,
-  			Elem:     &schema.Schema{Type: schema.TypeInt},
-  		},
+			"users": {
+				Type:     schema.TypeSet,
+				Required: true,
+				Elem:     &schema.Schema{Type: schema.TypeInt},
+			},
 		},
 	}
 }
@@ -68,13 +68,13 @@ func userRoleAttachmentRead(d *schema.ResourceData, m interface{}) error {
 func userRoleAttachmentUpdate(d *schema.ResourceData, m interface{}) error {
 	client := m.(*client.APIClient)
 
-	oldRole, newRole:= d.GetChange("role_id")
-	oldUsers, newUsers:= d.GetChange("users")
+	oldRole, newRole := d.GetChange("role_id")
+	oldUsers, newUsers := d.GetChange("users")
 
 	var err error
-  if err = removeUserRoleAttachment(client, oldUsers, oldRole); err != nil {
-		  return fmt.Errorf("Unable to delete mapping %s", err)
-  }
+	if err = removeUserRoleAttachment(client, oldUsers, oldRole); err != nil {
+		return fmt.Errorf("Unable to delete mapping %s", err)
+	}
 
 	if err = updateUserRoleAttachment(client, newUsers, newRole); err != nil {
 		return fmt.Errorf("Unable to update mapping %s", err)
@@ -99,15 +99,15 @@ func userRoleAttachmentDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func updateUserRoleAttachment(client *client.APIClient, userIDs interface{}, roleID interface{}) error {
-  /*
-    should be replaced with method provided by onelogin-go-sdk after sdk v3 is released
-  */
-  payload := make([]int32, userIDs.(*schema.Set).Len())
-  for i, userID := range userIDs.(*schema.Set).List() {
-    payload[i] = int32(userID.(int))
-  }
+	/*
+	   should be replaced with method provided by onelogin-go-sdk after sdk v3 is released
+	*/
+	payload := make([]int32, userIDs.(*schema.Set).Len())
+	for i, userID := range userIDs.(*schema.Set).List() {
+		payload[i] = int32(userID.(int))
+	}
 
-  svc := client.Services.RolesV1
+	svc := client.Services.RolesV1
 	_, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, int32(roleID.(int))),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -118,15 +118,15 @@ func updateUserRoleAttachment(client *client.APIClient, userIDs interface{}, rol
 }
 
 func removeUserRoleAttachment(client *client.APIClient, userIDs interface{}, roleID interface{}) error {
-  /*
-    should be replaced with method provided by onelogin-go-sdk after sdk v3 is released
-  */
-  payload := make([]int32, userIDs.(*schema.Set).Len())
-  for i, userID := range userIDs.(*schema.Set).List() {
-    payload[i] = int32(userID.(int))
-  }
+	/*
+	   should be replaced with method provided by onelogin-go-sdk after sdk v3 is released
+	*/
+	payload := make([]int32, userIDs.(*schema.Set).Len())
+	for i, userID := range userIDs.(*schema.Set).List() {
+		payload[i] = int32(userID.(int))
+	}
 
-  svc := client.Services.RolesV1
+	svc := client.Services.RolesV1
 	_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, int32(roleID.(int))),
 		Headers:    map[string]string{"Content-Type": "application/json"},
