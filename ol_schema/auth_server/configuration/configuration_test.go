@@ -51,7 +51,7 @@ func TestInflate(t *testing.T) {
 func TestFlatten(t *testing.T) {
 	tests := map[string]struct {
 		Input  authservers.AuthServerConfiguration
-		Output map[string]interface{}
+		Output []map[string]interface{}
 	}{
 		"converts the AuthServerConfiguration to a map": {
 			Input: authservers.AuthServerConfiguration{
@@ -60,11 +60,13 @@ func TestFlatten(t *testing.T) {
 				AccessTokenExpirationMinutes:  oltypes.Int32(2),
 				RefreshTokenExpirationMinutes: oltypes.Int32(2),
 			},
-			Output: map[string]interface{}{
-				"resource_identifier":              "test.com",
-				"audiences":                        []string{"aud_1", "aud_2"},
-				"refresh_token_expiration_minutes": int32(2),
-				"access_token_expiration_minutes":  int32(2),
+			Output: []map[string]interface{}{
+				map[string]interface{}{
+					"resource_identifier":              "test.com",
+					"audiences":                        []string{"aud_1", "aud_2"},
+					"refresh_token_expiration_minutes": int32(2),
+					"access_token_expiration_minutes":  int32(2),
+				},
 			},
 		},
 	}

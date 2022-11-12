@@ -57,19 +57,20 @@ func Inflate(in []interface{}) authservers.AuthServerConfiguration {
 }
 
 // Flatten takes an AuthServer configuration and converts it to a map of varied types
-func Flatten(asc authservers.AuthServerConfiguration) map[string]interface{} {
-	out := map[string]interface{}{}
+func Flatten(asc authservers.AuthServerConfiguration) []map[string]interface{} {
+	out := make([]map[string]interface{}, 1)
+	out[0] = map[string]interface{}{}
 	if asc.ResourceIdentifier != nil {
-		out["resource_identifier"] = *asc.ResourceIdentifier
+		out[0]["resource_identifier"] = *asc.ResourceIdentifier
 	}
 	if asc.Audiences != nil {
-		out["audiences"] = asc.Audiences
+		out[0]["audiences"] = asc.Audiences
 	}
 	if asc.AccessTokenExpirationMinutes != nil {
-		out["access_token_expiration_minutes"] = *asc.AccessTokenExpirationMinutes
+		out[0]["access_token_expiration_minutes"] = *asc.AccessTokenExpirationMinutes
 	}
 	if asc.RefreshTokenExpirationMinutes != nil {
-		out["refresh_token_expiration_minutes"] = *asc.RefreshTokenExpirationMinutes
+		out[0]["refresh_token_expiration_minutes"] = *asc.RefreshTokenExpirationMinutes
 	}
 	return out
 }
