@@ -34,6 +34,11 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_OAPI_URL", nil),
 				Optional:    true,
 			},
+			"timeout": {
+				Type:        schema.TypeInt,
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_TIMEOUT", nil),
+				Optional:    true,
+			},
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -70,7 +75,10 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 	region := d.Get("region").(string)
 	url := d.Get("url").(string)
 
-	timeout := client.DefaultTimeout
+	timeout :=  client.DefaultTimeout
+	if d.Get("timeout") != nil {
+		timeout = d.Get("timeout").(int)
+	}
 
 	oneloginClient, err := client.NewClient(&client.APIClientConfig{
 		Timeout:      timeout,
