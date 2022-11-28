@@ -6,8 +6,8 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout code into module dir
+      uses: actions/checkout@v3
     - name: Format
       run: go fmt ./...
     - name: Build
