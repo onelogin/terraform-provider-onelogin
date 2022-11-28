@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -54,43 +53,12 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[READ] %d user returned", len(users))
 
 	userIds := make([]string, 0)
-	userList := make([]map[string]interface{}, 0)
 	for _, user := range users {
 		userIds = append(userIds, fmt.Sprintf("%d", *(user.ID)))
-
-		u := make(map[string]interface{})
-
-		u["id"] = *(user.ID)
-		if user.Username != nil {
-			u["username"] = *(user.Username)
-		}
-		if user.Email != nil {
-			u["email"] = *(user.Email)
-		}
-		if user.Firstname != nil {
-			u["firstname"] = *(user.Firstname)
-		}
-		if user.Lastname != nil {
-			u["lastname"] = *(user.Lastname)
-		}
-		if user.Samaccountname != nil {
-			u["samaccountname"] = *(user.Samaccountname)
-		}
-		if user.ExternalID != nil {
-			u["external_id"] = *(user.ExternalID)
-		}
-		if user.DirectoryID != nil {
-			u["directory_id"] = *(user.DirectoryID)
-		}
-		if user.LastLogin != nil {
-			u["last_login"] = user.LastLogin.Format(time.RFC3339)
-		}
-		userList = append(userList, u)
 	}
 
 	d.SetId(fmt.Sprintf("%d", HashQuery(&query)))
 	d.Set("ids", userIds)
-	d.Set("users", userList)
 
 	return nil
 }
