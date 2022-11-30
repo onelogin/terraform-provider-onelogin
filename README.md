@@ -120,7 +120,7 @@ go mod -u ./...
 
 # Helpful Makefile Commands
 
-**testacc** runs acceptance tests (actually creates resources in OL then cleans them up)
+**testacc** runs acceptance tests (actually creates resources in OL then cleans them up).
 ```
 make testacc
 ```
