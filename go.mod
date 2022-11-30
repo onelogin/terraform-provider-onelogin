@@ -1,6 +1,6 @@
 module github.com/onelogin/terraform-provider-onelogin
 
-go 1.17
+go 1.12
 
 require (
 	github.com/fatih/color v1.12.0 // indirect
