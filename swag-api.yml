@@ -6782,13 +6782,16 @@ paths:
         - in: body
           name: body
           schema:
-            example:
-              custom_attributes:
-                <custom_attribute_shortname1>: <value>
-                <custom_attribute_shortname2>: <value>
             properties:
               custom_attributes:
-                type: object
+                items:
+                  example:
+                    - alias
+                    - branch
+                  items:
+                    type: string
+                  type: array
+                type: array
             type: object
       responses:
         '200':
