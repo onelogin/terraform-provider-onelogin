@@ -3710,6 +3710,7 @@ paths:
           schema:
             properties:
               data:
+                additionalProperties: true
                 description: >-
                   Provides a list of custom attribute fields (also known as
                   custom user fields) that are available for your account.
@@ -3719,9 +3720,7 @@ paths:
 
                   For details about defining custom user fields, see Custom User
                   Fields.
-                items:
-                  type: string
-                type: array
+                type: object
               status:
                 properties:
                   code:
@@ -6791,14 +6790,8 @@ paths:
           schema:
             properties:
               custom_attributes:
-                items:
-                  example:
-                    - alias
-                    - branch
-                  items:
-                    type: string
-                  type: array
-                type: array
+                additionalProperties: true
+                type: object
             type: object
       responses:
         '200':
