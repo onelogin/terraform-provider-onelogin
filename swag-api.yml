@@ -2659,14 +2659,8 @@ paths:
                   created_at:
                     type: string
                   custom_attributes:
-                    items:
-                      example:
-                        - alias
-                        - branch
-                      items:
-                        type: string
-                      type: array
-                    type: array
+                    additionalProperties: true
+                    type: object
                   department:
                     description: The user's department.
                     type: string
@@ -3147,14 +3141,8 @@ paths:
                 created_at:
                   type: string
                 custom_attributes:
-                  items:
-                    example:
-                      - alias
-                      - branch
-                    items:
-                      type: string
-                    type: array
-                  type: array
+                  additionalProperties: true
+                  type: object
                 department:
                   description: The user's department.
                   type: string
@@ -3390,14 +3378,8 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                items:
-                  example:
-                    - alias
-                    - branch
-                  items:
-                    type: string
-                  type: array
-                type: array
+                additionalProperties: true
+                type: object
               department:
                 description: The user's department.
                 type: string
@@ -3521,14 +3503,8 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                items:
-                  example:
-                    - alias
-                    - branch
-                  items:
-                    type: string
-                  type: array
-                type: array
+                additionalProperties: true
+                type: object
               department:
                 description: The user's department.
                 type: string
@@ -4298,14 +4274,8 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                items:
-                  example:
-                    - alias
-                    - branch
-                  items:
-                    type: string
-                  type: array
-                type: array
+                additionalProperties: true
+                type: object
               department:
                 description: The user's department.
                 type: string
@@ -4517,14 +4487,8 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                items:
-                  example:
-                    - alias
-                    - branch
-                  items:
-                    type: string
-                  type: array
-                type: array
+                additionalProperties: true
+                type: object
               department:
                 description: The user's department.
                 type: string
@@ -4648,14 +4612,8 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                items:
-                  example:
-                    - alias
-                    - branch
-                  items:
-                    type: string
-                  type: array
-                type: array
+                additionalProperties: true
+                type: object
               department:
                 description: The user's department.
                 type: string
@@ -11150,14 +11108,8 @@ paths:
                 created_at:
                   type: string
                 custom_attributes:
-                  items:
-                    example:
-                      - alias
-                      - branch
-                    items:
-                      type: string
-                    type: array
-                  type: array
+                  additionalProperties: true
+                  type: object
                 department:
                   description: The user's department.
                   type: string
@@ -14618,14 +14570,8 @@ paths:
                   created_at:
                     type: string
                   custom_attributes:
-                    items:
-                      example:
-                        - alias
-                        - branch
-                      items:
-                        type: string
-                      type: array
-                    type: array
+                    additionalProperties: true
+                    type: object
                   department:
                     description: The user's department.
                     type: string
