@@ -9124,12 +9124,11 @@ paths:
                     type: boolean
                 type: object
               role_ids:
-                description: >-
-                  List of Role IDs that are assigned to the app. On App Create
-                  or Update the entire array is replaced with the values
-                  provided.
+                description: A list of OneLogin Role IDs of the user
                 items:
-                  type: integer
+                  properties:
+                    role_id:
+                      type: integer
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9224,12 +9223,11 @@ paths:
                     type: boolean
                 type: object
               role_ids:
-                description: >-
-                  List of Role IDs that are assigned to the app. On App Create
-                  or Update the entire array is replaced with the values
-                  provided.
+                description: A list of OneLogin Role IDs of the user
                 items:
-                  type: integer
+                  properties:
+                    role_id:
+                      type: integer
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9306,12 +9304,11 @@ paths:
                     type: boolean
                 type: object
               role_ids:
-                description: >-
-                  List of Role IDs that are assigned to the app. On App Create
-                  or Update the entire array is replaced with the values
-                  provided.
+                description: A list of OneLogin Role IDs of the user
                 items:
-                  type: integer
+                  properties:
+                    role_id:
+                      type: integer
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9533,12 +9530,11 @@ paths:
                     type: boolean
                 type: object
               role_ids:
-                description: >-
-                  List of Role IDs that are assigned to the app. On App Create
-                  or Update the entire array is replaced with the values
-                  provided.
+                description: A list of OneLogin Role IDs of the user
                 items:
-                  type: integer
+                  properties:
+                    role_id:
+                      type: integer
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9689,12 +9685,11 @@ paths:
                     type: boolean
                 type: object
               role_ids:
-                description: >-
-                  List of Role IDs that are assigned to the app. On App Create
-                  or Update the entire array is replaced with the values
-                  provided.
+                description: A list of OneLogin Role IDs of the user
                 items:
-                  type: integer
+                  properties:
+                    role_id:
+                      type: integer
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9771,12 +9766,11 @@ paths:
                     type: boolean
                 type: object
               role_ids:
-                description: >-
-                  List of Role IDs that are assigned to the app. On App Create
-                  or Update the entire array is replaced with the values
-                  provided.
+                description: A list of OneLogin Role IDs of the user
                 items:
-                  type: integer
+                  properties:
+                    role_id:
+                      type: integer
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
