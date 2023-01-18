@@ -2730,6 +2730,7 @@ paths:
                       properties:
                         role_id:
                           type: integer
+                    minLength: 1
                     type: array
                   salt:
                     description: The salt value used with the password_algorithm.
@@ -3212,6 +3213,7 @@ paths:
                     properties:
                       role_id:
                         type: integer
+                  minLength: 1
                   type: array
                 salt:
                   description: The salt value used with the password_algorithm.
@@ -3447,6 +3449,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               salt:
                 description: The salt value used with the password_algorithm.
@@ -3572,6 +3575,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               salt:
                 description: The salt value used with the password_algorithm.
@@ -4343,6 +4347,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               salt:
                 description: The salt value used with the password_algorithm.
@@ -4556,6 +4561,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               salt:
                 description: The salt value used with the password_algorithm.
@@ -4681,6 +4687,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               salt:
                 description: The salt value used with the password_algorithm.
@@ -9129,6 +9136,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9228,6 +9236,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9309,6 +9318,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9535,6 +9545,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9690,6 +9701,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -9771,6 +9783,7 @@ paths:
                   properties:
                     role_id:
                       type: integer
+                minLength: 1
                 type: array
               tab_id:
                 description: ID of the OneLogin portal tab that the app is assigned to.
@@ -11182,6 +11195,7 @@ paths:
                     properties:
                       role_id:
                         type: integer
+                  minLength: 1
                   type: array
                 salt:
                   description: The salt value used with the password_algorithm.
@@ -14644,6 +14658,7 @@ paths:
                       properties:
                         role_id:
                           type: integer
+                    minLength: 1
                     type: array
                   salt:
                     description: The salt value used with the password_algorithm.
