@@ -2659,7 +2659,11 @@ paths:
                   created_at:
                     type: string
                   custom_attributes:
-                    additionalProperties: true
+                    additionalProperties:
+                      type: string
+                    example:
+                      en: Hello!
+                      fr: Bonjour!
                     type: object
                   department:
                     description: The user's department.
@@ -3141,7 +3145,11 @@ paths:
                 created_at:
                   type: string
                 custom_attributes:
-                  additionalProperties: true
+                  additionalProperties:
+                    type: string
+                  example:
+                    en: Hello!
+                    fr: Bonjour!
                   type: object
                 department:
                   description: The user's department.
@@ -3378,7 +3386,11 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                additionalProperties: true
+                additionalProperties:
+                  type: string
+                example:
+                  en: Hello!
+                  fr: Bonjour!
                 type: object
               department:
                 description: The user's department.
@@ -3503,7 +3515,11 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                additionalProperties: true
+                additionalProperties:
+                  type: string
+                example:
+                  en: Hello!
+                  fr: Bonjour!
                 type: object
               department:
                 description: The user's department.
@@ -4273,7 +4289,11 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                additionalProperties: true
+                additionalProperties:
+                  type: string
+                example:
+                  en: Hello!
+                  fr: Bonjour!
                 type: object
               department:
                 description: The user's department.
@@ -4486,7 +4506,11 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                additionalProperties: true
+                additionalProperties:
+                  type: string
+                example:
+                  en: Hello!
+                  fr: Bonjour!
                 type: object
               department:
                 description: The user's department.
@@ -4611,7 +4635,11 @@ paths:
               created_at:
                 type: string
               custom_attributes:
-                additionalProperties: true
+                additionalProperties:
+                  type: string
+                example:
+                  en: Hello!
+                  fr: Bonjour!
                 type: object
               department:
                 description: The user's department.
@@ -6790,7 +6818,11 @@ paths:
           schema:
             properties:
               custom_attributes:
-                additionalProperties: true
+                additionalProperties:
+                  type: string
+                example:
+                  en: Hello!
+                  fr: Bonjour!
                 type: object
             type: object
       responses:
@@ -11101,7 +11133,11 @@ paths:
                 created_at:
                   type: string
                 custom_attributes:
-                  additionalProperties: true
+                  additionalProperties:
+                    type: string
+                  example:
+                    en: Hello!
+                    fr: Bonjour!
                   type: object
                 department:
                   description: The user's department.
@@ -14563,7 +14599,11 @@ paths:
                   created_at:
                     type: string
                   custom_attributes:
-                    additionalProperties: true
+                    additionalProperties:
+                      type: string
+                    example:
+                      en: Hello!
+                      fr: Bonjour!
                     type: object
                   department:
                     description: The user's department.
