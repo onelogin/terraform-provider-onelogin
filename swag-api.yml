@@ -2727,9 +2727,7 @@ paths:
                   role_ids:
                     description: A list of OneLogin Role IDs of the user
                     items:
-                      properties:
-                        role_id:
-                          type: integer
+                      type: integer
                     minLength: 1
                     type: array
                   salt:
@@ -3210,9 +3208,7 @@ paths:
                 role_ids:
                   description: A list of OneLogin Role IDs of the user
                   items:
-                    properties:
-                      role_id:
-                        type: integer
+                    type: integer
                   minLength: 1
                   type: array
                 salt:
@@ -3446,9 +3442,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               salt:
@@ -3572,9 +3566,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               salt:
@@ -4344,9 +4336,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               salt:
@@ -4558,9 +4548,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               salt:
@@ -4684,9 +4672,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               salt:
@@ -9133,9 +9119,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               tab_id:
@@ -9233,9 +9217,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               tab_id:
@@ -9315,9 +9297,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               tab_id:
@@ -9542,9 +9522,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               tab_id:
@@ -9698,9 +9676,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               tab_id:
@@ -9780,9 +9756,7 @@ paths:
               role_ids:
                 description: A list of OneLogin Role IDs of the user
                 items:
-                  properties:
-                    role_id:
-                      type: integer
+                  type: integer
                 minLength: 1
                 type: array
               tab_id:
@@ -11192,9 +11166,7 @@ paths:
                 role_ids:
                   description: A list of OneLogin Role IDs of the user
                   items:
-                    properties:
-                      role_id:
-                        type: integer
+                    type: integer
                   minLength: 1
                   type: array
                 salt:
@@ -14655,9 +14627,7 @@ paths:
                   role_ids:
                     description: A list of OneLogin Role IDs of the user
                     items:
-                      properties:
-                        role_id:
-                          type: integer
+                      type: integer
                     minLength: 1
                     type: array
                   salt:
