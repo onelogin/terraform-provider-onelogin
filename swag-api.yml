@@ -3726,7 +3726,8 @@ paths:
           schema:
             properties:
               data:
-                additionalProperties: true
+                additionalProperties:
+                  type: string
                 description: >-
                   Provides a list of custom attribute fields (also known as
                   custom user fields) that are available for your account.
@@ -3736,6 +3737,9 @@ paths:
 
                   For details about defining custom user fields, see Custom User
                   Fields.
+                example:
+                  en: Hello
+                  fr: Bonjour
                 type: object
               status:
                 properties:
