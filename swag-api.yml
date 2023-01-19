@@ -4283,13 +4283,6 @@ paths:
                   type: string
                 created_at:
                   type: string
-                custom_attributes:
-                  additionalProperties:
-                    type: string
-                  example:
-                    en: Hello!
-                    fr: Bonjour!
-                  type: object
                 department:
                   description: The user's department.
                   type: string
@@ -4524,13 +4517,6 @@ paths:
                 type: string
               created_at:
                 type: string
-              custom_attributes:
-                additionalProperties:
-                  type: string
-                example:
-                  en: Hello!
-                  fr: Bonjour!
-                type: object
               department:
                 description: The user's department.
                 type: string
@@ -4653,13 +4639,6 @@ paths:
                 type: string
               created_at:
                 type: string
-              custom_attributes:
-                additionalProperties:
-                  type: string
-                example:
-                  en: Hello!
-                  fr: Bonjour!
-                type: object
               department:
                 description: The user's department.
                 type: string
@@ -5433,13 +5412,6 @@ paths:
                 type: string
               created_at:
                 type: string
-              custom_attributes:
-                additionalProperties:
-                  type: string
-                example:
-                  en: Hello!
-                  fr: Bonjour!
-                type: object
               department:
                 description: The user's department.
                 type: string
@@ -5650,13 +5622,6 @@ paths:
                 type: string
               created_at:
                 type: string
-              custom_attributes:
-                additionalProperties:
-                  type: string
-                example:
-                  en: Hello!
-                  fr: Bonjour!
-                type: object
               department:
                 description: The user's department.
                 type: string
@@ -5779,13 +5744,6 @@ paths:
                 type: string
               created_at:
                 type: string
-              custom_attributes:
-                additionalProperties:
-                  type: string
-                example:
-                  en: Hello!
-                  fr: Bonjour!
-                type: object
               department:
                 description: The user's department.
                 type: string
@@ -12262,13 +12220,6 @@ paths:
                   type: string
                 created_at:
                   type: string
-                custom_attributes:
-                  additionalProperties:
-                    type: string
-                  example:
-                    en: Hello!
-                    fr: Bonjour!
-                  type: object
                 department:
                   description: The user's department.
                   type: string
