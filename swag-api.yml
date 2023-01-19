@@ -738,14 +738,14 @@ paths:
                     example: xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
                   before_cursor:
-                    example: 'null'
+                    example: '""'
                     type: string
                   next_link:
                     example: >-
                       https://{subdomain}.onelogin.com/api/1/events?after_cursor=xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
                   previous_link:
-                    example: 'null'
+                    example: '""'
                     type: string
                 type: object
               status:
@@ -1710,7 +1710,7 @@ paths:
                       type: string
                     reference:
                       description: Deprecated. Will always show the attribute nil="true".
-                      example: 'null'
+                      example: '""'
                       type: string
                   type: object
                 type: array
@@ -1823,7 +1823,7 @@ paths:
                       type: string
                     reference:
                       description: Deprecated. Will always show the attribute nil="true".
-                      example: 'null'
+                      example: '""'
                       type: string
                   type: object
                 type: array
@@ -2193,6 +2193,164 @@ paths:
       responses:
         '200':
           description: Successful response
+          schema:
+            items:
+              properties:
+                description:
+                  example: Can administer users
+                  type: string
+                id:
+                  example: 2c963197-bee2-4607-abc0-4786f1bfa55a
+                  type: string
+                name:
+                  example: User Administrator
+                  type: string
+                privilege:
+                  properties:
+                    Statement:
+                      items:
+                        properties:
+                          Action:
+                            description: >-
+                              An array of strings that represent actions within
+                              OneLogin. Actions are prefixed with the class of
+                              object they are related to and followed by a
+                              specific action for the given class.
+
+                              e.g. users:List, where the class is users and the
+                              specific action is List. Don’t mix classes within
+                              an Action array. To create a privilege that
+                              includes multiple different classes, create
+                              multiple statements. A wildcard * that includes
+                              all actions is supported. Use wildcards to create
+                              a Super User privilege.
+                            example:
+                              - 'Users:Delete'
+                              - 'Users:ResetPassword'
+                              - 'Users:Unlock'
+                              - 'Users:Get'
+                            items:
+                              enum:
+                                - 'Apps:Create'
+                                - 'Apps:Delete'
+                                - 'Apps:List'
+                                - 'Apps:Get'
+                                - 'Apps:Update'
+                                - 'Apps:ManageConnectors'
+                                - 'Apps:ManageRoles'
+                                - 'Apps:ManageTabs'
+                                - 'Apps:ManageUsers'
+                                - 'Apps:ReapplyMappings'
+                                - 'Users:Create'
+                                - 'Users:Delete'
+                                - 'Users:List'
+                                - 'Users:Get'
+                                - 'Users:Update'
+                                - 'Users:AssumeUser'
+                                - 'Users:ManageApps'
+                                - 'Users:Unlock'
+                                - 'Users:GenerateTempMfaToken'
+                                - 'Users:ResetPassword'
+                                - 'Users:ReapplyMappings'
+                                - 'Users:ManageLicense'
+                                - 'Users:Invite'
+                                - 'Users:ManageRoles'
+                                - 'Roles:Create'
+                                - 'Roles:Get'
+                                - 'Roles:List'
+                                - 'Roles:Update'
+                                - 'Roles:Delete'
+                                - 'Roles:ManageUsers'
+                                - 'Roles:ManageApps'
+                                - 'Reports:Create'
+                                - 'Reports:Get'
+                                - 'Reports:List'
+                                - 'Reports:Update'
+                                - 'Reports:Delete'
+                                - 'Reports:Clone'
+                                - 'Events:Get'
+                                - 'Events:List'
+                                - 'Groups:Create'
+                                - 'Groups:Get'
+                                - 'Groups:List'
+                                - 'Groups:Update'
+                                - 'Groups:Delete'
+                                - 'Policies:Create'
+                                - 'Policies:Get'
+                                - 'Policies:List'
+                                - 'Policies:Update'
+                                - 'Policies:Delete'
+                                - 'Policies:SetDefault'
+                              type: string
+                            type: array
+                          Effect:
+                            description: >-
+                              Set to “Allow.” By default, all actions are
+                              denied, this Statement allows the listed actions
+                              to be executed.
+                            example: Allow
+                            type: string
+                          Scope:
+                            description: >-
+                              Target the privileged action against specific
+                              resources with the scope.
+
+                              The scope pattern is the class of object used by
+                              the Action, followed by an ID that represents a
+                              resource in OneLogin.
+
+                              e.g. apps/1234, where apps is the class and 1234
+                              is the ID of an app.
+
+                              The wildcard * is supported and indicates that all
+                              resources of the class type declared, in the
+                              Action, are in scope.
+
+                              The Action and Scope classes must match. However,
+                              there is an exception, a scope of roles/{role_id}
+                              can be combined with Actions on the user or app
+                              class. The exception allows you to target groups
+                              of users or apps with specific actions.
+                            items:
+                              example: '*'
+                              type: string
+                            type: array
+                        required:
+                          - Effect
+                          - Action
+                          - Scope
+                        type: object
+                      type: array
+                    Version:
+                      example: '2018-05-18'
+                      type: string
+                  type: object
+              required:
+                - name
+                - privilege
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
@@ -2214,20 +2372,194 @@ paths:
         - in: body
           name: body
           schema:
-            example:
-              name: Super Administrator
+            properties:
+              description:
+                example: Can administer users
+                type: string
+              id:
+                example: 2c963197-bee2-4607-abc0-4786f1bfa55a
+                type: string
+              name:
+                example: User Administrator
+                type: string
               privilege:
-                Statement:
-                  - Action:
-                      - '*'
-                    Effect: Allow
-                    Scope:
-                      - '*'
-                Version: '2018-05-18'
+                properties:
+                  Statement:
+                    items:
+                      properties:
+                        Action:
+                          description: >-
+                            An array of strings that represent actions within
+                            OneLogin. Actions are prefixed with the class of
+                            object they are related to and followed by a
+                            specific action for the given class.
+
+                            e.g. users:List, where the class is users and the
+                            specific action is List. Don’t mix classes within an
+                            Action array. To create a privilege that includes
+                            multiple different classes, create multiple
+                            statements. A wildcard * that includes all actions
+                            is supported. Use wildcards to create a Super User
+                            privilege.
+                          example:
+                            - 'Users:Delete'
+                            - 'Users:ResetPassword'
+                            - 'Users:Unlock'
+                            - 'Users:Get'
+                          items:
+                            enum:
+                              - 'Apps:Create'
+                              - 'Apps:Delete'
+                              - 'Apps:List'
+                              - 'Apps:Get'
+                              - 'Apps:Update'
+                              - 'Apps:ManageConnectors'
+                              - 'Apps:ManageRoles'
+                              - 'Apps:ManageTabs'
+                              - 'Apps:ManageUsers'
+                              - 'Apps:ReapplyMappings'
+                              - 'Users:Create'
+                              - 'Users:Delete'
+                              - 'Users:List'
+                              - 'Users:Get'
+                              - 'Users:Update'
+                              - 'Users:AssumeUser'
+                              - 'Users:ManageApps'
+                              - 'Users:Unlock'
+                              - 'Users:GenerateTempMfaToken'
+                              - 'Users:ResetPassword'
+                              - 'Users:ReapplyMappings'
+                              - 'Users:ManageLicense'
+                              - 'Users:Invite'
+                              - 'Users:ManageRoles'
+                              - 'Roles:Create'
+                              - 'Roles:Get'
+                              - 'Roles:List'
+                              - 'Roles:Update'
+                              - 'Roles:Delete'
+                              - 'Roles:ManageUsers'
+                              - 'Roles:ManageApps'
+                              - 'Reports:Create'
+                              - 'Reports:Get'
+                              - 'Reports:List'
+                              - 'Reports:Update'
+                              - 'Reports:Delete'
+                              - 'Reports:Clone'
+                              - 'Events:Get'
+                              - 'Events:List'
+                              - 'Groups:Create'
+                              - 'Groups:Get'
+                              - 'Groups:List'
+                              - 'Groups:Update'
+                              - 'Groups:Delete'
+                              - 'Policies:Create'
+                              - 'Policies:Get'
+                              - 'Policies:List'
+                              - 'Policies:Update'
+                              - 'Policies:Delete'
+                              - 'Policies:SetDefault'
+                            type: string
+                          type: array
+                        Effect:
+                          description: >-
+                            Set to “Allow.” By default, all actions are denied,
+                            this Statement allows the listed actions to be
+                            executed.
+                          example: Allow
+                          type: string
+                        Scope:
+                          description: >-
+                            Target the privileged action against specific
+                            resources with the scope.
+
+                            The scope pattern is the class of object used by the
+                            Action, followed by an ID that represents a resource
+                            in OneLogin.
+
+                            e.g. apps/1234, where apps is the class and 1234 is
+                            the ID of an app.
+
+                            The wildcard * is supported and indicates that all
+                            resources of the class type declared, in the Action,
+                            are in scope.
+
+                            The Action and Scope classes must match. However,
+                            there is an exception, a scope of roles/{role_id}
+                            can be combined with Actions on the user or app
+                            class. The exception allows you to target groups of
+                            users or apps with specific actions.
+                          items:
+                            example: '*'
+                            type: string
+                          type: array
+                      required:
+                        - Effect
+                        - Action
+                        - Scope
+                      type: object
+                    type: array
+                  Version:
+                    example: '2018-05-18'
+                    type: string
+                type: object
+            required:
+              - name
+              - privilege
             type: object
       responses:
         '200':
           description: Successful response
+          schema:
+            properties:
+              id:
+                description: Privilege Id
+                example: 5e43a548-e9c6-47be-9341-92160902f7a6
+                type: string
+            type: object
+        '400':
+          description: Bad Request
+          examples:
+            application/json:
+              message: >-
+                The request could not be understood by the server due to
+                malformed syntax: Statement required Action array
+              name: BadRequestError
+              statusCode: 400
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
@@ -2250,8 +2582,52 @@ paths:
           required: true
           type: string
       responses:
-        '200':
-          description: Successful response
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
@@ -2275,12 +2651,191 @@ paths:
       responses:
         '200':
           description: Successful response
+          schema:
+            properties:
+              description:
+                example: Can administer users
+                type: string
+              id:
+                example: 2c963197-bee2-4607-abc0-4786f1bfa55a
+                type: string
+              name:
+                example: User Administrator
+                type: string
+              privilege:
+                properties:
+                  Statement:
+                    items:
+                      properties:
+                        Action:
+                          description: >-
+                            An array of strings that represent actions within
+                            OneLogin. Actions are prefixed with the class of
+                            object they are related to and followed by a
+                            specific action for the given class.
+
+                            e.g. users:List, where the class is users and the
+                            specific action is List. Don’t mix classes within an
+                            Action array. To create a privilege that includes
+                            multiple different classes, create multiple
+                            statements. A wildcard * that includes all actions
+                            is supported. Use wildcards to create a Super User
+                            privilege.
+                          example:
+                            - 'Users:Delete'
+                            - 'Users:ResetPassword'
+                            - 'Users:Unlock'
+                            - 'Users:Get'
+                          items:
+                            enum:
+                              - 'Apps:Create'
+                              - 'Apps:Delete'
+                              - 'Apps:List'
+                              - 'Apps:Get'
+                              - 'Apps:Update'
+                              - 'Apps:ManageConnectors'
+                              - 'Apps:ManageRoles'
+                              - 'Apps:ManageTabs'
+                              - 'Apps:ManageUsers'
+                              - 'Apps:ReapplyMappings'
+                              - 'Users:Create'
+                              - 'Users:Delete'
+                              - 'Users:List'
+                              - 'Users:Get'
+                              - 'Users:Update'
+                              - 'Users:AssumeUser'
+                              - 'Users:ManageApps'
+                              - 'Users:Unlock'
+                              - 'Users:GenerateTempMfaToken'
+                              - 'Users:ResetPassword'
+                              - 'Users:ReapplyMappings'
+                              - 'Users:ManageLicense'
+                              - 'Users:Invite'
+                              - 'Users:ManageRoles'
+                              - 'Roles:Create'
+                              - 'Roles:Get'
+                              - 'Roles:List'
+                              - 'Roles:Update'
+                              - 'Roles:Delete'
+                              - 'Roles:ManageUsers'
+                              - 'Roles:ManageApps'
+                              - 'Reports:Create'
+                              - 'Reports:Get'
+                              - 'Reports:List'
+                              - 'Reports:Update'
+                              - 'Reports:Delete'
+                              - 'Reports:Clone'
+                              - 'Events:Get'
+                              - 'Events:List'
+                              - 'Groups:Create'
+                              - 'Groups:Get'
+                              - 'Groups:List'
+                              - 'Groups:Update'
+                              - 'Groups:Delete'
+                              - 'Policies:Create'
+                              - 'Policies:Get'
+                              - 'Policies:List'
+                              - 'Policies:Update'
+                              - 'Policies:Delete'
+                              - 'Policies:SetDefault'
+                            type: string
+                          type: array
+                        Effect:
+                          description: >-
+                            Set to “Allow.” By default, all actions are denied,
+                            this Statement allows the listed actions to be
+                            executed.
+                          example: Allow
+                          type: string
+                        Scope:
+                          description: >-
+                            Target the privileged action against specific
+                            resources with the scope.
+
+                            The scope pattern is the class of object used by the
+                            Action, followed by an ID that represents a resource
+                            in OneLogin.
+
+                            e.g. apps/1234, where apps is the class and 1234 is
+                            the ID of an app.
+
+                            The wildcard * is supported and indicates that all
+                            resources of the class type declared, in the Action,
+                            are in scope.
+
+                            The Action and Scope classes must match. However,
+                            there is an exception, a scope of roles/{role_id}
+                            can be combined with Actions on the user or app
+                            class. The exception allows you to target groups of
+                            users or apps with specific actions.
+                          items:
+                            example: '*'
+                            type: string
+                          type: array
+                      required:
+                        - Effect
+                        - Action
+                        - Scope
+                      type: object
+                    type: array
+                  Version:
+                    example: '2018-05-18'
+                    type: string
+                type: object
+            required:
+              - name
+              - privilege
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
       tags:
         - Privileges
-      description: List
+      description: Get a Privilige
       operationId: getPrivilege
       summary: Get a Privilege
     put:
@@ -2300,23 +2855,196 @@ paths:
         - in: body
           name: body
           schema:
-            example:
-              name: User Administrator
+            properties:
+              description:
+                example: Can administer users
+                type: string
+              id:
+                example: 2c963197-bee2-4607-abc0-4786f1bfa55a
+                type: string
+              name:
+                example: User Administrator
+                type: string
               privilege:
-                Statement:
-                  - Action:
-                      - 'users:Get'
-                      - 'users:Unlock'
-                      - 'users:ResetPassword'
-                      - 'users:ForceLogout'
-                    Effect: Allow
-                    Scope:
-                      - roles/12
-                Version: '2018-05-18'
+                properties:
+                  Statement:
+                    items:
+                      properties:
+                        Action:
+                          description: >-
+                            An array of strings that represent actions within
+                            OneLogin. Actions are prefixed with the class of
+                            object they are related to and followed by a
+                            specific action for the given class.
+
+                            e.g. users:List, where the class is users and the
+                            specific action is List. Don’t mix classes within an
+                            Action array. To create a privilege that includes
+                            multiple different classes, create multiple
+                            statements. A wildcard * that includes all actions
+                            is supported. Use wildcards to create a Super User
+                            privilege.
+                          example:
+                            - 'Users:Delete'
+                            - 'Users:ResetPassword'
+                            - 'Users:Unlock'
+                            - 'Users:Get'
+                          items:
+                            enum:
+                              - 'Apps:Create'
+                              - 'Apps:Delete'
+                              - 'Apps:List'
+                              - 'Apps:Get'
+                              - 'Apps:Update'
+                              - 'Apps:ManageConnectors'
+                              - 'Apps:ManageRoles'
+                              - 'Apps:ManageTabs'
+                              - 'Apps:ManageUsers'
+                              - 'Apps:ReapplyMappings'
+                              - 'Users:Create'
+                              - 'Users:Delete'
+                              - 'Users:List'
+                              - 'Users:Get'
+                              - 'Users:Update'
+                              - 'Users:AssumeUser'
+                              - 'Users:ManageApps'
+                              - 'Users:Unlock'
+                              - 'Users:GenerateTempMfaToken'
+                              - 'Users:ResetPassword'
+                              - 'Users:ReapplyMappings'
+                              - 'Users:ManageLicense'
+                              - 'Users:Invite'
+                              - 'Users:ManageRoles'
+                              - 'Roles:Create'
+                              - 'Roles:Get'
+                              - 'Roles:List'
+                              - 'Roles:Update'
+                              - 'Roles:Delete'
+                              - 'Roles:ManageUsers'
+                              - 'Roles:ManageApps'
+                              - 'Reports:Create'
+                              - 'Reports:Get'
+                              - 'Reports:List'
+                              - 'Reports:Update'
+                              - 'Reports:Delete'
+                              - 'Reports:Clone'
+                              - 'Events:Get'
+                              - 'Events:List'
+                              - 'Groups:Create'
+                              - 'Groups:Get'
+                              - 'Groups:List'
+                              - 'Groups:Update'
+                              - 'Groups:Delete'
+                              - 'Policies:Create'
+                              - 'Policies:Get'
+                              - 'Policies:List'
+                              - 'Policies:Update'
+                              - 'Policies:Delete'
+                              - 'Policies:SetDefault'
+                            type: string
+                          type: array
+                        Effect:
+                          description: >-
+                            Set to “Allow.” By default, all actions are denied,
+                            this Statement allows the listed actions to be
+                            executed.
+                          example: Allow
+                          type: string
+                        Scope:
+                          description: >-
+                            Target the privileged action against specific
+                            resources with the scope.
+
+                            The scope pattern is the class of object used by the
+                            Action, followed by an ID that represents a resource
+                            in OneLogin.
+
+                            e.g. apps/1234, where apps is the class and 1234 is
+                            the ID of an app.
+
+                            The wildcard * is supported and indicates that all
+                            resources of the class type declared, in the Action,
+                            are in scope.
+
+                            The Action and Scope classes must match. However,
+                            there is an exception, a scope of roles/{role_id}
+                            can be combined with Actions on the user or app
+                            class. The exception allows you to target groups of
+                            users or apps with specific actions.
+                          items:
+                            example: '*'
+                            type: string
+                          type: array
+                      required:
+                        - Effect
+                        - Action
+                        - Scope
+                      type: object
+                    type: array
+                  Version:
+                    example: '2018-05-18'
+                    type: string
+                type: object
+            required:
+              - name
+              - privilege
             type: object
       responses:
         '200':
           description: Successful response
+          examples:
+            application/json:
+              id: 5e43a548-e9c6-47be-9341-92160902f7a6
+          schema:
+            properties:
+              id:
+                description: Privilege ID
+                type: string
+            type: object
+        '400':
+          description: Bad Request
+          examples:
+            application/json:
+              message: >-
+                The request could not be understood by the server due to
+                malformed syntax: Statement required Action array
+              name: BadRequestError
+              statusCode: 400
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
@@ -2341,12 +3069,76 @@ paths:
       responses:
         '200':
           description: Successful response
+          schema:
+            properties:
+              afterCursor:
+                type: integer
+                x-""able: true
+              beforeCursor:
+                type: integer
+                x-""able: true
+              nextLink:
+                type: string
+                x-""able: true
+              previousLink:
+                type: string
+                x-""able: true
+              roles:
+                items:
+                  type: integer
+                type: array
+              total:
+                type: integer
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
       tags:
         - Privileges
-        - Roles
       description: List roles for privilege
       operationId: listPrivelegeRoles
       summary: Get Roles assigned to Privilege
@@ -2368,17 +3160,74 @@ paths:
           name: body
           schema:
             example:
-              roles: array
+              roles:
+                - 123
+                - 456
+                - 789
+            properties:
+              roles:
+                items:
+                  type: integer
+                type: array
             type: object
       responses:
-        '200':
-          description: Successful response
+        '201':
+          description: Created
+          schema:
+            properties:
+              success:
+                example: true
+                type: boolean
+            type: object
+        '400':
+          description: Bad Request
+          examples:
+            application/json:
+              message: >-
+                The request could not be understood by the server due to
+                malformed syntax: Statement required Action array
+              name: BadRequestError
+              statusCode: 400
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
       tags:
         - Privileges
-        - Roles
       description: 'Add roles to privilege '
       operationId: addPrivilegeToRole
       summary: Assign a Privilege to Roles
@@ -2400,16 +3249,59 @@ paths:
           required: true
           type: string
       responses:
-        '200':
-          description: Successful response
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
       tags:
         - Privileges
-        - Roles
       description: Add roles to privilege
-      operationId: addRoleToPrivilege
+      operationId: deleteRoleFromPrivilege
       summary: Remove a Privilege from a Role
   '/api/1/privileges/{privilege_id}/users':
     get:
@@ -2427,14 +3319,79 @@ paths:
       responses:
         '200':
           description: Successful response
+          schema:
+            properties:
+              afterCursor:
+                type: integer
+                x-""able: true
+              beforeCursor:
+                type: integer
+                x-""able: true
+              nextLink:
+                type: string
+                x-""able: true
+              previousLink:
+                type: string
+                x-""able: true
+              total:
+                type: integer
+              users:
+                items:
+                  type: integer
+                type: array
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
       tags:
         - Privileges
         - Users
-      description: Add privilege to user
-      operationId: addPrivilegeToUser
+      description: Get Assigned Users
+      operationId: getAssignedUser
       summary: Get Users assigned to a Privilege
     post:
       consumes:
@@ -2453,21 +3410,74 @@ paths:
         - in: body
           name: body
           schema:
-            example:
-              users: array
+            properties:
+              users:
+                items:
+                  type: integer
+                type: array
             type: object
       responses:
         '200':
           description: Successful response
+          schema:
+            properties:
+              success:
+                example: true
+                type: boolean
+            type: object
+        '400':
+          description: Bad Request
+          examples:
+            application/json:
+              message: >-
+                The request could not be understood by the server due to
+                malformed syntax: Statement required Action array
+              name: BadRequestError
+              statusCode: 400
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
       tags:
         - Privileges
         - Users
-      description: Add users to privilege
-      operationId: addUsersToPrivilege
-      summary: Assign a Privilege to Users
+      description: Assign Users to Privilege
+      operationId: assignUsersToPrivilege
+      summary: Assign Users to a Privilege
   '/api/1/privileges/{privilege_id}/users/{user_id}':
     delete:
       produces:
@@ -2486,33 +3496,180 @@ paths:
           required: true
           type: integer
       responses:
-        '200':
-          description: Successful response
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
       security:
         - OAuth2:
             - Manage All
       tags:
-        - Users
         - Privileges
-      description: Add privilege to group of users
-      operationId: addPrivilegeToGroup
-      summary: Remove a Privilege from a User
+      description: Remove a Privilege from Users
+      operationId: removeUserFromPrivilege
+      summary: Remove a Privilege from Users
   /api/1/roles:
     get:
       produces:
         - application/json
       parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-          x-example: 'bearer:{{access_token}}'
         - in: query
           name: name
           type: string
       responses:
         '200':
           description: Successful response
+          schema:
+            properties:
+              data:
+                example:
+                  - id: 1111
+                    name: C-Executive
+                  - id: 1112
+                    name: Contractor
+                  - id: 1113
+                    name: Default
+                  - id: 1114
+                    name: Employee
+                items:
+                  properties:
+                    id:
+                      description: Role ID
+                      type: integer
+                    name:
+                      description: Role Name
+                      type: string
+                  type: object
+                type: array
+              pagination:
+                additionalProperties:
+                  type: string
+                example:
+                  after_cursor: ""
+                  before_cursor: ""
+                  next_link: ""
+                  pagination: ""
+                  previous_link: ""
+                type: object
+              status:
+                properties:
+                  code:
+                    example: 200
+                    type: integer
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Success
+                    type: string
+                  type:
+                    example: Success
+                    type: string
+                required:
+                  - code
+                  - message
+                type: object
+            type: object
+        '400':
+          description: Bad Request
+          examples:
+            application/json:
+              code: 400
+              error: true
+              message: Request Failure
+              type: bad request
+          schema:
+            properties:
+              code:
+                example: 200
+                type: integer
+              error:
+                example: false
+                type: boolean
+              message:
+                example: Success
+                type: string
+              type:
+                example: Success
+                type: string
+            required:
+              - code
+              - message
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              code: 401
+              error: true
+              message: Unauthorized Error
+              type: Unauthorized
+          schema:
+            properties:
+              code:
+                example: 200
+                type: integer
+              error:
+                example: false
+                type: boolean
+              message:
+                example: Success
+                type: string
+              type:
+                example: Success
+                type: string
+            required:
+              - code
+              - message
+            type: object
+      security:
+        - OAuth2:
+            - Manage users
+            - Manage All
+            - Read All
+            - Read Users
       tags:
         - Roles
       description: Get Role by Name
@@ -2523,11 +3680,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-          x-example: 'bearer:{{access_token}}'
         - in: path
           name: role_id
           required: true
@@ -2535,6 +3687,150 @@ paths:
       responses:
         '200':
           description: Successful response
+          schema:
+            properties:
+              data:
+                items:
+                  properties:
+                    id:
+                      description: role's unique ID in Onelogin
+                      example: 123456
+                      type: integer
+                    name:
+                      description: Role name
+                      example: Employee
+                      type: string
+                  type: object
+                type: array
+              status:
+                properties:
+                  code:
+                    example: 200
+                    type: integer
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Success
+                    type: string
+                  type:
+                    example: Success
+                    type: string
+                required:
+                  - code
+                  - message
+                type: object
+            type: object
+        '400':
+          description: Bad Request
+          examples:
+            application/json:
+              code: 400
+              error: true
+              message: Request Failure
+              type: bad request
+          schema:
+            properties:
+              code:
+                example: 200
+                type: integer
+              error:
+                example: false
+                type: boolean
+              message:
+                example: Success
+                type: string
+              type:
+                example: Success
+                type: string
+            required:
+              - code
+              - message
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              code: 401
+              error: true
+              message: Unauthorized Error
+              type: Unauthorized
+          schema:
+            properties:
+              code:
+                example: 200
+                type: integer
+              error:
+                example: false
+                type: boolean
+              message:
+                example: Success
+                type: string
+              type:
+                example: Success
+                type: string
+            required:
+              - code
+              - message
+            type: object
+        '403':
+          description: Forbidden
+          examples:
+            application/json:
+              code: 403
+              error: true
+              message: not allowed
+              type: ForbiddenError
+          schema:
+            properties:
+              code:
+                example: 200
+                type: integer
+              error:
+                example: false
+                type: boolean
+              message:
+                example: Success
+                type: string
+              type:
+                example: Success
+                type: string
+            required:
+              - code
+              - message
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              code: 404
+              error: true
+              message: No Route Exists
+              type: Not Found
+          schema:
+            properties:
+              code:
+                example: 200
+                type: integer
+              error:
+                example: false
+                type: boolean
+              message:
+                example: Success
+                type: string
+              type:
+                example: Success
+                type: string
+            required:
+              - code
+              - message
+            type: object
+      security:
+        - OAuth2:
+            - Manage users
+            - Manage All
+            - Read All
+            - Read Users
       tags:
         - Roles
       description: Get Role By ID
@@ -10138,7 +11434,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the rule. When `null` this will
+                    Indicates the order of the rule. When `""` this will
                     default to last position.
                   example: 1
                   type: integer
@@ -10256,7 +11552,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the rule. When `null` this will default
+                  Indicates the order of the rule. When `""` this will default
                   to last position.
                 example: 1
                 type: integer
@@ -10894,7 +12190,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the rule. When `null` this will default
+                  Indicates the order of the rule. When `""` this will default
                   to last position.
                 example: 1
                 type: integer
@@ -11041,7 +12337,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the rule. When `null` this will default
+                  Indicates the order of the rule. When `""` this will default
                   to last position.
                 example: 1
                 type: integer
@@ -11539,7 +12835,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the mapping. When `null` this will
+                    Indicates the order of the mapping. When `""` this will
                     default to last position.
                   type: integer
               required:
@@ -11658,7 +12954,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the mapping. When `null` this will
+                  Indicates the order of the mapping. When `""` this will
                   default to last position.
                 type: integer
             required:
@@ -11734,7 +13030,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the mapping. When `null` this will
+                    Indicates the order of the mapping. When `""` this will
                     default to last position.
                   type: integer
               required:
@@ -12339,7 +13635,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the mapping. When `null` this will
+                  Indicates the order of the mapping. When `""` this will
                   default to last position.
                 type: integer
             required:
@@ -12489,7 +13785,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the mapping. When `null` this will
+                    Indicates the order of the mapping. When `""` this will
                     default to last position.
                   type: integer
               required:
