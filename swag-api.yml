@@ -3891,179 +3891,27 @@ paths:
           description: Successful response
           schema:
             properties:
-              callback_url:
-                description: >-
-                  Provides the Verify Factor API endpoint to which the
-                  device_id, state_token, app_id, and otp_token must be sent for
-                  verification. Returned only when MFA is required
-                example: >-
-                  https://subdomain.onelogin.com/api/2/saml_assertion/verify_factor
-                type: string
               data:
-                description: >-
-                  Provides the SAML assertion. Returned only when MFA is not
-                  required.
-                example: >-
-                  PHNhbWxwOlJlc3BvbnNlIHhtbG5zOnNhbWw9InVybjpvYXNpczpuYW1lczp0YzpTQU1MOjIuMDphc3NlcnRpb24iIHhtbG5zOnNhbWxwPSJ1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6cHJvdG9jb2wiIElEPSJSZjE5Y2EyMTI0ZGMxNzJmNzhmMjI3OTk3YzMwOTBkODVkNzFjYWMzOCIgVmVyc2lvbj0iMi4wIiBJc3N1ZUluc3RhbnQ9IjIwMjAtM
-                type: string
-              devices:
-                example:
-                  - device_id: 51684
-                    device_type: Google Authenticator
                 items:
-                  properties:
-                    device_id:
-                      description: >-
-                        an ID for the device type that must be submitted with
-                        the Verify Factor API call.
-                      example: 654984
-                      type: integer
-                    device_type:
-                      description: >-
-                        Lists an available MFA device type, such as OneLogin OTP
-                        SMS or Google Authenticator.
-                      example: Google Authenticator
-                      type: string
                   type: object
                 type: array
-              message:
-                description: Plain text description describing the outcome of the response.
-                example: MFA is required for this user
-                type: string
-              state_token:
-                description: >-
-                  Provides the state_token value that must be submitted with
-                  each Verify Factor API call until the SAML assertion has been
-                  issued. Returned only when MFA is required
-                example: 5xxx604x8xx9x694xx860173xxx3x78x3x870x56
-                type: string
-              user:
+              status:
                 properties:
-                  activated_at:
-                    type: string
-                  comment:
-                    description: Free text related to the user.
-                    type: string
-                  company:
-                    description: The user's company.
-                    type: string
-                  created_at:
-                    type: string
-                  custom_attributes:
-                    additionalProperties:
-                      type: string
-                    example:
-                      en: Hello!
-                      fr: Bonjour!
-                    type: object
-                  department:
-                    description: The user's department.
-                    type: string
-                  directory_id:
-                    description: The ID of the OneLogin Directory of the user.
+                  code:
+                    example: 200
                     type: integer
-                  distinguished_name:
-                    description: The distinguished name of the user.
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Success
                     type: string
-                  email:
-                    description: A valid email for the user.
+                  type:
+                    example: Success
                     type: string
-                  external_id:
-                    description: The ID of the user in an external directory.
-                    type: string
-                  firstname:
-                    description: The user's first name.
-                    type: string
-                  group_id:
-                    description: >-
-                      The ID of the Group in OneLogin that the user is assigned
-                      to.
-                    type: integer
-                  id:
-                    type: integer
-                  invalid_login_attempts:
-                    type: integer
-                  invitation_sent_at:
-                    type: string
-                  last_login:
-                    type: string
-                  lastname:
-                    description: The user's last name.
-                    type: string
-                  locked_until:
-                    type: string
-                  manager_ad_id:
-                    description: The ID of the user's manager in Active Directory.
-                    type: string
-                  manager_user_id:
-                    description: The OneLogin User ID for the user's manager.
-                    type: string
-                  member_of:
-                    description: The user's directory membership.
-                    type: string
-                  password:
-                    description: The password to set for a user.
-                    type: string
-                  password_algorithm:
-                    description: >-
-                      Use this when importing a password that's already hashed.
-                      Prepend the salt value to the cleartext password value
-                      before SHA-256-encoding it
-                    type: string
-                  password_changed_at:
-                    type: string
-                  password_confirmation:
-                    description: Required if the password is being set.
-                    type: string
-                  phone:
-                    description: The E.164 format phone number for a user.
-                    type: string
-                  preferred_locale_code:
-                    type: string
-                  role_ids:
-                    description: A list of OneLogin Role IDs of the user
-                    items:
-                      type: integer
-                    minLength: 1
-                    type: array
-                  salt:
-                    description: The salt value used with the password_algorithm.
-                    type: string
-                  samaccount_name:
-                    description: The user's Active Directory username.
-                    type: string
-                  state:
-                    enum:
-                      - 0
-                      - 1
-                      - 2
-                      - 3
-                    type: integer
-                  status:
-                    enum:
-                      - 0
-                      - 1
-                      - 2
-                      - 3
-                      - 4
-                      - 5
-                      - 7
-                      - 8
-                    type: integer
-                  title:
-                    description: The user's job title.
-                    type: string
-                  trusted_idp_id:
-                    description: The ID of the OneLogin Trusted IDP of the user.
-                    type: integer
-                  updated_at:
-                    type: string
-                  username:
-                    description: A username for the user.
-                    type: string
-                  userprincipalname:
-                    description: The principle name of the user.
-                    type: string
+                required:
+                  - code
+                  - message
                 type: object
             type: object
         '400':
@@ -15822,179 +15670,27 @@ paths:
           description: Successful response
           schema:
             properties:
-              callback_url:
-                description: >-
-                  Provides the Verify Factor API endpoint to which the
-                  device_id, state_token, app_id, and otp_token must be sent for
-                  verification. Returned only when MFA is required
-                example: >-
-                  https://subdomain.onelogin.com/api/2/saml_assertion/verify_factor
-                type: string
               data:
-                description: >-
-                  Provides the SAML assertion. Returned only when MFA is not
-                  required.
-                example: >-
-                  PHNhbWxwOlJlc3BvbnNlIHhtbG5zOnNhbWw9InVybjpvYXNpczpuYW1lczp0YzpTQU1MOjIuMDphc3NlcnRpb24iIHhtbG5zOnNhbWxwPSJ1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6cHJvdG9jb2wiIElEPSJSZjE5Y2EyMTI0ZGMxNzJmNzhmMjI3OTk3YzMwOTBkODVkNzFjYWMzOCIgVmVyc2lvbj0iMi4wIiBJc3N1ZUluc3RhbnQ9IjIwMjAtM
-                type: string
-              devices:
-                example:
-                  - device_id: 51684
-                    device_type: Google Authenticator
                 items:
-                  properties:
-                    device_id:
-                      description: >-
-                        an ID for the device type that must be submitted with
-                        the Verify Factor API call.
-                      example: 654984
-                      type: integer
-                    device_type:
-                      description: >-
-                        Lists an available MFA device type, such as OneLogin OTP
-                        SMS or Google Authenticator.
-                      example: Google Authenticator
-                      type: string
                   type: object
                 type: array
-              message:
-                description: Plain text description describing the outcome of the response.
-                example: MFA is required for this user
-                type: string
-              state_token:
-                description: >-
-                  Provides the state_token value that must be submitted with
-                  each Verify Factor API call until the SAML assertion has been
-                  issued. Returned only when MFA is required
-                example: 5xxx604x8xx9x694xx860173xxx3x78x3x870x56
-                type: string
-              user:
+              status:
                 properties:
-                  activated_at:
-                    type: string
-                  comment:
-                    description: Free text related to the user.
-                    type: string
-                  company:
-                    description: The user's company.
-                    type: string
-                  created_at:
-                    type: string
-                  custom_attributes:
-                    additionalProperties:
-                      type: string
-                    example:
-                      en: Hello!
-                      fr: Bonjour!
-                    type: object
-                  department:
-                    description: The user's department.
-                    type: string
-                  directory_id:
-                    description: The ID of the OneLogin Directory of the user.
+                  code:
+                    example: 200
                     type: integer
-                  distinguished_name:
-                    description: The distinguished name of the user.
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Success
                     type: string
-                  email:
-                    description: A valid email for the user.
+                  type:
+                    example: Success
                     type: string
-                  external_id:
-                    description: The ID of the user in an external directory.
-                    type: string
-                  firstname:
-                    description: The user's first name.
-                    type: string
-                  group_id:
-                    description: >-
-                      The ID of the Group in OneLogin that the user is assigned
-                      to.
-                    type: integer
-                  id:
-                    type: integer
-                  invalid_login_attempts:
-                    type: integer
-                  invitation_sent_at:
-                    type: string
-                  last_login:
-                    type: string
-                  lastname:
-                    description: The user's last name.
-                    type: string
-                  locked_until:
-                    type: string
-                  manager_ad_id:
-                    description: The ID of the user's manager in Active Directory.
-                    type: string
-                  manager_user_id:
-                    description: The OneLogin User ID for the user's manager.
-                    type: string
-                  member_of:
-                    description: The user's directory membership.
-                    type: string
-                  password:
-                    description: The password to set for a user.
-                    type: string
-                  password_algorithm:
-                    description: >-
-                      Use this when importing a password that's already hashed.
-                      Prepend the salt value to the cleartext password value
-                      before SHA-256-encoding it
-                    type: string
-                  password_changed_at:
-                    type: string
-                  password_confirmation:
-                    description: Required if the password is being set.
-                    type: string
-                  phone:
-                    description: The E.164 format phone number for a user.
-                    type: string
-                  preferred_locale_code:
-                    type: string
-                  role_ids:
-                    description: A list of OneLogin Role IDs of the user
-                    items:
-                      type: integer
-                    minLength: 1
-                    type: array
-                  salt:
-                    description: The salt value used with the password_algorithm.
-                    type: string
-                  samaccount_name:
-                    description: The user's Active Directory username.
-                    type: string
-                  state:
-                    enum:
-                      - 0
-                      - 1
-                      - 2
-                      - 3
-                    type: integer
-                  status:
-                    enum:
-                      - 0
-                      - 1
-                      - 2
-                      - 3
-                      - 4
-                      - 5
-                      - 7
-                      - 8
-                    type: integer
-                  title:
-                    description: The user's job title.
-                    type: string
-                  trusted_idp_id:
-                    description: The ID of the OneLogin Trusted IDP of the user.
-                    type: integer
-                  updated_at:
-                    type: string
-                  username:
-                    description: A username for the user.
-                    type: string
-                  userprincipalname:
-                    description: The principle name of the user.
-                    type: string
+                required:
+                  - code
+                  - message
                 type: object
             type: object
         '400':
