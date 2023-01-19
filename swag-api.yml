@@ -2067,11 +2067,6 @@ paths:
           name: Content-Type
           type: string
           x-example: application/json
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-          x-example: 'bearer:{{access_token}}'
         - in: body
           name: body
           schema:
@@ -5022,8 +5017,6 @@ paths:
           schema:
             properties:
               data:
-                additionalProperties:
-                  type: string
                 description: >-
                   Provides a list of custom attribute fields (also known as
                   custom user fields) that are available for your account.
@@ -5034,9 +5027,13 @@ paths:
                   For details about defining custom user fields, see Custom User
                   Fields.
                 example:
-                  en: Hello
-                  fr: Bonjour
-                type: object
+                  - - alias
+                    - branch
+                items:
+                  items:
+                    type: string
+                  type: array
+                type: array
               status:
                 properties:
                   code:
@@ -6470,11 +6467,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-          x-example: 'bearer:{{access_token}}'
         - in: path
           name: user_id
           required: true
@@ -7008,11 +7000,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-          x-example: 'bearer:{{access_token}}'
         - in: path
           name: user_id
           required: true
@@ -7178,11 +7165,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: header
-          name: Authorization
-          required: true
-          type: string
-          x-example: 'bearer:{{access_token}}'
         - in: header
           name: Content-Type
           type: string
