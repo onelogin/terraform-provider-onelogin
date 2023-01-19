@@ -3578,15 +3578,23 @@ paths:
                       type: string
                   type: object
                 type: array
-              pagination:
-                additionalProperties:
-                  type: string
-                example:
-                  after_cursor: ""
-                  before_cursor: ""
-                  next_link: ""
-                  pagination: ""
-                  previous_link: ""
+              pagination:                  
+                properties: 
+                  after_cursor:
+                    type: string
+                    example: ""
+                  before_cursor: 
+                    type: string
+                    example: ""
+                  next_link: 
+                    type: string
+                    example: ""
+                  pagination:
+                    type: string
+                    example: ""
+                  previous_link:
+                    type: string
+                    example: ""
                 type: object
               status:
                 properties:
@@ -7886,167 +7894,6 @@ paths:
       description: Get User Roles
       operationId: getUserRoles
       summary: Get Roles for a User
-  '/api/1/users/{user_id}/set_custom_attributes':
-    put:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: header
-          name: Content-Type
-          type: string
-          x-example: application/json
-        - in: path
-          name: user_id
-          required: true
-          type: integer
-        - in: body
-          name: body
-          schema:
-            properties:
-              custom_attributes:
-                additionalProperties:
-                  type: string
-                example:
-                  en: Hello!
-                  fr: Bonjour!
-                type: object
-            type: object
-      responses:
-        '200':
-          description: Successful response
-          schema:
-            properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
-              message:
-                example: Success
-                type: string
-              type:
-                example: Success
-                type: string
-            required:
-              - code
-              - message
-            type: object
-        '400':
-          description: Bad Request
-          examples:
-            application/json:
-              code: 400
-              error: true
-              message: Request Failure
-              type: bad request
-          schema:
-            properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
-              message:
-                example: Success
-                type: string
-              type:
-                example: Success
-                type: string
-            required:
-              - code
-              - message
-            type: object
-        '401':
-          description: Unauthorized
-          examples:
-            application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
-          schema:
-            properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
-              message:
-                example: Success
-                type: string
-              type:
-                example: Success
-                type: string
-            required:
-              - code
-              - message
-            type: object
-        '403':
-          description: Forbidden
-          examples:
-            application/json:
-              code: 403
-              error: true
-              message: not allowed
-              type: ForbiddenError
-          schema:
-            properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
-              message:
-                example: Success
-                type: string
-              type:
-                example: Success
-                type: string
-            required:
-              - code
-              - message
-            type: object
-        '404':
-          description: Not Found
-          examples:
-            application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
-          schema:
-            properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
-              message:
-                example: Success
-                type: string
-              type:
-                example: Success
-                type: string
-            required:
-              - code
-              - message
-            type: object
-      security:
-        - OAuth2:
-            - Manage users
-            - Manage All
-      tags:
-        - Users
-      description: Set Custom User Attributes
-      operationId: setCustomAttributes
-      summary: Set Custom Attributes for User
   '/api/1/users/{user_id}/set_state':
     put:
       consumes:
