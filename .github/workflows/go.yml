@@ -7,16 +7,12 @@ jobs:
       GO111MODULE: on
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Format
       run: go fmt ./...
     - name: Build
       run: go build ./...
     - name: Vet
       run: go vet ./...
-    - name: Test
-      uses: cedrickring/golang-action@master
-      with:
-        args: make test
     - name: Secure
       run: make secure

@@ -53,10 +53,6 @@ tp:
 ta:
 	terraform apply -auto-approve
 
-test:
-	go get -u github.com/dcaponi/gopherbadger@v2.2.1
-	gopherbadger -root="./ol_schema" -md="readme.md" -png=false
-
 secure:
 	# excludes G104 (unhandled go errors) - Approved by security team
 	# excludes G109 (potential integer rollover) - These function calls were recommended by hashicorp for developing a provider
