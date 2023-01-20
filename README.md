@@ -100,6 +100,26 @@ This guide lists the configuration for 'onelogin' Terraform provider resources t
       - [Example usage](#example-usage-22)
       - [Arguments Reference](#arguments-reference-21)
       - [Attributes Reference](#attributes-reference-21)
+    - [onelogin\_roles (filters)](#onelogin_roles-filters)
+      - [Example usage](#example-usage-23)
+      - [Arguments Reference](#arguments-reference-22)
+      - [Attributes Reference](#attributes-reference-22)
+    - [onelogin\_roles\_admins (filters)](#onelogin_roles_admins-filters)
+      - [Example usage](#example-usage-24)
+      - [Arguments Reference](#arguments-reference-23)
+      - [Attributes Reference](#attributes-reference-23)
+    - [onelogin\_roles\_apps (filters)](#onelogin_roles_apps-filters)
+      - [Example usage](#example-usage-25)
+      - [Arguments Reference](#arguments-reference-24)
+      - [Attributes Reference](#attributes-reference-24)
+    - [onelogin\_roles\_users (filters)](#onelogin_roles_users-filters)
+      - [Example usage](#example-usage-26)
+      - [Arguments Reference](#arguments-reference-25)
+      - [Attributes Reference](#attributes-reference-25)
+    - [onelogin\_rules (filters)](#onelogin_rules-filters-1)
+      - [Example usage](#example-usage-27)
+      - [Arguments Reference](#arguments-reference-26)
+      - [Attributes Reference](#attributes-reference-26)
 
 ## Provider Installation
 
@@ -1113,3 +1133,249 @@ In addition to all arguments above, the following attributes are exported:
 - user\_display\_name [string] - Authentication factor display name assigned by users when they register the device.
 - auth\_factor\_name [string] - Authentication factor name, as it appears to administrators in OneLogin.
 - type\_display\_name [string] - Authentication factor display name as it appears to users upon initial registration, as defined by admins at Settings > Authentication Factors.
+
+### onelogin\_roles (filters)
+
+The roles data source allows you to retrieve an already existing roles resource using filters. Refer to the arguments section to learn more about how to configure the filters.
+
+#### Example usage
+
+```hcl
+data "onelogin_roles" "my_roles"{
+    filter  {
+        name  = "property name to filter by, see docs below for more info about available filter name options"
+        values  = ["filter value"]
+    }
+}
+```
+
+#### Arguments Reference
+
+The following arguments are supported:
+
+- filter - (Required) Object containing two properties.
+
+- name [string]: the name should match one of the properties to filter by. The following property names are supported: id, name,
+- values [array of string]: Values to filter by (only one value is supported at the moment).
+
+**Note:** If more or less than a single match is returned by the search, Terraform will fail. Ensure that your search is specific enough to return a single result only.
+
+#### Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+- id [integer]
+- apps [list of integers]
+- admins [list of integers]
+- users [list of integers]
+- name [string]
+
+### onelogin\_roles\_admins (filters)
+
+The roles\_admins data source allows you to retrieve an already existing roles\_admins resource using filters. Refer to the arguments section to learn more about how to configure the filters.
+
+#### Example usage
+
+```hcl
+data "onelogin_roles_admins" "my_roles_admins"{
+    filter  {
+        name  = "property name to filter by, see docs below for more info about available filter name options"
+        values  = ["filter value"]
+    }
+}
+```
+
+#### Arguments Reference
+
+The following arguments are supported:
+
+- filter - (Required) Object containing two properties.
+
+- name [string]: the name should match one of the properties to filter by. The following property names are supported: invitation\_sent\_at, firstname, salt, password\_changed\_at, manager\_ad\_id, phone, password\_algorithm, password\_confirmation, password, status, username, locked\_until, lastname, email, invalid\_login\_attempts, userprincipalname, member\_of, title, id, updated\_at, state, group\_id, preferred\_locale\_code, directory\_id, created\_at, trusted\_idp\_id, company, distinguished\_name, activated\_at, external\_id, last\_login, comment, samaccount\_name, department, roles\_id, manager\_user\_id,
+- values [array of string]: Values to filter by (only one value is supported at the moment).
+
+**Note:** If more or less than a single match is returned by the search, Terraform will fail. Ensure that your search is specific enough to return a single result only.
+
+#### Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+- invitation\_sent\_at [string]
+- firstname [string] - The user's first name.
+- salt [string] - The salt value used with the password\_algorithm.
+- password\_changed\_at [string]
+- manager\_ad\_id [string] - The ID of the user's manager in Active Directory.
+- phone [string] - The E.164 format phone number for a user.
+- password\_algorithm [string] - Use this when importing a password that's already hashed. Prepend the salt value to the cleartext password value before SHA-256-encoding it
+- password\_confirmation [string] - Required if the password is being set.
+- password [string] - The password to set for a user.
+- status [integer]
+- username [string] - A username for the user.
+- locked\_until [string]
+- lastname [string] - The user's last name.
+- email [string] - A valid email for the user.
+- invalid\_login\_attempts [integer]
+- userprincipalname [string] - The principle name of the user.
+- member\_of [string] - The user's directory membership.
+- title [string] - The user's job title.
+- id [integer]
+- updated\_at [string]
+- state [integer]
+- role\_ids [list of integers] - A list of OneLogin Role IDs of the user
+- group\_id [integer] - The ID of the Group in OneLogin that the user is assigned to.
+- preferred\_locale\_code [string]
+- directory\_id [integer] - The ID of the OneLogin Directory of the user.
+- created\_at [string]
+- trusted\_idp\_id [integer] - The ID of the OneLogin Trusted IDP of the user.
+- company [string] - The user's company.
+- distinguished\_name [string] - The distinguished name of the user.
+- activated\_at [string]
+- external\_id [string] - The ID of the user in an external directory.
+- last\_login [string]
+- comment [string] - Free text related to the user.
+- samaccount\_name [string] - The user's Active Directory username.
+- department [string] - The user's department.
+- manager\_user\_id [string] - The OneLogin User ID for the user's manager.
+
+### onelogin\_roles\_apps (filters)
+
+The roles\_apps data source allows you to retrieve an already existing roles\_apps resource using filters. Refer to the arguments section to learn more about how to configure the filters.
+
+#### Example usage
+
+```hcl
+data "onelogin_roles_apps" "my_roles_apps"{
+    filter  {
+        name  = "property name to filter by, see docs below for more info about available filter name options"
+        values  = ["filter value"]
+    }
+}
+```
+
+#### Arguments Reference
+
+The following arguments are supported:
+
+- filter - (Required) Object containing two properties.
+
+- name [string]: the name should match one of the properties to filter by. The following property names are supported: icon\_url, id, name, roles\_id,
+- values [array of string]: Values to filter by (only one value is supported at the moment).
+
+**Note:** If more or less than a single match is returned by the search, Terraform will fail. Ensure that your search is specific enough to return a single result only.
+
+#### Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+- icon\_url [string] - url of Icon
+- id [integer] - app id
+- name [string] - app name
+
+### onelogin\_roles\_users (filters)
+
+The roles\_users data source allows you to retrieve an already existing roles\_users resource using filters. Refer to the arguments section to learn more about how to configure the filters.
+
+#### Example usage
+
+```hcl
+data "onelogin_roles_users" "my_roles_users"{
+    filter  {
+        name  = "property name to filter by, see docs below for more info about available filter name options"
+        values  = ["filter value"]
+    }
+}
+```
+
+#### Arguments Reference
+
+The following arguments are supported:
+
+- filter - (Required) Object containing two properties.
+
+- name [string]: the name should match one of the properties to filter by. The following property names are supported: invitation\_sent\_at, firstname, salt, password\_changed\_at, manager\_ad\_id, phone, password\_algorithm, password\_confirmation, password, status, username, locked\_until, lastname, email, invalid\_login\_attempts, userprincipalname, member\_of, title, id, updated\_at, state, group\_id, preferred\_locale\_code, directory\_id, created\_at, trusted\_idp\_id, company, distinguished\_name, activated\_at, external\_id, last\_login, comment, samaccount\_name, department, roles\_id, manager\_user\_id,
+- values [array of string]: Values to filter by (only one value is supported at the moment).
+
+**Note:** If more or less than a single match is returned by the search, Terraform will fail. Ensure that your search is specific enough to return a single result only.
+
+#### Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+- invitation\_sent\_at [string]
+- firstname [string] - The user's first name.
+- salt [string] - The salt value used with the password\_algorithm.
+- password\_changed\_at [string]
+- manager\_ad\_id [string] - The ID of the user's manager in Active Directory.
+- phone [string] - The E.164 format phone number for a user.
+- password\_algorithm [string] - Use this when importing a password that's already hashed. Prepend the salt value to the cleartext password value before SHA-256-encoding it
+- password\_confirmation [string] - Required if the password is being set.
+- password [string] - The password to set for a user.
+- status [integer]
+- username [string] - A username for the user.
+- locked\_until [string]
+- lastname [string] - The user's last name.
+- email [string] - A valid email for the user.
+- invalid\_login\_attempts [integer]
+- userprincipalname [string] - The principle name of the user.
+- member\_of [string] - The user's directory membership.
+- title [string] - The user's job title.
+- id [integer]
+- updated\_at [string]
+- state [integer]
+- role\_ids [list of integers] - A list of OneLogin Role IDs of the user
+- group\_id [integer] - The ID of the Group in OneLogin that the user is assigned to.
+- preferred\_locale\_code [string]
+- directory\_id [integer] - The ID of the OneLogin Directory of the user.
+- created\_at [string]
+- trusted\_idp\_id [integer] - The ID of the OneLogin Trusted IDP of the user.
+- company [string] - The user's company.
+- distinguished\_name [string] - The distinguished name of the user.
+- activated\_at [string]
+- external\_id [string] - The ID of the user in an external directory.
+- last\_login [string]
+- comment [string] - Free text related to the user.
+- samaccount\_name [string] - The user's Active Directory username.
+- department [string] - The user's department.
+- manager\_user\_id [string] - The OneLogin User ID for the user's manager.
+
+### onelogin\_rules (filters)
+
+The rules data source allows you to retrieve an already existing rules resource using filters. Refer to the arguments section to learn more about how to configure the filters.
+
+#### Example usage
+
+```hcl
+data "onelogin_rules" "my_rules"{
+    filter  {
+        name  = "property name to filter by, see docs below for more info about available filter name options"
+        values  = ["filter value"]
+    }
+}
+```
+
+#### Arguments Reference
+
+The following arguments are supported:
+
+- filter - (Required) Object containing two properties.
+
+- name [string]: the name should match one of the properties to filter by. The following property names are supported: id, type, target, name, description,
+- values [array of string]: Values to filter by (only one value is supported at the moment).
+
+**Note:** If more or less than a single match is returned by the search, Terraform will fail. Ensure that your search is specific enough to return a single result only.
+
+#### Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+- id [string]
+- type [string] - The type parameter specifies the type of rule that will be created.
+- filters [list of strings] - A list of IP addresses or country codes or names to evaluate against each event.
+- target [string] - The target parameter that will be used when evaluating the rule against an incoming event.
+- \* source [object] - Used for targeting custom rules based on a group of people, customers, accounts, or even a single user. The following properties compose the object schema:
+  - name [string] - The name of the source
+  - id [string] - A unique id that represents the source of the event.
+- name [string] - The name of this rule
+- description [string]
+
+\* Note: Object type properties are internally represented (in the state file) as a list of one elem due to [Terraform SDK's limitation for supporting complex object types](https://github.com/hashicorp/terraform-plugin-sdk/issues/155#issuecomment-489699737). Please index on the first elem of the array to reference the object values (eg: onelogin\_rules.my\_rules.**source[0]**.object\_property)
