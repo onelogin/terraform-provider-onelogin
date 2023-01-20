@@ -738,14 +738,14 @@ paths:
                     example: xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
                   before_cursor:
-                    example: '""'
+                    example: 'null'
                     type: string
                   next_link:
                     example: >-
                       https://{subdomain}.onelogin.com/api/1/events?after_cursor=xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
                   previous_link:
-                    example: '""'
+                    example: 'null'
                     type: string
                 type: object
               status:
@@ -1710,7 +1710,7 @@ paths:
                       type: string
                     reference:
                       description: Deprecated. Will always show the attribute nil="true".
-                      example: '""'
+                      example: 'null'
                       type: string
                   type: object
                 type: array
@@ -1823,7 +1823,7 @@ paths:
                       type: string
                     reference:
                       description: Deprecated. Will always show the attribute nil="true".
-                      example: '""'
+                      example: 'null'
                       type: string
                   type: object
                 type: array
@@ -3068,16 +3068,16 @@ paths:
             properties:
               afterCursor:
                 type: integer
-                x-""able: true
+                x-nullable: true
               beforeCursor:
                 type: integer
-                x-""able: true
+                x-nullable: true
               nextLink:
                 type: string
-                x-""able: true
+                x-nullable: true
               previousLink:
                 type: string
-                x-""able: true
+                x-nullable: true
               roles:
                 items:
                   type: integer
@@ -3318,16 +3318,16 @@ paths:
             properties:
               afterCursor:
                 type: integer
-                x-""able: true
+                x-nullable: true
               beforeCursor:
                 type: integer
-                x-""able: true
+                x-nullable: true
               nextLink:
                 type: string
-                x-""able: true
+                x-nullable: true
               previousLink:
                 type: string
-                x-""able: true
+                x-nullable: true
               total:
                 type: integer
               users:
@@ -3578,23 +3578,21 @@ paths:
                       type: string
                   type: object
                 type: array
-              pagination:                  
-                properties: 
+              pagination:
+                properties:
                   after_cursor:
+                    example: xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
-                    example: ""
-                  before_cursor: 
+                  before_cursor:
+                    example: '""'
                     type: string
-                    example: ""
-                  next_link: 
+                  next_link:
+                    example: >-
+                      https://{subdomain}.onelogin.com/api/1/events?after_cursor=xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
-                    example: ""
-                  pagination:
-                    type: string
-                    example: ""
                   previous_link:
+                    example: '""'
                     type: string
-                    example: ""
                 type: object
               status:
                 properties:
@@ -8129,27 +8127,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -8233,53 +8226,43 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -8309,53 +8292,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -8437,27 +8412,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -8545,79 +8515,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -8688,53 +8645,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -8794,79 +8743,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -8900,53 +8836,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9015,79 +8943,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9149,53 +9064,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9256,79 +9163,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9371,79 +9265,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9502,79 +9383,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9658,27 +9526,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9729,79 +9592,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9835,53 +9685,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -9936,79 +9778,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -10102,6 +9931,48 @@ paths:
               visible:
                 description: Indicates if the app is visible in the OneLogin portal.
                 type: boolean
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '422':
+          description: Unprocessable Entity
+          examples:
+            application/json:
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -10361,53 +10232,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -10510,53 +10373,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -10744,53 +10599,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -10824,79 +10671,66 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '403':
           description: Forbidden
           examples:
             application/json:
-              code: 403
-              error: true
-              message: not allowed
-              type: ForbiddenError
+              message: Not allowed to destroy specified resource
+              name: ForbiddenError
+              statusCode: 403
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11069,7 +10903,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the rule. When `""` this will
+                    Indicates the order of the rule. When `null` this will
                     default to last position.
                   example: 1
                   type: integer
@@ -11079,27 +10913,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11187,7 +11016,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the rule. When `""` this will default
+                  Indicates the order of the rule. When `null` this will default
                   to last position.
                 example: 1
                 type: integer
@@ -11201,53 +11030,43 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11287,27 +11106,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11352,27 +11166,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11413,27 +11222,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11478,27 +11282,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11543,27 +11342,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11617,53 +11411,43 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11693,53 +11477,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11825,7 +11601,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the rule. When `""` this will default
+                  Indicates the order of the rule. When `null` this will default
                   to last position.
                 example: 1
                 type: integer
@@ -11834,53 +11610,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -11972,7 +11740,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the rule. When `""` this will default
+                  Indicates the order of the rule. When `null` this will default
                   to last position.
                 example: 1
                 type: integer
@@ -11986,53 +11754,43 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -12181,27 +11939,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -12251,53 +12004,43 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -12463,7 +12206,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the mapping. When `""` this will
+                    Indicates the order of the mapping. When `null` this will
                     default to last position.
                   type: integer
               required:
@@ -12582,7 +12325,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the mapping. When `""` this will
+                  Indicates the order of the mapping. When `null` this will
                   default to last position.
                 type: integer
             required:
@@ -12658,7 +12401,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the mapping. When `""` this will
+                    Indicates the order of the mapping. When `null` this will
                     default to last position.
                   type: integer
               required:
@@ -13263,7 +13006,7 @@ paths:
                 type: string
               position:
                 description: >-
-                  Indicates the order of the mapping. When `""` this will
+                  Indicates the order of the mapping. When `null` this will
                   default to last position.
                 type: integer
             required:
@@ -13413,7 +13156,7 @@ paths:
                   type: string
                 position:
                   description: >-
-                    Indicates the order of the mapping. When `""` this will
+                    Indicates the order of the mapping. When `null` this will
                     default to last position.
                   type: integer
               required:
@@ -13538,27 +13281,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -13628,27 +13366,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -13729,53 +13462,43 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '422':
-          description: Unprocessable
+          description: Unprocessable Entity
           examples:
             application/json:
-              code: 422
-              error: true
-              message: 'Validation failed: Value has already been taken'
-              type: UnprocessableEntityError
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -13908,27 +13631,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -13981,27 +13699,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -14082,27 +13795,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -14229,27 +13937,22 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -14301,53 +14004,45 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '404':
           description: Not Found
           examples:
             application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -14427,53 +14122,43 @@ paths:
           description: Unauthorized
           examples:
             application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
         '403':
           description: Forbidden
           examples:
             application/json:
-              code: 403
-              error: true
-              message: not allowed
-              type: ForbiddenError
+              message: Not allowed to destroy specified resource
+              name: ForbiddenError
+              statusCode: 403
           schema:
             properties:
-              code:
-                example: 200
-                type: integer
-              error:
-                example: false
-                type: boolean
               message:
-                example: Success
+                description: Description of Error
                 type: string
-              type:
-                example: Success
+              name:
+                description: Error Code Name
                 type: string
-            required:
-              - code
-              - message
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
             type: object
       security:
         - OAuth2:
@@ -15408,6 +15093,1472 @@ paths:
       description: Get Vigilance AI (Risk Service) Score
       operationId: getRiskScore
       summary: Get a Risk Score
+  /api/2/roles:
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: How many items to return at one time (max 100)
+          format: int32
+          in: query
+          name: limit
+          required: false
+          type: integer
+        - description: The page number of results to return.
+          in: query
+          name: page
+          type: integer
+        - description: >-
+            Set to the value extracted from Before-Cursor or After-Cursor
+            headers to return the previous or next page.
+          in: query
+          name: cursor
+          type: string
+        - description: Optional. Filters by role name.
+          in: query
+          name: name
+          type: string
+        - description: Optional. Returns roles that contain this app ID.
+          in: query
+          name: app_id
+          type: integer
+        - description: Optional. Returns roles that contain this app name.
+          in: query
+          name: app_name
+          type: string
+        - description: Optional. Comma delimited list of fields to return.
+          enum:
+            - apps
+            - users
+            - admins
+          in: query
+          name: fields
+          type: string
+      responses:
+        '200':
+          description: OK
+          headers:
+            After-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                follows the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Before-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                preceed the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Current-Page:
+              description: The index number of the current page being returned.
+              type: integer
+            Link:
+              description: 'A set of urls which contains premade links for first, next'
+              type: array
+            Page-Items:
+              description: The number of items returned in the response.
+              type: integer
+            Total-Count:
+              description: The total number of items across all pages.
+              type: integer
+            Total-Pages:
+              description: The total number of pages to return all results.
+              type: integer
+          schema:
+            items:
+              properties:
+                admins:
+                  items:
+                    type: integer
+                  type: array
+                apps:
+                  items:
+                    type: integer
+                  type: array
+                id:
+                  type: integer
+                name:
+                  type: string
+                users:
+                  items:
+                    type: integer
+                  type: array
+              required:
+                - name
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+            - Read All
+            - Read Users
+      tags:
+        - Roles
+      description: List Roles
+      operationId: listRoles
+      summary: List Roles
+    post:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              admins:
+                items:
+                  type: integer
+                type: array
+              apps:
+                items:
+                  type: integer
+                type: array
+              id:
+                type: integer
+              name:
+                type: string
+              users:
+                items:
+                  type: integer
+                type: array
+            required:
+              - name
+            type: object
+      responses:
+        '201':
+          description: CREATED
+          schema:
+            items:
+              properties:
+                id:
+                  type: integer
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Create Role
+      operationId: createRoles
+      summary: Create Role
+  '/api/2/roles/{role_id}':
+    delete:
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: NO CONTENT
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '403':
+          description: Forbidden
+          examples:
+            application/json:
+              message: Not allowed to destroy specified resource
+              name: ForbiddenError
+              statusCode: 403
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Delete Role
+      operationId: deleteRole
+      summary: Delete Role by ID
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            properties:
+              admins:
+                items:
+                  type: integer
+                type: array
+              apps:
+                items:
+                  type: integer
+                type: array
+              id:
+                type: integer
+              name:
+                type: string
+              users:
+                items:
+                  type: integer
+                type: array
+            required:
+              - name
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+            - Read All
+            - Read Users
+      tags:
+        - Roles
+      description: Get Role
+      operationId: getRole
+      summary: Get Role by ID
+    put:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              admins:
+                items:
+                  type: integer
+                type: array
+              apps:
+                items:
+                  type: integer
+                type: array
+              id:
+                type: integer
+              name:
+                type: string
+              users:
+                items:
+                  type: integer
+                type: array
+            required:
+              - name
+            type: object
+      responses:
+        '200':
+          description: OK
+          schema:
+            properties:
+              id:
+                type: integer
+            type: object
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '422':
+          description: Unprocessable Entity
+          examples:
+            application/json:
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Update Role
+      operationId: updateRole
+      summary: Update Role
+  '/api/2/roles/{role_id}/admins':
+    delete:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              user_id:
+                items:
+                  type: integer
+                type: array
+            type: object
+      responses:
+        '204':
+          description: NO CONTENT
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Remove Role Admins
+      operationId: removeRoleAdmins
+      summary: Remove Role Admins
+    get:
+      produces:
+        - applcation/json
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - description: How many items to return at one time (max 100)
+          format: int32
+          in: query
+          name: limit
+          required: false
+          type: integer
+        - description: The page number of results to return.
+          in: query
+          name: page
+          type: integer
+        - description: >-
+            Set to the value extracted from Before-Cursor or After-Cursor
+            headers to return the previous or next page.
+          in: query
+          name: cursor
+          type: string
+        - description: >-
+            Allows you to filter on first name, last name, username, and email
+            address.
+          in: query
+          name: name
+          type: string
+        - description: >-
+            Optional. Defaults to false. Include users that aren’t assigned to
+            the role.
+          in: query
+          name: include_unassigned
+          type: boolean
+      responses:
+        '200':
+          description: OK
+          headers:
+            After-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                follows the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Before-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                preceed the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Current-Page:
+              description: The index number of the current page being returned.
+              type: integer
+            Link:
+              description: 'A set of urls which contains premade links for first, next'
+              type: array
+            Page-Items:
+              description: The number of items returned in the response.
+              type: integer
+            Total-Count:
+              description: The total number of items across all pages.
+              type: integer
+            Total-Pages:
+              description: The total number of pages to return all results.
+              type: integer
+          schema:
+            items:
+              properties:
+                activated_at:
+                  type: string
+                comment:
+                  description: Free text related to the user.
+                  type: string
+                company:
+                  description: The user's company.
+                  type: string
+                created_at:
+                  type: string
+                department:
+                  description: The user's department.
+                  type: string
+                directory_id:
+                  description: The ID of the OneLogin Directory of the user.
+                  type: integer
+                distinguished_name:
+                  description: The distinguished name of the user.
+                  type: string
+                email:
+                  description: A valid email for the user.
+                  type: string
+                external_id:
+                  description: The ID of the user in an external directory.
+                  type: string
+                firstname:
+                  description: The user's first name.
+                  type: string
+                group_id:
+                  description: >-
+                    The ID of the Group in OneLogin that the user is assigned
+                    to.
+                  type: integer
+                id:
+                  type: integer
+                invalid_login_attempts:
+                  type: integer
+                invitation_sent_at:
+                  type: string
+                last_login:
+                  type: string
+                lastname:
+                  description: The user's last name.
+                  type: string
+                locked_until:
+                  type: string
+                manager_ad_id:
+                  description: The ID of the user's manager in Active Directory.
+                  type: string
+                manager_user_id:
+                  description: The OneLogin User ID for the user's manager.
+                  type: string
+                member_of:
+                  description: The user's directory membership.
+                  type: string
+                password:
+                  description: The password to set for a user.
+                  type: string
+                password_algorithm:
+                  description: >-
+                    Use this when importing a password that's already hashed.
+                    Prepend the salt value to the cleartext password value
+                    before SHA-256-encoding it
+                  type: string
+                password_changed_at:
+                  type: string
+                password_confirmation:
+                  description: Required if the password is being set.
+                  type: string
+                phone:
+                  description: The E.164 format phone number for a user.
+                  type: string
+                preferred_locale_code:
+                  type: string
+                role_ids:
+                  description: A list of OneLogin Role IDs of the user
+                  items:
+                    type: integer
+                  minLength: 1
+                  type: array
+                salt:
+                  description: The salt value used with the password_algorithm.
+                  type: string
+                samaccount_name:
+                  description: The user's Active Directory username.
+                  type: string
+                state:
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                  type: integer
+                status:
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                    - 4
+                    - 5
+                    - 7
+                    - 8
+                  type: integer
+                title:
+                  description: The user's job title.
+                  type: string
+                trusted_idp_id:
+                  description: The ID of the OneLogin Trusted IDP of the user.
+                  type: integer
+                updated_at:
+                  type: string
+                username:
+                  description: A username for the user.
+                  type: string
+                userprincipalname:
+                  description: The principle name of the user.
+                  type: string
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+            - Read All
+            - Read Users
+      tags:
+        - Roles
+      description: Get Role Admins
+      operationId: getRoleAdmins
+      summary: Get Role Admins
+    post:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            description: 'Set user_id values in array,'
+            items:
+              type: integer
+            type: array
+      responses:
+        '200':
+          description: OK
+          schema:
+            items:
+              properties:
+                id:
+                  type: integer
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Add Role Admins
+      operationId: addRoleAdmins
+      summary: Add Role Admins
+  '/api/2/roles/{role_id}/apps':
+    get:
+      produces:
+        - applcation/json
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - description: How many items to return at one time (max 100)
+          format: int32
+          in: query
+          name: limit
+          required: false
+          type: integer
+        - description: The page number of results to return.
+          in: query
+          name: page
+          type: integer
+        - description: >-
+            Set to the value extracted from Before-Cursor or After-Cursor
+            headers to return the previous or next page.
+          in: query
+          name: cursor
+          type: string
+        - description: >-
+            Optional. Defaults to true. Returns all apps not yet assigned to the
+            role.
+          in: query
+          name: assigned
+          type: boolean
+      responses:
+        '200':
+          description: OK
+          headers:
+            After-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                follows the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Before-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                preceed the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Current-Page:
+              description: The index number of the current page being returned.
+              type: integer
+            Link:
+              description: 'A set of urls which contains premade links for first, next'
+              type: array
+            Page-Items:
+              description: The number of items returned in the response.
+              type: integer
+            Total-Count:
+              description: The total number of items across all pages.
+              type: integer
+            Total-Pages:
+              description: The total number of pages to return all results.
+              type: integer
+          schema:
+            items:
+              example:
+                icon_url: 'https://testurl.com'
+                id: 345
+                name: Dropbox
+              properties:
+                icon_url:
+                  description: url of Icon
+                  format: url
+                  type: string
+                id:
+                  description: app id
+                  type: integer
+                name:
+                  description: app name
+                  type: string
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      tags:
+        - Roles
+      description: Get Role Apps
+      operationId: getRoleApps
+      summary: Get all Apps assigned to Role
+    put:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            description: >-
+              The complete list of app_id values to assign to the role. Don't
+              submit a partial list of app IDs.
+            items:
+              type: integer
+            type: array
+      responses:
+        '200':
+          description: The response returns an array of app IDs sent in the request.
+          schema:
+            items:
+              properties:
+                id:
+                  type: integer
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Set Role Apps
+      operationId: setRoleApps
+      summary: Set Role Apps
+  '/api/2/roles/{role_id}/users':
+    delete:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              user_id:
+                items:
+                  type: integer
+                type: array
+            type: object
+      responses:
+        '204':
+          description: NO CONTENT
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Remove Role Users
+      operationId: removeRoleUsers
+      summary: Remove Role Users
+    get:
+      produces:
+        - applcation/json
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - description: How many items to return at one time (max 100)
+          format: int32
+          in: query
+          name: limit
+          required: false
+          type: integer
+        - description: The page number of results to return.
+          in: query
+          name: page
+          type: integer
+        - description: >-
+            Set to the value extracted from Before-Cursor or After-Cursor
+            headers to return the previous or next page.
+          in: query
+          name: cursor
+          type: string
+        - description: >-
+            Allows you to filter on first name, last name, username, and email
+            address.
+          in: query
+          name: name
+          type: string
+        - description: >-
+            Optional. Defaults to false. Include users that aren’t assigned to
+            the role.
+          in: query
+          name: include_unassigned
+          type: boolean
+      responses:
+        '200':
+          description: OK
+          headers:
+            After-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                follows the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Before-Cursor:
+              description: >-
+                A string that can be used to request the page of results that
+                preceed the current page using the same set of search filters
+                and pagination options.
+              type: string
+            Current-Page:
+              description: The index number of the current page being returned.
+              type: integer
+            Link:
+              description: 'A set of urls which contains premade links for first, next'
+              type: array
+            Page-Items:
+              description: The number of items returned in the response.
+              type: integer
+            Total-Count:
+              description: The total number of items across all pages.
+              type: integer
+            Total-Pages:
+              description: The total number of pages to return all results.
+              type: integer
+          schema:
+            example:
+              - added_at: '2019-12-27T00:00:00Z'
+                added_by:
+                  id: 678
+                  name: Susan Boss
+                assigned: true
+                id: 345
+                name: Joe User
+                username: joe.user@example.com
+            items:
+              properties:
+                activated_at:
+                  type: string
+                comment:
+                  description: Free text related to the user.
+                  type: string
+                company:
+                  description: The user's company.
+                  type: string
+                created_at:
+                  type: string
+                department:
+                  description: The user's department.
+                  type: string
+                directory_id:
+                  description: The ID of the OneLogin Directory of the user.
+                  type: integer
+                distinguished_name:
+                  description: The distinguished name of the user.
+                  type: string
+                email:
+                  description: A valid email for the user.
+                  type: string
+                external_id:
+                  description: The ID of the user in an external directory.
+                  type: string
+                firstname:
+                  description: The user's first name.
+                  type: string
+                group_id:
+                  description: >-
+                    The ID of the Group in OneLogin that the user is assigned
+                    to.
+                  type: integer
+                id:
+                  type: integer
+                invalid_login_attempts:
+                  type: integer
+                invitation_sent_at:
+                  type: string
+                last_login:
+                  type: string
+                lastname:
+                  description: The user's last name.
+                  type: string
+                locked_until:
+                  type: string
+                manager_ad_id:
+                  description: The ID of the user's manager in Active Directory.
+                  type: string
+                manager_user_id:
+                  description: The OneLogin User ID for the user's manager.
+                  type: string
+                member_of:
+                  description: The user's directory membership.
+                  type: string
+                password:
+                  description: The password to set for a user.
+                  type: string
+                password_algorithm:
+                  description: >-
+                    Use this when importing a password that's already hashed.
+                    Prepend the salt value to the cleartext password value
+                    before SHA-256-encoding it
+                  type: string
+                password_changed_at:
+                  type: string
+                password_confirmation:
+                  description: Required if the password is being set.
+                  type: string
+                phone:
+                  description: The E.164 format phone number for a user.
+                  type: string
+                preferred_locale_code:
+                  type: string
+                role_ids:
+                  description: A list of OneLogin Role IDs of the user
+                  items:
+                    type: integer
+                  minLength: 1
+                  type: array
+                salt:
+                  description: The salt value used with the password_algorithm.
+                  type: string
+                samaccount_name:
+                  description: The user's Active Directory username.
+                  type: string
+                state:
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                  type: integer
+                status:
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                    - 4
+                    - 5
+                    - 7
+                    - 8
+                  type: integer
+                title:
+                  description: The user's job title.
+                  type: string
+                trusted_idp_id:
+                  description: The ID of the OneLogin Trusted IDP of the user.
+                  type: integer
+                updated_at:
+                  type: string
+                username:
+                  description: A username for the user.
+                  type: string
+                userprincipalname:
+                  description: The principle name of the user.
+                  type: string
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '404':
+          description: Not Found
+          examples:
+            application/json:
+              message: >-
+                The resource can't be found or the server has not found anything
+                matching the Request-URI
+              name: NotFoundError
+              statusCode: 404
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Get Role Users
+      operationId: getRoleUsers
+      summary: Get Role Users
+    post:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: Set to the id of the role you want to return.
+          in: path
+          name: role_id
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            description: 'Set user_id values in array,'
+            items:
+              type: integer
+            type: array
+      responses:
+        '200':
+          description: OK
+          schema:
+            items:
+              properties:
+                id:
+                  type: integer
+              type: object
+            type: array
+        '401':
+          description: Unauthorized
+          examples:
+            application/json:
+              message: This request requires Authentication
+              name: UnauthorizedError
+              statusCode: 401
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+        '422':
+          description: Unprocessable Entity
+          examples:
+            application/json:
+              message: invalid value in \"auth_method\"
+              name: UnprocessableEntityError
+              statusCode: 422
+          schema:
+            properties:
+              message:
+                description: Description of Error
+                type: string
+              name:
+                description: Error Code Name
+                type: string
+              statusCode:
+                description: >-
+                  HTTP error code
+                  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+                type: integer
+            type: object
+      security:
+        - OAuth2:
+            - Manage All
+      tags:
+        - Roles
+      description: Add Role Users
+      operationId: addRoleUsers
+      summary: Add Role Users
   /api/2/saml_assertion:
     post:
       consumes:
@@ -15737,6 +16888,8 @@ paths:
                 example: >-
                   xx508xx63817x752xx74004x30705xx92x58349x5x78f5xx34x8x614xxxx1451
                 type: string
+            required:
+              - access_token
             type: object
       responses:
         '200':
@@ -15870,7 +17023,10 @@ paths:
           schema:
             properties:
               grant_type:
+                default: client_credentials
                 type: string
+            required:
+              - grant_type
             type: object
       responses:
         '200':
