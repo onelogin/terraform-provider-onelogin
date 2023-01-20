@@ -597,7 +597,7 @@ The apps\_actions data source allows you to retrieve an already existing apps\_a
 #### Example usage
 
 ```hcl
-data "onelogin_apps_actions "my_apps_actions"{
+data "onelogin_apps_actions" "my_apps_actions"{
     filter  {
         name  = "property name to filter by, see docs below for more info about available filter name options"
         values  = ["filter value"]
