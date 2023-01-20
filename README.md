@@ -255,7 +255,7 @@ In addition to all arguments above, the following attributes are exported:
 
 rules resources can be imported using the `id` , e.g:
 
-```hcl
+```shell
 terraform import onelogin_rules.my_rules id
 ```
 
@@ -805,7 +805,7 @@ The apps\_users data source allows you to retrieve an already existing apps\_use
 #### Example usage
 
 ```hcl
-data "onelogin_apps_users" my_apps_users"{
+data "onelogin_apps_users" "my_apps_users"{
     filter  {
         name  = "property name to filter by, see docs below for more info about available filter name options"
         values  = ["filter value"]
