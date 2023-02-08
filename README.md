@@ -139,7 +139,7 @@ In order to provision 'onelogin' Terraform resources, you need to first install 
 You can then start running the Terraform provider:
 
 ```shell
- export OTF_VAR_onelogin_PLUGIN_CONFIGURATION_FILE="https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/openapi/swag-api.yml" && terraform init && terraform plan
+ export OTF_VAR_onelogin_PLUGIN_CONFIGURATION_FILE="https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/master/swag-api.yml" && terraform init && terraform plan
 ```
 
 **Note:** As of Terraform >= 0.13 each Terraform module must declare which providers it requires, so that Terraform can install and use them. If you are using Terraform >= 0.13, copy into your .tf file the following snippet already populated with the provider configuration:
@@ -148,7 +148,7 @@ You can then start running the Terraform provider:
 terraform {
   required_providers {
     onelogin = {
-      source  = "onelogin.com/onelogin/onelogin"
+      source  = "onelogin/onelogin"
       version = ">= 2.0.1" 
     }
   }
