@@ -148,7 +148,7 @@ You can then start running the Terraform provider:
 terraform {
   required_providers {
     onelogin = {
-      source  = "onelogin.com/onelogin/onelogin"
+      source  = "onelogin/onelogin"
       version = ">= 2.0.1" 
     }
   }
