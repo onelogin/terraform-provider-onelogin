@@ -18,7 +18,7 @@ jobs:
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v5.2.0
-        env:
+        with:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
       - name: Run GoReleaser
