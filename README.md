@@ -287,7 +287,7 @@ In addition to all arguments above, the following attributes are exported:
 users resources can be imported using the `id` , e.g:
 
 ```shell
-terraform import onelogin\_users.my\_users id
+terraform import onelogin_users.my_users id
 ```
 
 **Note**: In order for the import to work, the 'onelogin' terraform provider must be [properly installed](#provider_installation). Read more about Terraform import usage [here](https://www.terraform.io/docs/import/usage.html).
