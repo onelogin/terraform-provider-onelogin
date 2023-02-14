@@ -156,15 +156,18 @@ export PROVIDER\_NAME=onelogin && curl -fsSL https://raw.githubusercontent.com/d
 You can then start running the Terraform provider:
 
 ```shell
-export OTF\_VAR\_onelogin\_PLUGIN\_CONFIGURATION\_FILE="https://api.service.com/openapi.yaml"  
-➜ ~ terraform init && terraform plan
+ export OTF_VAR_onelogin_PLUGIN_CONFIGURATION_FILE="https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/swag-api.yml" && terraform init && terraform plan
 ```
 
 **Note:** As of Terraform >= 0.13 each Terraform module must declare which providers it requires, so that Terraform can install and use them. If you are using Terraform >= 0.13, copy into your .tf file the following snippet already populated with the provider configuration:
 
 ```hcl
 terraform {
-  required\_providers { onelogin = {source  = "onelogin/onelogin"version = ">= 2.0.1" }
+  required_providers { 
+  onelogin = {
+    source  = "onelogin/onelogin"
+    version = ">= 2.0.1" 
+    }
   }
 }
 ```
