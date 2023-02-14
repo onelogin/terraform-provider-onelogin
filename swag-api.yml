@@ -14673,6 +14673,8 @@ paths:
                       type: boolean
                   type: object
                 packages:
+                  additionalProperties:
+                    type: string
                   description: >-
                     An object containing NPM packages that are bundled with the
                     hook function.
@@ -14827,6 +14829,8 @@ paths:
                     type: boolean
                 type: object
               packages:
+                additionalProperties:
+                  type: string
                 description: >-
                   An object containing NPM packages that are bundled with the
                   hook function.
@@ -14940,6 +14944,8 @@ paths:
                     type: boolean
                 type: object
               packages:
+                additionalProperties:
+                  type: string
                 description: >-
                   An object containing NPM packages that are bundled with the
                   hook function.
@@ -15671,6 +15677,8 @@ paths:
                     type: boolean
                 type: object
               packages:
+                additionalProperties:
+                  type: string
                 description: >-
                   An object containing NPM packages that are bundled with the
                   hook function.
@@ -15853,6 +15861,8 @@ paths:
                     type: boolean
                 type: object
               packages:
+                additionalProperties:
+                  type: string
                 description: >-
                   An object containing NPM packages that are bundled with the
                   hook function.
@@ -15966,6 +15976,8 @@ paths:
                     type: boolean
                 type: object
               packages:
+                additionalProperties:
+                  type: string
                 description: >-
                   An object containing NPM packages that are bundled with the
                   hook function.
@@ -23088,7 +23100,7 @@ securityDefinitions:
         Gives the credential pair the ability to generate an access token that
         can perform GET calls available for the User, Role, and Group API
         resources.
-    tokenUrl: https://your-api-subdomain.onelogin/auth/oauth2/v2/token
+    tokenUrl: https://your-api-subdomain.onelogin.com/auth/oauth2/v2/token
     type: oauth2
   basicAuth:
     type: basic
