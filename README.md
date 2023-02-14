@@ -143,7 +143,7 @@ Provider Installation
 In order to provision 'onelogin' Terraform resources, you need to first install the 'onelogin' Terraform plugin by running the following command (you must be running Terraform >= 0.12):
 
 ```shell
-export PROVIDER\_NAME=onelogin && curl -fsSL https://raw.githubusercontent.com/dikhan/terraform-provider-openapi/master/scripts/install.sh | bash -s -- --provider-name $PROVIDER\_NAME
+export PROVIDER_NAME=onelogin && curl -fsSL https://raw.githubusercontent.com/dikhan/terraform-provider-openapi/master/scripts/install.sh | bash -s -- --provider-name $PROVIDER_NAME
 ```
 
 ```shell
