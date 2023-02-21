@@ -19,7 +19,6 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dikhan/http_goclient v0.0.0-20190525013310-7112df6e36eb // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/go-openapi/analysis v0.21.4 // indirect
