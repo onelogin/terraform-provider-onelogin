@@ -165,18 +165,6 @@ You can then start running the Terraform provider:
 terraform {
   required_providers { 
   onelogin = {
-    source  = "onelogin/onelogin"
-    version = ">= 2.0.1" 
-    }
-  }
-}
-```
-Until Onelogin has a signed plugin it is advised to use a signed fork such as: https://registry.terraform.io/providers/Jmfwolf/onelogin/latest
-which would instead be: 
-```hcl
-terraform {
-  required_providers { 
-  onelogin = {
     source  = "jmfwolf/onelogin"
     version = ">= 2.0.1" 
     }
