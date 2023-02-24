@@ -5,7 +5,7 @@ info:
     url: 'https://support.onelogin.com'
   description: OpenAPI Specification for OneLogin
   title: OneLogin API
-  version: 3.1.1
+  version: 3.1.2
 host: your-api-subdomain.onelogin.com
 basePath: /
 schemes:
@@ -47,7 +47,7 @@ paths:
         - description: Set to the id of the user that you want to return.
           in: query
           name: user_id
-          required: true
+          required: false
           type: integer
       responses:
         '200':
@@ -10087,82 +10087,84 @@ paths:
         '200':
           description: Successful response
           schema:
-            properties:
-              allow_assumed_signin:
-                description: >-
-                  Indicates whether or not administrators can access the app as
-                  a user that they have assumed control over.
-                type: boolean
-              auth_method:
-                description: An ID indicating the type of app.
-                enum:
-                  - 0
-                  - 1
-                  - 2
-                  - 3
-                  - 4
-                  - 6
-                  - 7
-                  - 8
-                example: 2
-                type: integer
-              brand_id:
-                description: >-
-                  The custom login page branding to use for this app. Applies to
-                  app initiated logins via OIDC or SAML.
-                type: integer
-              connector_id:
-                description: ID of the apps underlying connector.
-                example: 50534
-                type: integer
-              created_at:
-                description: The date the app was created.
-                example: '2020-01-14T21:21:06.000Z'
-                type: string
-              description:
-                description: Freeform description of the app.
-                example: Whatever you  like
-                type: string
-              icon_url:
-                description: A link to the apps icon url.
-                type: string
-              id:
-                description: Apps unique ID in OneLogin.
-                example: 1061937
-                type: integer
-              name:
-                description: App name.
-                example: Amazon Web Services Multi-Role
-                type: string
-              notes:
-                description: Freeform notes about the app.
-                type: string
-              policy_id:
-                description: The security policy assigned to the app.
-                type: integer
-              provisioning:
-                properties:
-                  enabled:
-                    description: Indicates if provisioning is enabled for this app.
-                    type: boolean
-                type: object
-              role_ids:
-                description: A list of OneLogin Role IDs of the user
-                items:
+            items:
+              properties:
+                allow_assumed_signin:
+                  description: >-
+                    Indicates whether or not administrators can access the app
+                    as a user that they have assumed control over.
+                  type: boolean
+                auth_method:
+                  description: An ID indicating the type of app.
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                    - 4
+                    - 6
+                    - 7
+                    - 8
+                  example: 2
                   type: integer
-                minLength: 1
-                type: array
-              tab_id:
-                description: ID of the OneLogin portal tab that the app is assigned to.
-                type: integer
-              updated_at:
-                description: The date the app was last updated.
-                example: '2020-01-14T21:21:06.000Z'
-                type: string
-              visible:
-                description: Indicates if the app is visible in the OneLogin portal.
-                type: boolean
-            type: object
+                brand_id:
+                  description: >-
+                    The custom login page branding to use for this app. Applies
+                    to app initiated logins via OIDC or SAML.
+                  type: integer
+                connector_id:
+                  description: ID of the apps underlying connector.
+                  example: 50534
+                  type: integer
+                created_at:
+                  description: The date the app was created.
+                  example: '2020-01-14T21:21:06.000Z'
+                  type: string
+                description:
+                  description: Freeform description of the app.
+                  example: Whatever you  like
+                  type: string
+                icon_url:
+                  description: A link to the apps icon url.
+                  type: string
+                id:
+                  description: Apps unique ID in OneLogin.
+                  example: 1061937
+                  type: integer
+                name:
+                  description: App name.
+                  example: Amazon Web Services Multi-Role
+                  type: string
+                notes:
+                  description: Freeform notes about the app.
+                  type: string
+                policy_id:
+                  description: The security policy assigned to the app.
+                  type: integer
+                provisioning:
+                  properties:
+                    enabled:
+                      description: Indicates if provisioning is enabled for this app.
+                      type: boolean
+                  type: object
+                role_ids:
+                  description: A list of OneLogin Role IDs of the user
+                  items:
+                    type: integer
+                  minLength: 1
+                  type: array
+                tab_id:
+                  description: ID of the OneLogin portal tab that the app is assigned to.
+                  type: integer
+                updated_at:
+                  description: The date the app was last updated.
+                  example: '2020-01-14T21:21:06.000Z'
+                  type: string
+                visible:
+                  description: Indicates if the app is visible in the OneLogin portal.
+                  type: boolean
+              type: object
+            type: array
         '401':
           description: Unauthorized
           examples:
