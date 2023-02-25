@@ -16044,7 +16044,8 @@ paths:
       summary: Generate MFA token
   '/api/2/mfa/users/{user_id}/registrations':
     post:
-      consumes: []
+      consumes:
+        - application/json
       produces:
         - application/json
       parameters:
@@ -21449,7 +21450,7 @@ securityDefinitions:
         Gives the credential pair the ability to generate an access token that
         can perform GET calls available for the User, Role, and Group API
         resources.
-    tokenUrl: https://your-api-subdomain.onelogin.com/auth/oauth2/v2/token
+    tokenUrl: https://your-api-subdomain.com/auth/oauth2/v2/token
     type: oauth2
   basicAuth:
     type: basic
