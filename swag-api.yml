@@ -9388,7 +9388,6 @@ definitions:
         type: integer
     type: object
   app_parameters:
-    additionalProperties: true
     properties:
       include_in_saml_assertion:
         description: >-
@@ -11647,6 +11646,8 @@ definitions:
             type: object
           configuration:
             $ref: '#/definitions/configuration_saml'
+          sso:
+            $ref: '#/definitions/sso_saml'
         required:
           - connector_id
           - name
@@ -11779,55 +11780,47 @@ definitions:
         type: string
     type: object
   sso_oidc:
-    allOf:
-      - description: >-
-          The attributes included in the sso section are determined by the type
-          of app. All of the attributes of the `sso` object are read only.
-        type: object
-      - properties:
-          client_id:
-            description: >-
-              OIDC: The OpenId Connect Client Id.  Note that client_secret is
-              only returned after Creating an App
-            example: 78d1d040-20c9-0136-5146-067351775fae92920
-            type: string
-        type: object
+    properties:
+      client_id:
+        description: >-
+          OIDC: The OpenId Connect Client Id.  Note that client_secret is only
+          returned after Creating an App
+        example: 78d1d040-20c9-0136-5146-067351775fae92920
+        type: string
+    type: object
   sso_saml:
-    allOf:
-      - $ref: '#/definitions/sso_oidc/allOf/0'
-      - properties:
-          acs_url:
-            example: 'https://sharkbytes.onelogin.com/trust/saml2/http-post/sso/928532'
+    properties:
+      acs_url:
+        example: 'https://sharkbytes.onelogin.com/trust/saml2/http-post/sso/928532'
+        type: string
+      certificate:
+        description: The Certificate used for signing
+        properties:
+          id:
+            description: SAML Certificate ID
+            example: 170216
+            type: integer
+          name:
+            description: SAML Certificate Name
+            example: My Companies SAML Certificate
             type: string
-          certificate:
-            description: The Certificate used for signing
-            properties:
-              id:
-                description: SAML Certificate ID
-                example: 170216
-                type: integer
-              name:
-                description: SAML Certificate Name
-                example: My Companies SAML Certificate
-                type: string
-              value:
-                description: SAML Certificate Value
-                example: c6d814d032f000d9c03bc79727265
-                type: string
-            type: object
-          issuer:
-            example: >-
-              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
-            type: string
-          metadata_url:
-            example: >-
-              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
-            type: string
-          sls_url:
-            example: >-
-              https://sharkbytes.onelogin.com/trust/saml2/http-redirect/slo/928532
+          value:
+            description: SAML Certificate Value
+            example: c6d814d032f000d9c03bc79727265
             type: string
         type: object
+      issuer:
+        example: >-
+          https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+        type: string
+      metadata_url:
+        example: >-
+          https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+        type: string
+      sls_url:
+        example: 'https://sharkbytes.onelogin.com/trust/saml2/http-redirect/slo/928532'
+        type: string
+    type: object
   token_claim:
     properties:
       attribute_transformations:
