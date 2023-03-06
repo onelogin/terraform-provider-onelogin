@@ -846,17 +846,17 @@ paths:
           schema:
             properties:
               afterCursor:
-                type: integer
-                x-nullable: true
+                example: none
+                type: string
               beforeCursor:
-                type: integer
-                x-nullable: true
+                example: none
+                type: string
               nextLink:
+                example: none
                 type: string
-                x-nullable: true
               previousLink:
+                example: none
                 type: string
-                x-nullable: true
               total:
                 type: integer
               users:
@@ -2183,19 +2183,7 @@ paths:
                 properties:
                   auth_factors:
                     items:
-                      properties:
-                        factor_id:
-                          description: >-
-                            Identifier for the factor which will be used for
-                            user enrollment
-                          example: 16282
-                          type: integer
-                        name:
-                          description: >-
-                            Official authentication factor name, as it appears
-                            to administrators in OneLogin.
-                          example: Onelogin SMS
-                          type: string
+                      $ref: '#/definitions/auth_factor'
                     type: array
                 type: object
               status:
@@ -2696,6 +2684,7 @@ paths:
                         when they enroll the device.
                       example: Rich's Phone
                       type: string
+                  type: object
                 type: array
               status:
                 $ref: '#/definitions/Error'
@@ -4186,9 +4175,20 @@ paths:
       responses:
         '200':
           description: Successful response
+          examples:
+            application/json:
+              - auth_method: 2
+                auth_method_description: SAML2.0
+                connector_id: 50534
+                created_at: '2020-01-14T21:21:06Z'
+                description: ''
+                id: 1061937
+                name: Amazon Web Services (AWS) Multi Role
+                updated_at: '2020-01-14T21:21:06Z'
+                visible: true
           schema:
             items:
-              $ref: '#/definitions/connector_app'
+              $ref: '#/definitions/generic-app'
             type: array
         '401':
           description: Unauthorized
@@ -4316,7 +4316,7 @@ paths:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/connector_app'
+            $ref: '#/definitions/generic-app'
         '401':
           description: Unauthorized
           examples:
@@ -4359,12 +4359,12 @@ paths:
         - in: body
           name: body
           schema:
-            $ref: '#/definitions/connector_app'
+            $ref: '#/definitions/generic-app'
       responses:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/connector_app'
+            $ref: '#/definitions/generic-app'
         '401':
           description: Unauthorized
           examples:
@@ -9399,11 +9399,13 @@ definitions:
         description: >-
           The can only be set when creating a new parameter. It can not be
           updated.
+        example: ''
         type: string
       user_attribute_macros:
         description: >-
           When `user_attribute_mappings` is set to `_macro_` this macro will
           be used to assign the parameter value.
+        example: ''
         type: string
       user_attribute_mappings:
         description: >-
@@ -9411,6 +9413,7 @@ definitions:
           name of the attribute with `custom_attribute_`. e.g. To get the
           value for custom attribute `employee_id` use
           `custom_attribute_employee_id`.
+        example: ''
         type: string
     description: >-
       The parameters section contains parameterized attributes that have defined
@@ -9441,6 +9444,86 @@ definitions:
         type: string
     required:
       - name
+    type: object
+  auth_factor:
+    properties:
+      active:
+        description: >-
+          `true` = enabled (used successfully for authentication at least once).
+          `false` = pending (registered but never used).
+        example: true
+        type: boolean
+      auth_factor_name:
+        description: >-
+          "Official" authentication factor name, as it appears to administrators
+          in OneLogin.
+        example: OneLogin SMS
+        readOnly: true
+        type: string
+      default:
+        description: '`true` = is user’s default MFA device for OneLogin.'
+        example: true
+        type: boolean
+      display_name:
+        description: >-
+          Authentication factor display name as it appears to users, as defined
+          in the admininstrative interface at Settings > Authentication Factors.
+        example: Rich's Phone
+        type: string
+      factor_id:
+        description: The identifier of the factor to enroll the user with.
+        example: 16282
+        readOnly: true
+        type: integer
+      id:
+        description: MFA device identifier.
+        example: 525509
+        readOnly: true
+        type: integer
+      needs_trigger:
+        description: >-
+          `true`: You MUST Activate this Factor to trigger an SMS or Push
+          notification before Verifying the OTP code. `false`: No Activation
+          required. You can Verify the OTP immediately.
+
+          MFA factors that provide both push notifications (user accepts
+          notification) and pull code submission (user initiates code submission
+          from device or enters it manually) should appear twice; once with
+          `needs_trigger: true` and once with `needs_trigger: false`.
+        example: true
+        type: boolean
+      number:
+        description: The phone number of the user in E.164 format.
+        example: +1xxxxxxxxxx
+        type: string
+      phone_number:
+        description: >-
+          For OTP codes sent via SMS, the phone number receiving the SMS
+          message.
+        example: +1xxxxxxxxx
+        readOnly: true
+        type: string
+      type_display_name:
+        description: >-
+          Authentication factor display name as it appears to users upon initial
+          registration, as defined by admins at Settings > Authentication
+          Factors.
+        example: OneLogin SMS
+        type: string
+      user_display_name:
+        description: >-
+          Authentication factor display name assigned by users when they
+          register the device.
+        example: Rich's Phone
+        type: string
+      verified:
+        description: >-
+          Defaults to false. Some factors like SMS or Voice require that a user
+          recieve a token and then that token is supplied to the Verify endpoint
+          before the device is considered active. You can set verfied to `true`
+          which indicates the the users phone number is pre verified and the
+          device can be immediately activated.        
+        type: boolean
     type: object
   auth_id:
     properties:
@@ -9834,7 +9917,10 @@ definitions:
               returned after Creating an App.
             type: string
           oidc_application_type:
-            description: '- 0 : Web - 1 : Native / Mobile'
+            description: |-
+              Application Types:
+                - 0: Web
+                - 1: Native / Mobile
             enum:
               - 0
               - 1
@@ -9851,7 +9937,11 @@ definitions:
             example: 1
             type: integer
           token_endpoint_auth_method:
-            description: '- 0: Basic - 1: POST - 2: None / PKCE'
+            description: |-
+              Endpoint Auth Methods:
+                - 0: Basic
+                - 1: POST
+                - 2: None / PKCE
             enum:
               - 0
               - 1
@@ -9887,7 +9977,6 @@ definitions:
             type: string
         required:
           - signature_algorithm
-          - certificate_id
         type: object
   connector:
     properties:
@@ -10859,10 +10948,12 @@ definitions:
       connector_id:
         description: ID of the connector to base the app from.
         example: 108419
+        readOnly: true
         type: integer
       created_at:
         description: the date the app was created
         example: '2018-04-12T21:50:42Z'
+        readOnly: true
         type: string
       description:
         description: Freeform description of the app.
@@ -10920,6 +11011,7 @@ definitions:
       updated_at:
         description: the date the app was last updated
         example: '2019-05-16T19:20:34Z'
+        readOnly: true
         type: string
       visible:
         description: Indicates if the app is visible in the OneLogin portal.
@@ -11477,7 +11569,75 @@ definitions:
   saml_app:
     allOf:
       - $ref: '#/definitions/generic-app'
-      - properties:
+      - example:
+          parameters:
+            'https://aws.amazon.com/SAML/Attributes/Role':
+              attributes_transformations: null
+              default_values: null
+              id: 89805
+              label: Role
+              provisioned_entitlements: false
+              safe_entitlements_enabled: false
+              skip_if_blank: false
+              user_attribute_macros: null
+              user_attribute_mappings: null
+              values: chicken
+            'https://aws.amazon.com/SAML/Attributes/RoleSessionName':
+              attributes_transformations: null
+              default_values: null
+              id: 89806
+              label: RoleSessionName
+              provisioned_entitlements: false
+              safe_entitlements_enabled: false
+              skip_if_blank: false
+              user_attribute_macros: null
+              user_attribute_mappings: null
+              values: null
+            saml_username:
+              attributes_transformations: null
+              default_values: null
+              id: 89804
+              label: Amazon Username
+              provisioned_entitlements: false
+              safe_entitlements_enabled: false
+              skip_if_blank: false
+              user_attribute_macros: ''
+              user_attribute_mappings: samaccountname
+              values: null
+          allow_assumed_signin: false
+          auth_method: 2
+          configuration:
+            provider_arn: null
+            signature_algorithm: SHA-1
+          connector_id: 50534
+          created_at: '2019-05-15T16:07:13Z'
+          description: null
+          icon_url: >-
+            https://cdn-shadow.onlgn.net/images/icons/square/amazonwebservices3multirole/old_original.png?1421095823
+          id: 928532
+          name: New AWS app
+          notes: null
+          policy_id: null
+          provisioning:
+            enabled: false
+          role_ids:
+            - 192513
+          sso:
+            acs_url: 'https://sharkbytes.onelogin.com/trust/saml2/http-post/sso/928532'
+            certificate:
+              id: 170216
+              name: My Companies SAML Certificate
+              value: c6d814d032f000d9c03bc79727265
+            issuer: >-
+              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+            metadata_url: >-
+              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+            sls_url: >-
+              https://sharkbytes.onelogin.com/trust/saml2/http-redirect/slo/928532
+          tab_id: null
+          updated_at: '2019-05-15T16:21:05Z'
+          visible: true
+        properties:
           parameters:
             properties:
               saml_username:
