@@ -4230,11 +4230,13 @@ paths:
           x-example: application/json
         - in: body
           name: body
-          schema: {}
+          schema:
+            $ref: '#/definitions/generic-app'
       responses:
         '200':
           description: Successful response
-          schema: {}
+          schema:
+            $ref: '#/definitions/generic-app'
         '401':
           description: Unauthorized
           examples:
@@ -10857,6 +10859,7 @@ definitions:
     description: Set to the value of the __tdli_fp cookie.
     type: string
   generic-app:
+    additionalProperties: true
     properties:
       parameters:
         $ref: '#/definitions/app_parameters'
