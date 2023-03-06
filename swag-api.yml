@@ -9388,6 +9388,7 @@ definitions:
         type: integer
     type: object
   app_parameters:
+    additionalProperties: true
     properties:
       include_in_saml_assertion:
         description: >-
@@ -11197,6 +11198,8 @@ definitions:
         properties:
           configuration:
             $ref: '#/definitions/configuration_oidc'
+          sso:
+            $ref: '#/definitions/sso_oidc'
         required:
           - connector_id
           - name
