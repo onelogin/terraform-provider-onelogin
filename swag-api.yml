@@ -10868,7 +10868,6 @@ definitions:
         type: boolean
       auth_method:
         $ref: '#/definitions/auth_method'
-      configuration: {}
       connector_id:
         description: ID of the connector to base the app from.
         example: 108419
@@ -10923,7 +10922,6 @@ definitions:
           description: Role ID
           type: integer
         type: array
-      sso: {}
       tab_id:
         description: ID of the OneLogin portal tab that the app is assigned to.
         example: 196885
