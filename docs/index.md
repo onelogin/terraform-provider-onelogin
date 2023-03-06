@@ -25,4 +25,5 @@ description: |-
 
 Optional:
 
+- `apps` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
 - `rules` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).

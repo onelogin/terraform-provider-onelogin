@@ -4230,11 +4230,13 @@ paths:
           x-example: application/json
         - in: body
           name: body
-          schema: {}
+          schema:
+            $ref: '#/definitions/generic-app'
       responses:
         '200':
           description: Successful response
-          schema: {}
+          schema:
+            $ref: '#/definitions/generic-app'
         '401':
           description: Unauthorized
           examples:
@@ -9388,6 +9390,7 @@ definitions:
         type: integer
     type: object
   app_parameters:
+    additionalProperties: true
     properties:
       include_in_saml_assertion:
         description: >-
@@ -9902,6 +9905,7 @@ definitions:
       type of app. This is not a complete list of possible configuration
       attributes. Custom configuration attributes may exist for different types
       of connectors.
+    minProperties: 1
     type: object
   configuration_oidc:
     allOf:
@@ -10000,83 +10004,6 @@ definitions:
         description: Name of Connector
         example: Amazon Web Services Multi-Role
         type: string
-    type: object
-  connector_app:
-    properties:
-      allow_assumed_signin:
-        description: >-
-          Indicates whether or not administrators can access the app as a user
-          that they have assumed control over.
-        type: boolean
-      auth_method:
-        description: An ID indicating the type of app.
-        enum:
-          - 0
-          - 1
-          - 2
-          - 3
-          - 4
-          - 6
-          - 7
-          - 8
-        example: 2
-        type: integer
-      brand_id:
-        description: >-
-          The custom login page branding to use for this app. Applies to app
-          initiated logins via OIDC or SAML.
-        type: integer
-      connector_id:
-        description: ID of the apps underlying connector.
-        example: 50534
-        type: integer
-      created_at:
-        description: The date the app was created.
-        example: '2020-01-14T21:21:06.000Z'
-        type: string
-      description:
-        description: Freeform description of the app.
-        example: Whatever you  like
-        type: string
-      icon_url:
-        description: A link to the apps icon url.
-        type: string
-      id:
-        description: Apps unique ID in OneLogin.
-        example: 1061937
-        type: integer
-      name:
-        description: App name.
-        example: Amazon Web Services Multi-Role
-        type: string
-      notes:
-        description: Freeform notes about the app.
-        type: string
-      policy_id:
-        description: The security policy assigned to the app.
-        type: integer
-      provisioning:
-        properties:
-          enabled:
-            description: Indicates if provisioning is enabled for this app.
-            type: boolean
-        type: object
-      role_ids:
-        description: A list of OneLogin Role IDs of the user
-        items:
-          type: integer
-        minLength: 1
-        type: array
-      tab_id:
-        description: ID of the OneLogin portal tab that the app is assigned to.
-        type: integer
-      updated_at:
-        description: The date the app was last updated.
-        example: '2020-01-14T21:21:06.000Z'
-        type: string
-      visible:
-        description: Indicates if the app is visible in the OneLogin portal.
-        type: boolean
     type: object
   device:
     properties:
@@ -10932,6 +10859,7 @@ definitions:
     description: Set to the value of the __tdli_fp cookie.
     type: string
   generic-app:
+    additionalProperties: true
     properties:
       parameters:
         $ref: '#/definitions/app_parameters'
@@ -10943,8 +10871,6 @@ definitions:
         type: boolean
       auth_method:
         $ref: '#/definitions/auth_method'
-      configuration:
-        $ref: '#/definitions/configuration'
       connector_id:
         description: ID of the connector to base the app from.
         example: 108419
@@ -10999,11 +10925,6 @@ definitions:
           description: Role ID
           type: integer
         type: array
-      sso:
-        description: >-
-          The attributes included in the sso section are determined by the type
-          of app. All of the attributes of the `sso` object are read only.
-        type: object
       tab_id:
         description: ID of the OneLogin portal tab that the app is assigned to.
         example: 196885
@@ -11215,6 +11136,8 @@ definitions:
         properties:
           configuration:
             $ref: '#/definitions/configuration_oidc'
+          sso:
+            $ref: '#/definitions/sso_oidc'
         required:
           - connector_id
           - name
@@ -11652,6 +11575,8 @@ definitions:
             type: object
           configuration:
             $ref: '#/definitions/configuration_saml'
+          sso:
+            $ref: '#/definitions/sso_saml'
         required:
           - connector_id
           - name
@@ -11783,6 +11708,58 @@ definitions:
         description: The name of the source
         type: string
     type: object
+  sso:
+    additionalProperties: true
+    description: >-
+      The attributes included in the sso section are determined by the type of
+      app. All of the attributes of the `sso` object are read only.
+    minProperties: 1
+    type: object
+  sso_oidc:
+    properties:
+      client_id:
+        description: >-
+          OIDC: The OpenId Connect Client Id.  Note that client_secret is only
+          returned after Creating an App
+        example: 78d1d040-20c9-0136-5146-067351775fae92920
+        type: string
+    type: object
+  sso_saml:
+    allOf:
+      - $ref: '#/definitions/sso'
+      - properties:
+          acs_url:
+            example: 'https://sharkbytes.onelogin.com/trust/saml2/http-post/sso/928532'
+            type: string
+          certificate:
+            description: The Certificate used for signing
+            properties:
+              id:
+                description: SAML Certificate ID
+                example: 170216
+                type: integer
+              name:
+                description: SAML Certificate Name
+                example: My Companies SAML Certificate
+                type: string
+              value:
+                description: SAML Certificate Value
+                example: c6d814d032f000d9c03bc79727265
+                type: string
+            type: object
+          issuer:
+            example: >-
+              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+            type: string
+          metadata_url:
+            example: >-
+              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+            type: string
+          sls_url:
+            example: >-
+              https://sharkbytes.onelogin.com/trust/saml2/http-redirect/slo/928532
+            type: string
+        type: object
   token_claim:
     properties:
       attribute_transformations:
@@ -11989,7 +11966,7 @@ securityDefinitions:
         Gives the credential pair the ability to generate an access token that
         can perform GET calls available for the User, Role, and Group API
         resources.
-    tokenUrl: https://your-api-subdomain.onelogin.com/auth/oauth2/v2/token
+    tokenUrl: 'https://your-api-subdomain.onelogin.com/auth/oauth2/v2/token'
     type: oauth2
   basicAuth:
     type: basic

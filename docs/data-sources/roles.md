@@ -18,10 +18,10 @@ description: |-
 ### Optional
 
 - `admins` (List of Number)
-- `apps` (List of Number)
+- `apps` (List of Number) array of app IDs
 - `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
-- `name` (String)
-- `users` (List of Number)
+- `name` (String) Role Name
+- `users` (List of Number) array of user IDs
 
 ### Read-Only
 
