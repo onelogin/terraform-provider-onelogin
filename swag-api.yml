@@ -9896,76 +9896,90 @@ definitions:
         example: '90'
         type: string
     type: object
+  configuration:
+    additionalProperties: true
+    description: >-
+      The attributes included in the configuration section are determined by the
+      type of app. This is not a complete list of possible configuration
+      attributes. Custom configuration attributes may exist for different types
+      of connectors.
+    minProperties: 1
+    type: object
   configuration_oidc:
-    properties:
-      access_token_expiration_minutes:
-        description: Number of minutes the refresh token will be valid for.
-        example: 1
-        type: integer
-      login_url:
-        description: >-
-          The OpenId Connect Client Id. Note that client_secret is only returned
-          after Creating an App.
-        type: string
-      oidc_application_type:
-        description: |-
-          Application Types:
-            - 0: Web
-            - 1: Native / Mobile
-        enum:
-          - 0
-          - 1
-        example: 0
-        type: integer
-      redirect_uri:
-        description: >-
-          Comma or newline separated list of valid redirect uris for the OpenId
-          Connect Authorization Code flow.
-        example: 'https://localhost:3000/callback'
-        type: string
-      refresh_token_expiration_minutes:
-        description: Number of minutes the refresh token will be valid for.
-        example: 1
-        type: integer
-      token_endpoint_auth_method:
-        description: |-
-          Endpoint Auth Methods:
-            - 0: Basic
-            - 1: POST
-            - 2: None / PKCE
-        enum:
-          - 0
-          - 1
-          - 2
-        type: integer
-    required:
-      - login_url
-      - redirect_uri
-      - access_token_expiration_minutes
-      - refresh_token_expiration_minutes
-      - token_endpoint_auth_method
-      - oidc_application_type
-    type: object
+    allOf:
+      - $ref: '#/definitions/configuration'
+      - properties:
+          access_token_expiration_minutes:
+            description: Number of minutes the refresh token will be valid for.
+            example: 1
+            type: integer
+          login_url:
+            description: >-
+              The OpenId Connect Client Id. Note that client_secret is only
+              returned after Creating an App.
+            type: string
+          oidc_application_type:
+            description: |-
+              Application Types:
+                - 0: Web
+                - 1: Native / Mobile
+            enum:
+              - 0
+              - 1
+            example: 0
+            type: integer
+          redirect_uri:
+            description: >-
+              Comma or newline separated list of valid redirect uris for the
+              OpenId Connect Authorization Code flow.
+            example: 'https://localhost:3000/callback'
+            type: string
+          refresh_token_expiration_minutes:
+            description: Number of minutes the refresh token will be valid for.
+            example: 1
+            type: integer
+          token_endpoint_auth_method:
+            description: |-
+              Endpoint Auth Methods:
+                - 0: Basic
+                - 1: POST
+                - 2: None / PKCE
+            enum:
+              - 0
+              - 1
+              - 2
+            type: integer
+        required:
+          - login_url
+          - redirect_uri
+          - access_token_expiration_minutes
+          - refresh_token_expiration_minutes
+          - token_endpoint_auth_method
+          - oidc_application_type
+        type: object
   configuration_saml:
-    properties:
-      certificate_id:
-        description: >-
-          When creating apps the default certificate will be used unless the
-          `certificate_id` attribute is applied in the `configuration` object.
-        example: 123456
-        type: integer
-      signature_algorithm:
-        description: |-
-          One of the following:
-            - SHA-1
-            - SHA-256
-            - SHA-348
-            - SHA-512
-        example: SHA-512
-        type: string
-    required:
-      - signature_algorithm
-    type: object
+    allOf:
+      - $ref: '#/definitions/configuration'
+      - properties:
+          certificate_id:
+            description: >-
+              When creating apps the default certificate will be used unless the
+              `certificate_id` attribute is applied in the `configuration`
+              object.
+            example: 123456
+            type: integer
+          signature_algorithm:
+            description: |-
+              One of the following:
+                - SHA-1
+                - SHA-256
+                - SHA-348
+                - SHA-512
+            example: SHA-512
+            type: string
+        required:
+          - signature_algorithm
+        type: object
   connector:
     properties:
       allows_new_parameters:
@@ -9988,83 +10002,6 @@ definitions:
         description: Name of Connector
         example: Amazon Web Services Multi-Role
         type: string
-    type: object
-  connector_app:
-    properties:
-      allow_assumed_signin:
-        description: >-
-          Indicates whether or not administrators can access the app as a user
-          that they have assumed control over.
-        type: boolean
-      auth_method:
-        description: An ID indicating the type of app.
-        enum:
-          - 0
-          - 1
-          - 2
-          - 3
-          - 4
-          - 6
-          - 7
-          - 8
-        example: 2
-        type: integer
-      brand_id:
-        description: >-
-          The custom login page branding to use for this app. Applies to app
-          initiated logins via OIDC or SAML.
-        type: integer
-      connector_id:
-        description: ID of the apps underlying connector.
-        example: 50534
-        type: integer
-      created_at:
-        description: The date the app was created.
-        example: '2020-01-14T21:21:06.000Z'
-        type: string
-      description:
-        description: Freeform description of the app.
-        example: Whatever you  like
-        type: string
-      icon_url:
-        description: A link to the apps icon url.
-        type: string
-      id:
-        description: Apps unique ID in OneLogin.
-        example: 1061937
-        type: integer
-      name:
-        description: App name.
-        example: Amazon Web Services Multi-Role
-        type: string
-      notes:
-        description: Freeform notes about the app.
-        type: string
-      policy_id:
-        description: The security policy assigned to the app.
-        type: integer
-      provisioning:
-        properties:
-          enabled:
-            description: Indicates if provisioning is enabled for this app.
-            type: boolean
-        type: object
-      role_ids:
-        description: A list of OneLogin Role IDs of the user
-        items:
-          type: integer
-        minLength: 1
-        type: array
-      tab_id:
-        description: ID of the OneLogin portal tab that the app is assigned to.
-        type: integer
-      updated_at:
-        description: The date the app was last updated.
-        example: '2020-01-14T21:21:06.000Z'
-        type: string
-      visible:
-        description: Indicates if the app is visible in the OneLogin portal.
-        type: boolean
     type: object
   device:
     properties:
@@ -11770,6 +11707,13 @@ definitions:
         description: The name of the source
         type: string
     type: object
+  sso:
+    additionalProperties: true
+    description: >-
+      The attributes included in the sso section are determined by the type of
+      app. All of the attributes of the `sso` object are read only.
+    minProperties: 1
+    type: object
   sso_oidc:
     properties:
       client_id:
@@ -11780,38 +11724,41 @@ definitions:
         type: string
     type: object
   sso_saml:
-    properties:
-      acs_url:
-        example: 'https://sharkbytes.onelogin.com/trust/saml2/http-post/sso/928532'
-        type: string
-      certificate:
-        description: The Certificate used for signing
-        properties:
-          id:
-            description: SAML Certificate ID
-            example: 170216
-            type: integer
-          name:
-            description: SAML Certificate Name
-            example: My Companies SAML Certificate
+    allOf:
+      - $ref: '#/definitions/sso'
+      - properties:
+          acs_url:
+            example: 'https://sharkbytes.onelogin.com/trust/saml2/http-post/sso/928532'
             type: string
-          value:
-            description: SAML Certificate Value
-            example: c6d814d032f000d9c03bc79727265
+          certificate:
+            description: The Certificate used for signing
+            properties:
+              id:
+                description: SAML Certificate ID
+                example: 170216
+                type: integer
+              name:
+                description: SAML Certificate Name
+                example: My Companies SAML Certificate
+                type: string
+              value:
+                description: SAML Certificate Value
+                example: c6d814d032f000d9c03bc79727265
+                type: string
+            type: object
+          issuer:
+            example: >-
+              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+            type: string
+          metadata_url:
+            example: >-
+              https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
+            type: string
+          sls_url:
+            example: >-
+              https://sharkbytes.onelogin.com/trust/saml2/http-redirect/slo/928532
             type: string
         type: object
-      issuer:
-        example: >-
-          https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
-        type: string
-      metadata_url:
-        example: >-
-          https://app.onelogin.com/saml/metadata/5772393d-2ad3-47d6-a64f-2339b1028291
-        type: string
-      sls_url:
-        example: 'https://sharkbytes.onelogin.com/trust/saml2/http-redirect/slo/928532'
-        type: string
-    type: object
   token_claim:
     properties:
       attribute_transformations:
