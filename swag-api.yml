@@ -9895,88 +9895,76 @@ definitions:
         example: '90'
         type: string
     type: object
-  configuration:
-    description: >-
-      The attributes included in the configuration section are determined by the
-      type of app. This is not a complete list of possible configuration
-      attributes. Custom configuration attributes may exist for different types
-      of connectors.
-    type: object
   configuration_oidc:
-    allOf:
-      - $ref: '#/definitions/configuration'
-      - properties:
-          access_token_expiration_minutes:
-            description: Number of minutes the refresh token will be valid for.
-            example: 1
-            type: integer
-          login_url:
-            description: >-
-              The OpenId Connect Client Id. Note that client_secret is only
-              returned after Creating an App.
-            type: string
-          oidc_application_type:
-            description: |-
-              Application Types:
-                - 0: Web
-                - 1: Native / Mobile
-            enum:
-              - 0
-              - 1
-            example: 0
-            type: integer
-          redirect_uri:
-            description: >-
-              Comma or newline separated list of valid redirect uris for the
-              OpenId Connect Authorization Code flow.
-            example: 'https://localhost:3000/callback'
-            type: string
-          refresh_token_expiration_minutes:
-            description: Number of minutes the refresh token will be valid for.
-            example: 1
-            type: integer
-          token_endpoint_auth_method:
-            description: |-
-              Endpoint Auth Methods:
-                - 0: Basic
-                - 1: POST
-                - 2: None / PKCE
-            enum:
-              - 0
-              - 1
-              - 2
-            type: integer
-        required:
-          - login_url
-          - redirect_uri
-          - access_token_expiration_minutes
-          - refresh_token_expiration_minutes
-          - token_endpoint_auth_method
-          - oidc_application_type
-        type: object
+    properties:
+      access_token_expiration_minutes:
+        description: Number of minutes the refresh token will be valid for.
+        example: 1
+        type: integer
+      login_url:
+        description: >-
+          The OpenId Connect Client Id. Note that client_secret is only returned
+          after Creating an App.
+        type: string
+      oidc_application_type:
+        description: |-
+          Application Types:
+            - 0: Web
+            - 1: Native / Mobile
+        enum:
+          - 0
+          - 1
+        example: 0
+        type: integer
+      redirect_uri:
+        description: >-
+          Comma or newline separated list of valid redirect uris for the OpenId
+          Connect Authorization Code flow.
+        example: 'https://localhost:3000/callback'
+        type: string
+      refresh_token_expiration_minutes:
+        description: Number of minutes the refresh token will be valid for.
+        example: 1
+        type: integer
+      token_endpoint_auth_method:
+        description: |-
+          Endpoint Auth Methods:
+            - 0: Basic
+            - 1: POST
+            - 2: None / PKCE
+        enum:
+          - 0
+          - 1
+          - 2
+        type: integer
+    required:
+      - login_url
+      - redirect_uri
+      - access_token_expiration_minutes
+      - refresh_token_expiration_minutes
+      - token_endpoint_auth_method
+      - oidc_application_type
+    type: object
   configuration_saml:
-    allOf:
-      - $ref: '#/definitions/configuration'
-      - properties:
-          certificate_id:
-            description: >-
-              When creating apps the default certificate will be used unless the
-              `certificate_id` attribute is applied in the `configuration`
-              object.
-            example: 123456
-            type: integer
-          signature_algorithm:
-            description: |-
-              One of the following:
-                - SHA-1
-                - SHA-256
-                - SHA-348
-                - SHA-512
-            example: SHA-512
-            type: string
-        required:
-          - signature_algorithm
-        type: object
+    properties:
+      certificate_id:
+        description: >-
+          When creating apps the default certificate will be used unless the
+          `certificate_id` attribute is applied in the `configuration` object.
+        example: 123456
+        type: integer
+      signature_algorithm:
+        description: |-
+          One of the following:
+            - SHA-1
+            - SHA-256
+            - SHA-348
+            - SHA-512
+        example: SHA-512
+        type: string
+    required:
+      - signature_algorithm
+    type: object
   connector:
     properties:
       allows_new_parameters:
