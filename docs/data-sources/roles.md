@@ -17,11 +17,11 @@ description: |-
 
 ### Optional
 
-- `admins` (List of Number)
-- `apps` (List of Number) array of app IDs
+- `admins` (List of Number) A list of user IDs to assign as role administrators.
+- `apps` (List of Number) A list of app IDs that will be assigned to the role.
 - `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
-- `name` (String) Role Name
-- `users` (List of Number) array of user IDs
+- `name` (String) The name of the role.
+- `users` (List of Number) A list of user IDs to assign to the role.
 
 ### Read-Only
 
