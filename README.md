@@ -20,7 +20,7 @@ export PROVIDER_NAME=onelogin && curl -fsSL https://raw.githubusercontent.com/di
 You can then start running the Terraform provider:
 
 ```shell
-export OTF_VAR_onelogin_PLUGIN_CONFIGURATION_FILE="https://api.service.com/openapi.yaml"
+export OTF_VAR_onelogin_PLUGIN_CONFIGURATION_FILE="https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/swag-api.yml"
 ➜ ~ terraform init && terraform plan
 ```
 
@@ -30,8 +30,8 @@ export OTF_VAR_onelogin_PLUGIN_CONFIGURATION_FILE="https://api.service.com/opena
 terraform {
   required_providers {
     onelogin = {
-      source  = "registry.terraform.io/onelogin/onelogin"
-      version = ">= 2.0.1"
+      source  = "onelogin/onelogin"
+      version = ">= 0.3.5"
     }
   }
 }
