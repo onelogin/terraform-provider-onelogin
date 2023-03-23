@@ -453,6 +453,7 @@ paths:
       operationId: sendInviteLink
       summary: Send  Invite Link
   /api/1/privileges:
+    x-terraform-resource-name: "privileges"
     post:
       consumes:
         - application/json
@@ -1283,6 +1284,7 @@ paths:
       operationId: verFactorSaml
       summary: Verify Factor SAML
   /api/1/users:
+    x-terraform-resource-name: "users_v1"
     get:
       produces:
         - application/json
@@ -3242,6 +3244,7 @@ paths:
       operationId: setUserState
       summary: Set User State
   /api/2/api_authorizations:
+    x-terraform-resource-name: "auth_servers"
     get:
       produces:
         - application/json
@@ -4173,6 +4176,7 @@ paths:
       operationId: updateScope
       summary: Update Api Auth Server Scope
   /api/2/apps:
+    x-terraform-resource-name: "apps"
     post:
       consumes:
         - application/json
@@ -10931,19 +10935,16 @@ definitions:
           our resource APIs.
         example: xx508xx63817x752xx74004x30705xx92x58349x5x78f5xx34xxxxx51
         type: string
-        readOnly: true
       account_id:
         description: >-
           Account ID associated with the API credentials used to generate the
           token.
         example: 555555
         type: integer
-        readOnly: true
       created_at:
         description: Time at which the access token was generated.
         example: '2015-11-11T03:36:18.714Z'
         type: string
-        readOnly: true
       expires_in:
         description: >-
           Indicates that the generated access token expires in 36,000 seconds,
@@ -10954,17 +10955,14 @@ definitions:
           the Refresh Tokens v2 API.
         example: 36000
         type: integer
-        readOnly: true
       refresh_token:
         description: deprecated No longer in use
         example: deprecated
         type: string
-        readOnly: true
       token_type:
         description: Indicates that the generated access token is a bearer token.
         example: bearer
         type: string
-        readOnly: true
     type: object
   oidc_app:
     allOf:
@@ -11724,42 +11722,13 @@ definitions:
       - authentication-challenge-fail
     type: string
 securityDefinitions:
-  OAuth2:
-    description: >-
-      This API uses OAuth2 with the Client Credential grant flow. [More
-      info](https://developers.onelogin.com/api-docs/2/getting-started/working-with-api-credentials)
-    flow: application
-    scopes:
-      Authentication Only: >-
-        Gives the credential pair the ability to generate an access token that
-        can perform POST calls only to authentication endpoints, providing least
-        privileged access to authentication code. These endpoints include:
-          - Verify Factor (SAML Assertion)
-          - Generate SAML Assertion
-          - Verify Factor (Login)
-          - Create Session Login Token
-          - Log User Out
-      Manage All: >-
-        Gives the credential pair the ability to generate an access token that
-        can perform GET, POST, PUT, and DELETE calls for all available API
-        resources, including the ability to set passwords and assign and remove
-        roles.
-      Manage users: >-
-        Gives the credential pair the ability to generate an access token that
-        can perform GET, POST, PUT, and DELETE calls available for the User,
-        Role, and Group API resources, with the exception of setting passwords
-        and assigning and removing roles
-      Read All: >-
-        Gives the credential pair the ability to generate an access token that
-        can perform GET calls available for all API resources.
-      Read Users: >-
-        Gives the credential pair the ability to generate an access token that
-        can perform GET calls available for the User, Role, and Group API
-        resources.
-    tokenUrl: 'https://your-api-subdomain.onelogin.com/auth/oauth2/v2/token'
-    type: oauth2
-  basicAuth:
-    type: basic
+  apikey_auth:
+    type: "apiKey"
+    in: "header"
+    name: api_auth
+    # name: "something" the name paramter will be ignored when using the 'x-terraform-authentication-scheme-bearer' extension, "Authorization" name will be use as default value
+    x-terraform-authentication-scheme-bearer: true
+          
 tags:
   - description: OAuth2
     name: OAuth2
@@ -12457,4 +12426,3 @@ x-components:
       description: The total number of pages to return all results.
       schema:
         type: integer
-
