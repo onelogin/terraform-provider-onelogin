@@ -10931,16 +10931,19 @@ definitions:
           our resource APIs.
         example: xx508xx63817x752xx74004x30705xx92x58349x5x78f5xx34xxxxx51
         type: string
+        readOnly: true
       account_id:
         description: >-
           Account ID associated with the API credentials used to generate the
           token.
         example: 555555
         type: integer
+        readOnly: true
       created_at:
         description: Time at which the access token was generated.
         example: '2015-11-11T03:36:18.714Z'
         type: string
+        readOnly: true
       expires_in:
         description: >-
           Indicates that the generated access token expires in 36,000 seconds,
@@ -10951,14 +10954,17 @@ definitions:
           the Refresh Tokens v2 API.
         example: 36000
         type: integer
+        readOnly: true
       refresh_token:
         description: deprecated No longer in use
         example: deprecated
         type: string
+        readOnly: true
       token_type:
         description: Indicates that the generated access token is a bearer token.
         example: bearer
         type: string
+        readOnly: true
     type: object
   oidc_app:
     allOf:
