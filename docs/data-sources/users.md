@@ -45,7 +45,7 @@ description: |-
 - `preferred_locale_code` (String)
 - `role_ids` (List of Number) A list of OneLogin Role IDs of the user
 - `salt` (String) The salt value used with the password_algorithm.
-- `samaccount_name` (String) The user's Active Directory username.
+- `samaccountname` (String) The user's Active Directory username.
 - `state` (Number)
 - `status` (Number)
 - `title` (String) The user's job title.
