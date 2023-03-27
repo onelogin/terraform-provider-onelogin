@@ -7,14 +7,14 @@ info:
   title: OneLogin API
   version: 3.1.1
 host: your-api-subdomain.onelogin.com
-basePath: /
+basePath: /api
 schemes:
   - https
 security:
   - apikey_auth: []
 
 paths:
-  /api/1/events:
+  /1/events:
     get:
       produces:
         - application/json
@@ -71,7 +71,7 @@ paths:
                     type: string
                   next_link:
                     example: >-
-                      https://your-api-subdomain.onelogin.com/api/1/events?after_cursor=xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
+                      https://your-api-subdomain.onelogin.com/1/events?after_cursor=xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
                   previous_link:
                     example: 'null'
@@ -105,7 +105,7 @@ paths:
       description: Get Events
       operationId: getEvents
       summary: Get Events
-  /api/1/events/types:
+  /1/events/types:
     get:
       produces:
         - application/json
@@ -142,7 +142,7 @@ paths:
       description: Get Event types
       operationId: getEventTypes
       summary: Get Event Types
-  '/api/1/events/{event_id}':
+  '/1/events/{event_id}':
     get:
       produces:
         - application/json
@@ -196,7 +196,7 @@ paths:
       description: Get Event By ID
       operationId: getEventById
       summary: Get Event by ID
-  /api/1/groups:
+  /1/groups:
     get:
       produces:
         - application/json
@@ -238,7 +238,7 @@ paths:
       description: Get Groups
       operationId: getGroups
       summary: Get Groups
-  '/api/1/groups/{group_id}':
+  '/1/groups/{group_id}':
     get:
       produces:
         - application/json
@@ -294,7 +294,7 @@ paths:
       description: Get Group By ID
       operationId: getGroupById
       summary: Get Group by ID
-  /api/1/invites/get_invite_link:
+  /1/invites/get_invite_link:
     post:
       consumes:
         - application/json
@@ -360,7 +360,7 @@ paths:
       description: Generate Invite Link
       operationId: getInviteLink
       summary: Generate Invite Link
-  /api/1/invites/send_invite_link:
+  /1/invites/send_invite_link:
     post:
       consumes:
         - application/json
@@ -425,9 +425,9 @@ paths:
       description: Send Invite Link
       operationId: sendInviteLink
       summary: Send  Invite Link
-  /api/1/privileges:
-    x-terraform-resource-name: "privileges"
+  /1/privileges:
     post:
+      x-terraform-resource-name: "privileges"
       consumes:
         - application/json
       produces:
@@ -492,7 +492,7 @@ paths:
       description: List Privileges
       operationId: listPriveleges
       summary: List Privileges
-  '/api/1/privileges/{privilege_id}':
+  '/1/privileges/{privilege_id}':
     get:
       produces:
         - application/json
@@ -618,7 +618,7 @@ paths:
       description: Update privilege
       operationId: updatePrivilege
       summary: Update a Privilege
-  '/api/1/privileges/{privilege_id}/roles':
+  '/1/privileges/{privilege_id}/roles':
     get:
       produces:
         - application/json
@@ -734,7 +734,7 @@ paths:
       description: 'Add roles to privilege '
       operationId: addPrivilegeToRole
       summary: Assign a Privilege to Roles
-  '/api/1/privileges/{privilege_id}/roles/{role_id}':
+  '/1/privileges/{privilege_id}/roles/{role_id}':
     delete:
       produces:
         - application/json
@@ -776,7 +776,7 @@ paths:
       description: Add roles to privilege
       operationId: deleteRoleFromPrivilege
       summary: Remove a Privilege from a Role
-  '/api/1/privileges/{privilege_id}/users':
+  '/1/privileges/{privilege_id}/users':
     get:
       produces:
         - application/json
@@ -887,7 +887,7 @@ paths:
       description: Assign Users to Privilege
       operationId: assignUsersToPrivilege
       summary: Assign Users to a Privilege
-  '/api/1/privileges/{privilege_id}/users/{user_id}':
+  '/1/privileges/{privilege_id}/users/{user_id}':
     delete:
       produces:
         - application/json
@@ -929,7 +929,7 @@ paths:
       description: Remove a Privilege from Users
       operationId: removeUserFromPrivilege
       summary: Remove a Privilege from Users
-  /api/1/roles:
+  /1/roles:
     get:
       produces:
         - application/json
@@ -972,7 +972,7 @@ paths:
                     type: string
                   next_link:
                     example: >-
-                      https://your-api-subdomain.onelogin.com/api/1/events?after_cursor=xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
+                      https://your-api-subdomain.onelogin.com/1/events?after_cursor=xWNjb3VudF9pZDo6OjUzNDEzLS0jI2lkOjo6OTA0MjU3NTQ2
                     type: string
                   previous_link:
                     example: '""'
@@ -1006,7 +1006,7 @@ paths:
       description: Get Role by Name
       operationId: getRoleByName
       summary: Get Role by Name
-  '/api/1/roles/{role_id}':
+  '/1/roles/{role_id}':
     get:
       produces:
         - application/json
@@ -1082,7 +1082,7 @@ paths:
       description: Get Role By ID
       operationId: getRoleById
       summary: Get Role by ID
-  /api/1/saml_assertion:
+  /1/saml_assertion:
     post:
       consumes:
         - application/json
@@ -1135,7 +1135,7 @@ paths:
       description: Generate SAML Assertion
       operationId: generateSamlAssert
       summary: Generate SAML Assertion
-  /api/1/saml_assertion/verify_factor:
+  /1/saml_assertion/verify_factor:
     post:
       consumes:
         - application/json
@@ -1201,8 +1201,7 @@ paths:
       description: 'Verify Factor: SAML'
       operationId: verFactorSaml
       summary: Verify Factor SAML
-  /api/1/users:
-    x-terraform-resource-name: "users_v1"
+  /1/users:
     get:
       produces:
         - application/json
@@ -1375,6 +1374,7 @@ paths:
       operationId: listUsers
       summary: List Users
     post:
+      x-terraform-resource-name: "users_v1"
       consumes:
         - application/json
       produces:
@@ -1438,7 +1438,7 @@ paths:
       description: Create a User
       operationId: createUser
       summary: Create a User
-  /api/1/users/custom_attributes:
+  /1/users/custom_attributes:
     get:
       produces:
         - application/json
@@ -1494,7 +1494,7 @@ paths:
       description: Get Custom Attributes
       operationId: getCustomAttributes
       summary: Get Custom Attributes
-  '/api/1/users/set_password_clear_text/{user_id}':
+  '/1/users/set_password_clear_text/{user_id}':
     put:
       consumes:
         - application/json
@@ -1587,7 +1587,7 @@ paths:
         insecure.
       operationId: updatePasswordInsecure
       summary: Set Password Using ID in Cleartext
-  '/api/1/users/set_password_using_salt/{user_id}':
+  '/1/users/set_password_using_salt/{user_id}':
     put:
       consumes:
         - application/json
@@ -1695,7 +1695,7 @@ paths:
       description: Update User Password Using ID and SHA-256 with salt.
       operationId: updatePasswordSecure
       summary: Set Password Using ID and SHA-256 and Salt
-  '/api/1/users/{user_id}':
+  '/1/users/{user_id}':
     delete:
       produces:
         - application/json
@@ -1851,7 +1851,7 @@ paths:
       description: Update a User
       operationId: updateUser
       summary: Update a User
-  '/api/1/users/{user_id}/add_roles':
+  '/1/users/{user_id}/add_roles':
     put:
       consumes:
         - application/json
@@ -1927,7 +1927,7 @@ paths:
       description: Add Roles for a User
       operationId: addRolesToUser
       summary: Add Roles for a User
-  '/api/1/users/{user_id}/apps':
+  '/1/users/{user_id}/apps':
     get:
       produces:
         - application/json
@@ -2033,7 +2033,7 @@ paths:
       description: Get Apps for User
       operationId: getUserApps
       summary: Get Apps for a User
-  '/api/1/users/{user_id}/auth_factor':
+  '/1/users/{user_id}/auth_factor':
     get:
       produces:
         - application/json
@@ -2105,7 +2105,7 @@ paths:
       description: Get MFA Factors
       operationId: getMFAFactors
       summary: Get Available Factors
-  '/api/1/users/{user_id}/lock_user':
+  '/1/users/{user_id}/lock_user':
     put:
       consumes:
         - application/json
@@ -2189,7 +2189,7 @@ paths:
       description: Lock User Account
       operationId: lockAccountUser
       summary: Lock User Account
-  '/api/1/users/{user_id}/logout':
+  '/1/users/{user_id}/logout':
     put:
       consumes:
         - application/json
@@ -2255,7 +2255,7 @@ paths:
       description: Log Out User
       operationId: logOutUser
       summary: Log User Out
-  '/api/1/users/{user_id}/mfa_token':
+  '/1/users/{user_id}/mfa_token':
     post:
       consumes:
         - application/json
@@ -2320,7 +2320,7 @@ paths:
       description: Generate MFA Token
       operationId: generateMFAtoken
       summary: Generate Temp MFA Token
-  '/api/1/users/{user_id}/otp_devices':
+  '/1/users/{user_id}/otp_devices':
     get:
       produces:
         - application/json
@@ -2570,7 +2570,7 @@ paths:
       description: ' Enroll an Authentication Factor'
       operationId: enrollMfaFactor
       summary: Enroll a Factor
-  '/api/1/users/{user_id}/otp_devices/{device_id}':
+  '/1/users/{user_id}/otp_devices/{device_id}':
     delete:
       produces:
         - application/json
@@ -2612,7 +2612,7 @@ paths:
       description: Remove an enrolled MFA device for a user
       operationId: removeMfaFactors
       summary: Remove an Enrolled Factor
-  '/api/1/users/{user_id}/otp_devices/{device_id}/trigger':
+  '/1/users/{user_id}/otp_devices/{device_id}/trigger':
     post:
       consumes:
         - application/json
@@ -2768,7 +2768,7 @@ paths:
       description: Activate a Factor
       operationId: activateMfaFactors
       summary: Activate a Factor
-  '/api/1/users/{user_id}/otp_devices/{device_id}/verify':
+  '/1/users/{user_id}/otp_devices/{device_id}/verify':
     post:
       consumes:
         - application/json
@@ -2840,7 +2840,7 @@ paths:
       description: Verify a Factor
       operationId: verifyMfaFactor
       summary: Verify a Factor
-  '/api/1/users/{user_id}/remove_roles':
+  '/1/users/{user_id}/remove_roles':
     put:
       consumes:
         - application/json
@@ -2915,7 +2915,7 @@ paths:
       description: Remove Roles for a User
       operationId: removeUserRole
       summary: Remove Roles for a User
-  '/api/1/users/{user_id}/roles':
+  '/1/users/{user_id}/roles':
     get:
       produces:
         - application/json
@@ -2983,7 +2983,7 @@ paths:
       description: Get User Roles
       operationId: getUserRoles
       summary: Get Roles for a User
-  '/api/1/users/{user_id}/set_state':
+  '/1/users/{user_id}/set_state':
     put:
       consumes:
         - application/json
@@ -3066,8 +3066,7 @@ paths:
       description: Set User State
       operationId: setUserState
       summary: Set User State
-  /api/2/api_authorizations:
-    x-terraform-resource-name: "auth_servers"
+  /2/api_authorizations:
     get:
       produces:
         - application/json
@@ -3094,6 +3093,7 @@ paths:
       operationId: listAuthServers
       summary: List Api Auth Servers
     post:
+      x-terraform-resource-name: "auth_servers"
       consumes:
         - application/json
       produces:
@@ -3136,7 +3136,7 @@ paths:
       description: Create Auth Server
       operationId: createAuthServer
       summary: Create Api Auth Server
-  '/api/2/api_authorizations/{api_auth_id}':
+  '/2/api_authorizations/{api_auth_id}':
     delete:
       produces:
         - application/json
@@ -3268,7 +3268,7 @@ paths:
       description: Update Authorization Server
       operationId: updateAuthServer
       summary: Update Api Auth Server
-  '/api/2/api_authorizations/{api_auth_id}/claims':
+  '/2/api_authorizations/{api_auth_id}/claims':
     get:
       produces:
         - application/json
@@ -3371,7 +3371,7 @@ paths:
       description: Create Authorization Claim
       operationId: createAuthClaim
       summary: Create Api Auth Server Claim
-  '/api/2/api_authorizations/{api_auth_id}/claims/{claim_id}':
+  '/2/api_authorizations/{api_auth_id}/claims/{claim_id}':
     delete:
       produces:
         - application/json
@@ -3479,7 +3479,7 @@ paths:
       description: Update Authorization Server Claim
       operationId: updateClaim
       summary: Update Api Auth Server Claim
-  '/api/2/api_authorizations/{api_auth_id}/clients':
+  '/2/api_authorizations/{api_auth_id}/clients':
     get:
       produces:
         - application/json
@@ -3603,7 +3603,7 @@ paths:
       description: Add Client App
       operationId: addClientApp
       summary: Add Client App
-  '/api/2/api_authorizations/{api_auth_id}/clients/{client_app_id}':
+  '/2/api_authorizations/{api_auth_id}/clients/{client_app_id}':
     delete:
       produces:
         - application/json
@@ -3745,7 +3745,7 @@ paths:
       description: Update Client App
       operationId: updateClientApp
       summary: Update Client App
-  '/api/2/api_authorizations/{api_auth_id}/scopes':
+  '/2/api_authorizations/{api_auth_id}/scopes':
     get:
       produces:
         - application/json
@@ -3838,7 +3838,7 @@ paths:
       description: Create API Auth Server Scope
       operationId: createScope
       summary: Create Api Auth Server Scope
-  '/api/2/api_authorizations/{api_auth_id}/scopes/{scope_id}':
+  '/2/api_authorizations/{api_auth_id}/scopes/{scope_id}':
     delete:
       produces:
         - application/json
@@ -3946,9 +3946,9 @@ paths:
       description: Update Scope
       operationId: updateScope
       summary: Update Api Auth Server Scope
-  /api/2/apps:
-    x-terraform-resource-name: "apps"
+  /2/apps:
     post:
+      x-terraform-resource-name: "apps"
       consumes:
         - application/json
       produces:
@@ -4027,7 +4027,7 @@ paths:
       description: List Apps
       operationId: listApps
       summary: List Apps
-  '/api/2/apps/{app_id}':
+  '/2/apps/{app_id}':
     get:
       produces:
         - application/json
@@ -4146,7 +4146,7 @@ paths:
       description: Update App
       operationId: updateApp
       summary: Update App
-  '/api/2/apps/{app_id}/rules':
+  '/2/apps/{app_id}/rules':
     post:
       consumes:
         - application/json
@@ -4303,7 +4303,7 @@ paths:
       description: List App Rules
       operationId: listAppRules
       summary: List Rules
-  '/api/2/apps/{app_id}/rules/{rule_id}':
+  '/2/apps/{app_id}/rules/{rule_id}':
     get:
       produces:
         - application/json
@@ -4432,7 +4432,7 @@ paths:
       description: Update App Rule.
       operationId: updateAppRule
       summary: Update Rule
-  '/api/2/apps/{app_id}/rules/actions':
+  '/2/apps/{app_id}/rules/actions':
     get:
       produces:
         - application/json
@@ -4462,7 +4462,7 @@ paths:
       description: List Actions
       operationId: listActions
       summary: List Actions
-  '/api/2/apps/{app_id}/rules/actions/{rule_action_value}/values':
+  '/2/apps/{app_id}/rules/actions/{rule_action_value}/values':
     get:
       produces:
         - application/json
@@ -4496,7 +4496,7 @@ paths:
       description: Sort App rules
       operationId: listActionValies
       summary: List Actions Values
-  '/api/2/apps/{app_id}/rules/conditions':
+  '/2/apps/{app_id}/rules/conditions':
     get:
       produces:
         - application/json
@@ -4537,7 +4537,7 @@ paths:
       description: List App Conditions
       operationId: listConditions
       summary: List Conditions
-  '/api/2/apps/{app_id}/rules/conditions/{rule_condition_value}/operators':
+  '/2/apps/{app_id}/rules/conditions/{rule_condition_value}/operators':
     get:
       produces:
         - application/json
@@ -4571,7 +4571,7 @@ paths:
       description: List Condition Operators
       operationId: listConditionOperators
       summary: List Conditions Operators
-  '/api/2/apps/{app_id}/rules/conditions/{rule_condition_value}/values':
+  '/2/apps/{app_id}/rules/conditions/{rule_condition_value}/values':
     get:
       produces:
         - application/json
@@ -4603,7 +4603,7 @@ paths:
       description: List Condition Values
       operationId: listConditionValues
       summary: List Conditions Values
-  '/api/2/apps/{app_id}/rules/sort':
+  '/2/apps/{app_id}/rules/sort':
     put:
       consumes:
         - application/json
@@ -4662,7 +4662,7 @@ paths:
       description: Sort App rules
       operationId: sortAppRules
       summary: Bulk Sort
-  '/api/2/apps/{app_id}/parameters/{parameter_id}':
+  '/2/apps/{app_id}/parameters/{parameter_id}':
     delete:
       produces:
         - application/json
@@ -4713,7 +4713,7 @@ paths:
       operationId: deleteAppParameter
       summary: Delete Parameter from App
 
-  '/api/2/apps/{app_id}/users':
+  '/2/apps/{app_id}/users':
     get:
       produces:
         - application/json
@@ -4743,8 +4743,9 @@ paths:
       description: Get App Users
       operationId: getAppUsers
       summary: Get App Users
-  /api/2/branding/brands:
+  /2/branding/brands:
     post:
+      x-terraform-resource-name: "brands"
       consumes:
         - application/json
       produces:
@@ -4798,7 +4799,7 @@ paths:
       description: List Account Brands
       operationId: listBrands
       summary: List Account Brands
-  '/api/2/branding/brands/{brand_id}':
+  '/2/branding/brands/{brand_id}':
     get:
       produces:
         - application/json
@@ -4918,7 +4919,7 @@ paths:
       description: Update Account Brand
       operationId: updateBrand
       summary: Update Brand
-  '/api/2/branding/brands/master/templates/{template_type}':
+  '/2/branding/brands/master/templates/{template_type}':
     get:
       produces:
         - application/json
@@ -4958,7 +4959,7 @@ paths:
       description: Get Master Template by Type
       operationId: getMasterByType
       summary: Get Master Template by Type
-  '/api/2/branding/brands/{brand_id}/apps':
+  '/2/branding/brands/{brand_id}/apps':
     get:
       produces:
         - application/json
@@ -5000,7 +5001,7 @@ paths:
       description: Get Apps Associated with Account Brand
       operationId: getBrandApps
       summary: Get Brand Apps
-  '/api/2/branding/brands/{brand_id}/templates':
+  '/2/branding/brands/{brand_id}/templates':
     post:
       consumes:
         - application/json
@@ -5111,7 +5112,7 @@ paths:
       operationId: listMessageTemplates
       summary: List Message Templates
     
-  '/api/2/branding/brands/{brand_id}/templates/{template_id}':
+  '/2/branding/brands/{brand_id}/templates/{template_id}':
     get:
       produces:
         - application/json
@@ -5231,7 +5232,7 @@ paths:
       description: Update Message Template by ID
       operationId: updateMessageTemplateById
       summary: Update Message Template
-  '/api/2/branding/brands/{brand_id}/templates/{template_type}/{locale}':
+  '/2/branding/brands/{brand_id}/templates/{template_type}/{locale}':
     get:
       produces:
         - application/json
@@ -5336,7 +5337,7 @@ paths:
       description: Update Template by Type and Locale
       operationId: updateTemplateByLocale
       summary: Update Template by Type & Locale
-  /api/2/branding/email_settings:
+  /2/branding/email_settings:
     delete:
       produces:
         - application/json
@@ -5420,7 +5421,7 @@ paths:
       description: Update Email Settings Config
       operationId: updateEmailSettings
       summary: Update Email Settings
-  /api/2/connectors:
+  /2/connectors:
     get:
       produces:
         - application/json
@@ -5456,8 +5457,9 @@ paths:
       description: List Connectors
       operationId: listConnectors
       summary: List Connectors
-  /api/2/mappings:
+  /2/mappings:
     post:
+      x-terraform-resource-name: "mappings"
       consumes:
         - application/json
       produces:
@@ -5615,7 +5617,7 @@ paths:
       description: List Mappings
       operationId: listMappings
       summary: List Mappings
-  '/api/2/mappings/{mapping_id}':
+  '/2/mappings/{mapping_id}':
     get:
       produces:
         - application/json
@@ -5745,7 +5747,7 @@ paths:
       operationId: updateMapping
       summary: Update Mapping
 
-  /api/2/mappings/actions:
+  /2/mappings/actions:
     get:
       produces:
         - application/json
@@ -5782,7 +5784,7 @@ paths:
       description: List Mappings' Actions
       operationId: listMappingsActions
       summary: List Actions
-  '/api/2/mappings/actions/{mapping_action_value}/values':
+  '/2/mappings/actions/{mapping_action_value}/values':
     get:
       produces:
         - application/json
@@ -5823,7 +5825,7 @@ paths:
       description: List Mappings' Actions' Values
       operationId: listMappingActionValues
       summary: List Actions Values
-  /api/2/mappings/conditions:
+  /2/mappings/conditions:
     get:
       produces:
         - application/json
@@ -5859,7 +5861,7 @@ paths:
       description: List Mappings' Conditions
       operationId: listMappingConditions
       summary: List Conditions
-  '/api/2/mappings/conditions/{mapping_condition_value}/operators':
+  '/2/mappings/conditions/{mapping_condition_value}/operators':
     get:
       produces:
         - application/json
@@ -5900,7 +5902,7 @@ paths:
       description: List Mappings' Conditions' Operators
       operationId: listMappingConditionsOperators
       summary: List Conditions Operators
-  '/api/2/mappings/conditions/{mapping_condition_value}/values':
+  '/2/mappings/conditions/{mapping_condition_value}/values':
     get:
       produces:
         - application/json
@@ -5941,7 +5943,7 @@ paths:
       description: List Mappings'  Conditions' Values
       operationId: listMappingContionValues
       summary: List Conditions Values
-  /api/2/mappings/sort:
+  /2/mappings/sort:
     put:
       consumes:
         - application/json
@@ -5999,7 +6001,7 @@ paths:
       description: Bulk Sort Mappings
       operationId: sortMappings
       summary: Bulk Sort
-  '/api/2/mfa/users/{user_id}/devices':
+  '/2/mfa/users/{user_id}/devices':
     get:
       produces:
         - application/json
@@ -6058,7 +6060,7 @@ paths:
       description: Get a user authentication devices
       operationId: getAuthenticationDevices
       summary: Get User Devices
-  '/api/2/mfa/users/{user_id}/devices/{device_id}':
+  '/2/mfa/users/{user_id}/devices/{device_id}':
     delete:
       parameters:
         - description: Set to the id of the user that you want to return.
@@ -6078,7 +6080,7 @@ paths:
       description: Delete a user\'s authentication device
       operationId: deleteEnrolledFactor
       summary: Delete Enrolled Factor
-  '/api/2/mfa/users/{user_id}/factors':
+  '/2/mfa/users/{user_id}/factors':
     get:
       produces:
         - application/json
@@ -6127,7 +6129,7 @@ paths:
       description: Get a user\'s available authentication factors
       operationId: getAuthFactors
       summary: Get User Factors
-  '/api/2/mfa/users/{user_id}/mfa_token':
+  '/2/mfa/users/{user_id}/mfa_token':
     post:
       consumes:
         - application/json
@@ -6220,7 +6222,7 @@ paths:
       description: Create new MFA token on the user's account
       operationId: generateOTP
       summary: Generate MFA token
-  '/api/2/mfa/users/{user_id}/registrations':
+  '/2/mfa/users/{user_id}/registrations':
     post:
       consumes:
         - application/json
@@ -6356,7 +6358,7 @@ paths:
       description: Create a new registration process
       operationId: createFactorRegistration
       summary: Create Factor Registration
-  '/api/2/mfa/users/{user_id}/registrations/{registration_id}':
+  '/2/mfa/users/{user_id}/registrations/{registration_id}':
     get:
       produces:
         - application/json
@@ -6494,7 +6496,7 @@ paths:
       description: Submit an otp for verification.
       operationId: verifyUserRegistration
       summary: Verify User Registration
-  '/api/2/mfa/users/{user_id}/verifications':
+  '/2/mfa/users/{user_id}/verifications':
     post:
       consumes:
         - application/json
@@ -6624,7 +6626,7 @@ paths:
       description: Create a new verification process
       operationId: createDeviceVerification
       summary: Create Device Verification
-  '/api/2/mfa/users/{user_id}/verifications/{verification_id}':
+  '/2/mfa/users/{user_id}/verifications/{verification_id}':
     get:
       produces:
         - application/json
@@ -6764,7 +6766,7 @@ paths:
       description: Submit an otp for verification.
       operationId: verifyUserVerification
       summary: Verify User Verification
-  /api/2/risk/events:
+  /2/risk/events:
     post:
       consumes:
         - application/json
@@ -6835,8 +6837,9 @@ paths:
       description: Track Vigilance AI (Risk Service) Event
       operationId: trackRiskEvent
       summary: Track an Event
-  /api/2/risk/rules:
+  /2/risk/rules:
     post:
+      x-terraform-resource-name: "risk_rules"
       consumes:
         - application/json
       produces:
@@ -6903,7 +6906,7 @@ paths:
       operationId: listRiskRules
       summary: List Rules
     
-  '/api/2/risk/rules/{rule_id}':
+  '/2/risk/rules/{rule_id}':
     get:
       produces:
         - application/json
@@ -7008,7 +7011,7 @@ paths:
       description: Update Vigilance AI (Risk Service) Rule
       operationId: updateRiskRule
       summary: Update Rule
-  /api/2/risk/scores:
+  /2/risk/scores:
     get:
       produces:
         - application/json
@@ -7049,7 +7052,7 @@ paths:
       description: Get Vigilance AI (Risk Service) Score Summary
       operationId: getRiskScores
       summary: Get Score Summary
-  /api/2/risk/verify:
+  /2/risk/verify:
     post:
       consumes:
         - application/json
@@ -7137,8 +7140,9 @@ paths:
       description: Get Vigilance AI (Risk Service) Score
       operationId: getRiskScore
       summary: Get a Risk Score
-  /api/2/roles:
+  /2/roles:
     post:
+      x-terraform-resource-name: "roles"
       consumes:
         - application/json
       produces:
@@ -7256,7 +7260,7 @@ paths:
       description: List Roles
       operationId: listRoles
       summary: List Roles
-  '/api/2/roles/{role_id}':
+  '/2/roles/{role_id}':
     get:
       produces:
         - application/json
@@ -7388,7 +7392,7 @@ paths:
       description: Update Role
       operationId: updateRole
       summary: Update Role
-  '/api/2/roles/{role_id}/admins':
+  '/2/roles/{role_id}/admins':
     delete:
       consumes:
         - application/json
@@ -7579,7 +7583,7 @@ paths:
       description: Add Role Admins
       operationId: addRoleAdmins
       summary: Add Role Admins
-  '/api/2/roles/{role_id}/apps':
+  '/2/roles/{role_id}/apps':
     get:
       produces:
         - applcation/json
@@ -7743,7 +7747,7 @@ paths:
       description: Set Role Apps
       operationId: setRoleApps
       summary: Set Role Apps
-  '/api/2/roles/{role_id}/users':
+  '/2/roles/{role_id}/users':
     post:
       consumes:
         - application/json
@@ -7953,7 +7957,7 @@ paths:
       operationId: getRoleUsers
       summary: Get Role Users
     
-  /api/2/saml_assertion:
+  /2/saml_assertion:
     post:
       consumes:
         - application/json
@@ -8006,7 +8010,7 @@ paths:
       description: Generate SAML Assertion
       operationId: generateSamlAssert2
       summary: Generate SAML Assertion
-  /api/2/saml_assertion/verify_factor:
+  /2/saml_assertion/verify_factor:
     post:
       consumes:
         - application/json
@@ -8072,8 +8076,9 @@ paths:
       description: 'Verify Factor: SAML'
       operationId: verFactorSaml2
       summary: Verify Factor SAML
-  /api/2/users:
+  /2/users:
     post:
+      x-terraform-resource-name: "users"
       consumes:
         - application/json
       produces:
@@ -8280,7 +8285,7 @@ paths:
       description: Get a list of users
       operationId: listUsers2
       summary: List Users
-  '/api/2/users/{user_id}':
+  '/2/users/{user_id}':
     get:
       produces:
         - application/json
@@ -8357,7 +8362,6 @@ paths:
       description: Delete User
       operationId: deleteUser2
       summary: Delete User
-   
     put:
       consumes:
         - application/json
@@ -8437,7 +8441,7 @@ paths:
       description: Update User
       operationId: updateUser2
       summary: Update User
-  '/api/2/users/{user_id}/apps':
+  '/2/users/{user_id}/apps':
     get:
       produces:
         - application/json
@@ -8543,195 +8547,6 @@ paths:
       description: Get User Apps
       operationId: getUserApps2
       summary: Get User Apps
-  /auth/oauth2/revoke:
-    post:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - default: application/json
-          in: header
-          name: Content-Type
-          type: string
-          x-example: application/json
-        - in: body
-          name: body
-          schema:
-            properties:
-              access_token:
-                description: >-
-                  Set to the access token you want to revoke.
-
-                  This access token must have been generated using the client_id
-                  and client_secret provided in the Authorization header.
-                example: >-
-                  xx508xx63817x752xx74004x30705xx92x58349x5x78f5xx34x8x614xxxx1451
-                type: string
-            required:
-              - access_token
-            type: object
-      responses:
-        '200':
-          description: Successful response
-          examples:
-            application/json:
-              code: 200
-              error: false
-              message: sucess
-              type: success
-          schema:
-            $ref: '#/definitions/Error'
-        '400':
-          description: Bad Request
-          examples:
-            application/json:
-              code: 400
-              error: true
-              message: Request Failure
-              type: bad request
-          schema:
-            $ref: '#/definitions/Error'
-        '401':
-          description: Unauthorized
-          examples:
-            application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
-          schema:
-            $ref: '#/definitions/Error'
-        '404':
-          description: Not Found
-          examples:
-            application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
-          schema:
-            $ref: '#/definitions/Error'
-      tags:
-        - OAuth2
-      description: Revoke Tokens
-      operationId: revokeTokens
-      summary: Revoke Tokens
-  /auth/oauth2/v2/token:
-    post:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - default: application/json
-          in: header
-          name: Content-Type
-          type: string
-          x-example: application/json
-        - description: Request Body to Generate OAuth Token
-          in: body
-          name: body
-          required: true
-          schema:
-            properties:
-              grant_type:
-                default: client_credentials
-                description: Set to client_credentials.
-                type: string
-            required:
-              - grant_type
-            type: object
-      responses:
-        '200':
-          description: Successful Response
-          schema:
-            $ref: '#/definitions/oauth_token'
-        '400':
-          description: Bad Request
-          examples:
-            application/json:
-              code: 400
-              error: true
-              message: Request Failure
-              type: bad request
-          schema:
-            $ref: '#/definitions/Error'
-        '401':
-          description: Unauthorized
-          examples:
-            application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
-          schema:
-            $ref: '#/definitions/Error'
-        '404':
-          description: Not Found
-          examples:
-            application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
-          schema:
-            $ref: '#/definitions/Error'
-      tags:
-        - OAuth2
-      description: Generate Token
-      operationId: generateToken
-      summary: Generate Token
-  /auth/rate_limit:
-    get:
-      produces:
-        - application/json
-      parameters: []
-      responses:
-        '200':
-          description: Successful response
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/rate_limit'
-              status:
-                $ref: '#/definitions/Error'
-            type: object
-        '400':
-          description: Bad Request
-          examples:
-            application/json:
-              code: 400
-              error: true
-              message: Request Failure
-              type: bad request
-          schema:
-            $ref: '#/definitions/Error'
-        '401':
-          description: Unauthorized
-          examples:
-            application/json:
-              code: 401
-              error: true
-              message: Unauthorized Error
-              type: Unauthorized
-          schema:
-            $ref: '#/definitions/Error'
-        '404':
-          description: Not Found
-          examples:
-            application/json:
-              code: 404
-              error: true
-              message: No Route Exists
-              type: Not Found
-          schema:
-            $ref: '#/definitions/Error'
-      tags:
-        - OAuth2
-      description: Get Rate Limit
-      operationId: getRateLimit
-      summary: Get Rate Limit
 definitions:
   Error:
     properties:
@@ -11193,7 +11008,7 @@ securityDefinitions:
   apikey_auth:
     type: "apiKey"
     in: "header"
-    name: apikey_auth
+    name: Authorization
     # name: "something" the name paramter will be ignored when using the 'x-terraform-authentication-scheme-bearer' extension, "Authorization" name will be use as default value
     x-terraform-authentication-scheme-bearer: true
           

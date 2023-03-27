@@ -21,6 +21,9 @@ You can then start running the Terraform provider:
 
 ```shell
 export OTF_VAR_onelogin_PLUGIN_CONFIGURATION_FILE="https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/swag-api.yml"
+```
+
+```shell
 ➜ ~ terraform init && terraform plan
 ```
 
