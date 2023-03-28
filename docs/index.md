@@ -32,7 +32,6 @@ Optional:
 - `apps` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
 - `apps_rules` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
 - `auth_servers` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
-- `brands` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
 - `privileges` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
 - `risk_rules` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
 - `roles` (String) Use this to override the resource endpoint URL (the default one or the one constructed from the `region`).
