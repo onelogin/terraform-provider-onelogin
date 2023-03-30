@@ -34,8 +34,6 @@ description: |-
 - `icon_url` (String) A link to the apps icon url
 - `name` (String) The name of the app.
 - `notes` (String) Freeform notes about the app.
-- `parameters` (Block List, Max: 1) The parameters section contains parameterized attributes that have defined at the connector level as well as custom attributes that have been defined specifically for this app. Regardless of how they are defined, all parameters have the following attributes.
-Each parameter is an object with the key for the object being set as the parameters short name. (see [below for nested schema](#nestedblock--parameters))
 - `policy_id` (Number) The security policy assigned to the app.
 - `provisioning` (Block List, Max: 1) Indicates if provisioning is enabled for this app. (see [below for nested schema](#nestedblock--provisioning))
 - `role_ids` (List of Number) List of Role IDs that are assigned to the app. On App Create or Update the entire array is replaced with the values provided.
@@ -95,17 +93,6 @@ Optional:
 - `unit` (Number)
 - `value` (Number)
 
-
-
-<a id="nestedblock--parameters"></a>
-### Nested Schema for `parameters`
-
-Optional:
-
-- `include_in_saml_assertion` (Boolean) When true, this parameter will be included in a SAML assertion payload.
-- `label` (String) The can only be set when creating a new parameter. It can not be updated.
-- `user_attribute_macros` (String) When `user_attribute_mappings` is set to `_macro_` this macro will be used to assign the parameter value.
-- `user_attribute_mappings` (String) A user attribute to map values from For custom attributes prefix the name of the attribute with `custom_attribute_`. e.g. To get the value for custom attribute `employee_id` use `custom_attribute_employee_id`.
 
 
 <a id="nestedblock--provisioning"></a>
