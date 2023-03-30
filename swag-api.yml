@@ -9099,8 +9099,13 @@ definitions:
     description: Set to the value of the __tdli_fp cookie.
     type: string
   generic-app:
+    x-terraform-computed: true
     properties:
       configuration:
+        type: object
+        x-terraform-computed: true
+        additionalProperties: true
+      parameters:
         type: object
         x-terraform-computed: true
         additionalProperties: true
@@ -9180,6 +9185,9 @@ definitions:
         description: Indicates if the app is visible in the OneLogin portal.
         example: true
         type: boolean
+    required:
+      - connector_id
+      - name
     type: object
   group:
     properties:
