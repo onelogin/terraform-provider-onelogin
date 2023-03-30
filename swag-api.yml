@@ -9103,11 +9103,14 @@ definitions:
       configuration:
         type: object
         x-terraform-computed: true
+        additionalProperties: true
       sso:
         type: object
         x-terraform-computed: true
+        additionalProperties: true
       parameters:
         x-terraform-computed: true
+        additionalProperties: true
       allow_assumed_signin:
         description: >-
           Indicates whether or not administrators can access the app as a user
