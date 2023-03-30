@@ -201,7 +201,7 @@ terraform {
 
 ## Provider Configuration
 
-Authentication for terraform provider onelogin requires you to use your API credentials
+Authentication for terraform provider onelogin requires you to use your API credentials to acquire a token. That token will be used for your apikey_auth
 
 #### Example Usage
 
