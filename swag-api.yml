@@ -9099,10 +9099,29 @@ definitions:
     description: Set to the value of the __tdli_fp cookie.
     type: string
   generic-app:
-    additionalProperties: true
+    x-terraform-computed: true
     properties:
-      parameters:
-        $ref: '#/definitions/app_parameters'
+      configuration:
+        description: Onelogin currently only supports OIDC App configuration through Terraform Provider. Leave blank for SAML Apps
+        type: object
+        properties: 
+          redirect_uri:
+            type: string
+            description: Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
+          login_url:
+            type: string
+            description: The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
+          oidc_application_type:
+            type: integer
+            description: >-
+              - 0- Web
+              - 1- Native/Mobile
+          token_endpoint_auth_method:
+            type: integer
+            description: Number of minutes the refresh token will be valid for.
+          access_token_expiration_minutes:
+            type: integer
+            description: Number of minutes the refresh token will be valid for.
       allow_assumed_signin:
         description: >-
           Indicates whether or not administrators can access the app as a user
@@ -9119,6 +9138,7 @@ definitions:
         description: the date the app was created
         example: '2018-04-12T21:50:42Z'
         type: string
+        readOnly: true
       description:
         description: Freeform description of the app.
         type: string
@@ -9169,10 +9189,14 @@ definitions:
         description: the date the app was last updated
         example: '2019-05-16T19:20:34Z'
         type: string
+        readOnly: true
       visible:
         description: Indicates if the app is visible in the OneLogin portal.
         example: true
         type: boolean
+    required:
+      - connector_id
+      - name
     type: object
   group:
     properties:
@@ -9180,6 +9204,7 @@ definitions:
         description: Group's unique Onelogin ID
         example: 425741
         type: integer
+        readOnly: true
       name:
         description: Group name
         example: group.security.policy.default
@@ -9194,16 +9219,6 @@ definitions:
   ip:
     description: The IP address of the User's request.
     type: string
-  locale:
-    properties:
-      is_default:
-        description: indicator if language is default
-        type: boolean
-      language:
-        description: locale string
-        format: '^[a-z]{2,4}(-[A-Z][a-z]{3})?(-([A-Z]{2}|[0-9]{3}))?$'
-        type: string
-    type: object
   mapping:
     properties:
       actions:
@@ -9251,18 +9266,6 @@ definitions:
     allOf:
       - $ref: '#/definitions/generic-app'
       - example:
-          parameters:
-            groups:
-              attributes_transformations: null
-              default_values: null
-              id: 237825
-              include_in_saml_assertion: true
-              label: Groups
-              provisioned_entitlements: false
-              skip_if_blank: false
-              user_attribute_macros: null
-              user_attribute_mappings: null
-              values: null
           allow_assumed_signin: false
           auth_method: 8
           configuration:
@@ -9283,17 +9286,12 @@ definitions:
           policy_id: 165278
           provisioning:
             enabled: false
-          sso:
-            client_id: b5dee2e0-5cbf-0137-6e19-12c80e5197ec92920
-            client_secret: 3acdcdba4e57bbb4f0454a8729fbc4ec5c4ac327c8e1d6d60c305cc9ea5dbcd3
           tab_id: null
           updated_at: '2019-05-19T23:56:57Z'
           visible: true
         properties:
           configuration:
             $ref: '#/definitions/configuration_oidc'
-          sso:
-            $ref: '#/definitions/sso_oidc'
         required:
           - connector_id
           - name
@@ -9432,21 +9430,6 @@ definitions:
       - name
       - privilege
     type: object
-  rate_limit:
-    properties:
-      X-RateLimit-Limit:
-        description: Rate Limit Limit
-        example: 5000
-        type: integer
-      X-RateLimit-Remaining:
-        description: Rate Limit Remaining
-        example: 4988
-        type: integer
-      X-RateLimit-Reset:
-        description: Rate Limit Reset
-        example: 832
-        type: integer
-    type: object
   risk_device:
     description: Information about the device being used.
     properties:
@@ -9578,8 +9561,6 @@ definitions:
             type: object
           configuration:
             $ref: '#/definitions/configuration_saml'
-          sso:
-            $ref: '#/definitions/sso_saml'
         required:
           - connector_id
           - name
