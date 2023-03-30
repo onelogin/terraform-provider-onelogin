@@ -9099,10 +9099,15 @@ definitions:
     description: Set to the value of the __tdli_fp cookie.
     type: string
   generic-app:
-    additionalProperties: true
     properties:
+      configuration:
+        type: object
+        x-terraform-computed: true
+      sso:
+        type: object
+        x-terraform-computed: true
       parameters:
-        $ref: '#/definitions/app_parameters'
+        x-terraform-computed: true
       allow_assumed_signin:
         description: >-
           Indicates whether or not administrators can access the app as a user
@@ -9119,6 +9124,7 @@ definitions:
         description: the date the app was created
         example: '2018-04-12T21:50:42Z'
         type: string
+        readOnly: true
       description:
         description: Freeform description of the app.
         type: string
@@ -9169,6 +9175,7 @@ definitions:
         description: the date the app was last updated
         example: '2019-05-16T19:20:34Z'
         type: string
+        readOnly: true
       visible:
         description: Indicates if the app is visible in the OneLogin portal.
         example: true
@@ -9180,6 +9187,7 @@ definitions:
         description: Group's unique Onelogin ID
         example: 425741
         type: integer
+        readOnly: true
       name:
         description: Group name
         example: group.security.policy.default
@@ -9194,16 +9202,6 @@ definitions:
   ip:
     description: The IP address of the User's request.
     type: string
-  locale:
-    properties:
-      is_default:
-        description: indicator if language is default
-        type: boolean
-      language:
-        description: locale string
-        format: '^[a-z]{2,4}(-[A-Z][a-z]{3})?(-([A-Z]{2}|[0-9]{3}))?$'
-        type: string
-    type: object
   mapping:
     properties:
       actions:
@@ -9431,21 +9429,6 @@ definitions:
     required:
       - name
       - privilege
-    type: object
-  rate_limit:
-    properties:
-      X-RateLimit-Limit:
-        description: Rate Limit Limit
-        example: 5000
-        type: integer
-      X-RateLimit-Remaining:
-        description: Rate Limit Remaining
-        example: 4988
-        type: integer
-      X-RateLimit-Reset:
-        description: Rate Limit Reset
-        example: 832
-        type: integer
     type: object
   risk_device:
     description: Information about the device being used.
