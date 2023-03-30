@@ -9108,9 +9108,6 @@ definitions:
         type: object
         x-terraform-computed: true
         additionalProperties: true
-      parameters:
-        x-terraform-computed: true
-        additionalProperties: true
       allow_assumed_signin:
         description: >-
           Indicates whether or not administrators can access the app as a user
@@ -9252,18 +9249,6 @@ definitions:
     allOf:
       - $ref: '#/definitions/generic-app'
       - example:
-          parameters:
-            groups:
-              attributes_transformations: null
-              default_values: null
-              id: 237825
-              include_in_saml_assertion: true
-              label: Groups
-              provisioned_entitlements: false
-              skip_if_blank: false
-              user_attribute_macros: null
-              user_attribute_mappings: null
-              values: null
           allow_assumed_signin: false
           auth_method: 8
           configuration:
