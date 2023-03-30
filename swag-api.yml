@@ -9101,6 +9101,31 @@ definitions:
   generic-app:
     x-terraform-computed: true
     properties:
+      configuration:
+        description: Onelogin currently only supports OIDC App configuration through Terraform Provider. Leave blank for SAML Apps
+        type: object
+        properties: 
+          redirect_uri:
+            type: string
+            description: Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
+          login_url:
+            type: string
+            description: The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
+          oidc_application_type:
+            type: integer
+            description: >-
+              - 0- Web
+              - 1- Native/Mobile
+          token_endpoint_auth_method:
+            type: integer
+            description: Number of minutes the refresh token will be valid for.
+          access_token_expiration_minutes:
+            type: integer
+            description: Number of minutes the refresh token will be valid for.
+      sso:
+        type: object
+        x-terraform-computed: true
+        readOnly: true
       allow_assumed_signin:
         description: >-
           Indicates whether or not administrators can access the app as a user
@@ -9241,6 +9266,49 @@ definitions:
       - conditions
       - actions
     type: object
+  oidc_app:
+    allOf:
+      - $ref: '#/definitions/generic-app'
+      - example:
+          allow_assumed_signin: false
+          auth_method: 8
+          configuration:
+            access_token_expiration_minutes: 5
+            login_url: 'http://example.com/login'
+            oidc_application_type: 0
+            oidc_encryption_key: ''
+            redirect_uri: 'http://example.com/callback'
+            refresh_token_expiration_minutes: 60
+            token_endpoint_auth_method: 0
+          connector_id: 108419
+          created_at: '2019-05-19T23:56:57Z'
+          description: ''
+          icon_url: /images/missing_connector_icon/square/old_original.png
+          id: 928549
+          name: Sample OpenId Connect App
+          notes: null
+          policy_id: 165278
+          provisioning:
+            enabled: false
+          sso:
+            client_id: b5dee2e0-5cbf-0137-6e19-12c80e5197ec92920
+            client_secret: 3acdcdba4e57bbb4f0454a8729fbc4ec5c4ac327c8e1d6d60c305cc9ea5dbcd3
+          tab_id: null
+          updated_at: '2019-05-19T23:56:57Z'
+          visible: true
+        properties:
+          configuration:
+            $ref: '#/definitions/configuration_oidc'
+          sso:
+            $ref: '#/definitions/sso_oidc'
+        required:
+          - connector_id
+          - name
+          - description
+          - visible
+          - policy_id
+          - configuration
+        type: object
   privilege:
     properties:
       description:
@@ -9484,6 +9552,35 @@ definitions:
         example: '272445'
         type: string
     type: object
+  saml_app:
+    allOf:
+      - $ref: '#/definitions/generic-app'
+      - properties:
+          parameters:
+            properties:
+              saml_username:
+                properties:
+                  user_attribute_mappings:
+                    type: string
+                required:
+                  - user_attribute_mappings
+                type: object
+            required:
+              - saml_username
+            type: object
+          configuration:
+            $ref: '#/definitions/configuration_saml'
+          sso:
+            $ref: '#/definitions/sso_saml'
+        required:
+          - connector_id
+          - name
+          - description
+          - visible
+          - policy_id
+          - configuration
+          - parameters
+        type: object
   saml_assert:
     example:
       app_id: '16819324'
