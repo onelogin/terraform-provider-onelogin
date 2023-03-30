@@ -9286,17 +9286,12 @@ definitions:
           policy_id: 165278
           provisioning:
             enabled: false
-          sso:
-            client_id: b5dee2e0-5cbf-0137-6e19-12c80e5197ec92920
-            client_secret: 3acdcdba4e57bbb4f0454a8729fbc4ec5c4ac327c8e1d6d60c305cc9ea5dbcd3
           tab_id: null
           updated_at: '2019-05-19T23:56:57Z'
           visible: true
         properties:
           configuration:
             $ref: '#/definitions/configuration_oidc'
-          sso:
-            $ref: '#/definitions/sso_oidc'
         required:
           - connector_id
           - name
@@ -9566,8 +9561,6 @@ definitions:
             type: object
           configuration:
             $ref: '#/definitions/configuration_saml'
-          sso:
-            $ref: '#/definitions/sso_saml'
         required:
           - connector_id
           - name
