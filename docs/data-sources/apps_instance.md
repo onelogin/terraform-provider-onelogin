@@ -27,6 +27,7 @@ description: |-
   - 6: Forms Based App
   - 7: WSFED
   - 8: OpenId Connect
+- `configuration` (Block List, Max: 1) Onelogin currently only supports OIDC App configuration through Terraform Provider. Leave blank for SAML Apps (see [below for nested schema](#nestedblock--configuration))
 - `connector_id` (Number) ID of the connector to base the app from.
 - `created_at` (String) the date the app was created
 - `description` (String) Freeform description of the app.
@@ -44,6 +45,18 @@ description: |-
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+
+<a id="nestedblock--configuration"></a>
+### Nested Schema for `configuration`
+
+Optional:
+
+- `access_token_expiration_minutes` (Number) Number of minutes the refresh token will be valid for.
+- `login_url` (String) The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
+- `oidc_application_type` (Number) - 0- Web - 1- Native/Mobile
+- `redirect_uri` (String) Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
+- `token_endpoint_auth_method` (Number) Number of minutes the refresh token will be valid for.
+
 
 <a id="nestedblock--enforcement_point"></a>
 ### Nested Schema for `enforcement_point`
