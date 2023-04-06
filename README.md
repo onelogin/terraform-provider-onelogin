@@ -232,7 +232,15 @@ The following arguments are supported:
 - name [string] - (Optional) The name of the app.
 - role_ids [list of integers] - (Optional) List of Role IDs that are assigned to the app. On App Create or Update the entire array is replaced with the values provided.
 - allow_assumed_signin [boolean] - (Optional) Indicates whether or not administrators can access the app as a user that they have assumed control over.
-- auth_method [integer] - (Optional) An ID indicating the type of app: - 0: Password - 1: OpenId - 2: SAML - 3: API - 4: Google - 6: Forms Based App - 7: WSFED - 8: OpenId Connect
+- auth_method [integer] - (Optional) An ID indicating the type of app: 
+  - 0: Password
+  - 1: OpenId
+  - 2: SAML
+  - 3: API
+  - 4: Google
+  - 6: Forms Based App
+  - 7: WSFED
+  - 8: OpenId Connect
 - policy_id [integer] - (Optional) The security policy assigned to the app.
 - - parameters [object] - (Optional) The parameters section contains parameterized attributes that have defined at the connector level as well as custom attributes that have been defined specifically for this app. Regardless of how they are defined, all parameters have the following attributes. Each parameter is an object with the key for the object being set as the parameters short name.. The following properties compose the object schema :
   - include_in_saml_assertion [boolean] - (Optional) When true, this parameter will be included in a SAML assertion payload.
