@@ -9181,6 +9181,40 @@ definitions:
           description: Role ID
           type: integer
         type: array
+      sso:
+        description: >-
+          The attributes included in the sso section are determined by the type of app.
+          All of the attributes of the `sso` object are read only.
+        type: object
+        readOnly: true
+        properties: 
+          client_id:
+            type: string
+            description: The OpenId Connect Client Id. Note that client_secret is only returned after Creating an OIDC App.
+            readOnly: true
+          metadata_url:
+            type: string
+            description: ID of the apps underlying connector.	This is only returned after Creating a SAML App.
+            readOnly: true
+          acs_url:
+            type: string
+            description: App Name.	This is only returned after Creating a SAML App.
+            readOnly: true
+          issuer:
+            type: string
+            description: Issuer of app.	This is only returned after Creating a SAML App.
+            readOnly: true
+          certificate:
+            type: object
+            description: The certificate used for signing.	This is only returned after Creating a SAML App.
+            readOnly: true
+            properties: 
+              id:
+                type: integer
+              value:
+                type: string
+              name:
+                type: string
       tab_id:
         description: ID of the OneLogin portal tab that the app is assigned to.
         example: 196885
