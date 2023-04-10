@@ -38,6 +38,7 @@ description: |-
 - `policy_id` (Number) The security policy assigned to the app.
 - `provisioning` (Block List, Max: 1) Indicates if provisioning is enabled for this app. (see [below for nested schema](#nestedblock--provisioning))
 - `role_ids` (List of Number) List of Role IDs that are assigned to the app. On App Create or Update the entire array is replaced with the values provided.
+- `sso` (Block List, Max: 1) The attributes included in the sso section are determined by the type of app. All of the attributes of the `sso` object are read only. (see [below for nested schema](#nestedblock--sso))
 - `tab_id` (Number) ID of the OneLogin portal tab that the app is assigned to.
 - `updated_at` (String) the date the app was last updated
 - `visible` (Boolean) Indicates if the app is visible in the OneLogin portal.
@@ -114,5 +115,29 @@ Optional:
 Optional:
 
 - `enabled` (Boolean)
+
+
+<a id="nestedblock--sso"></a>
+### Nested Schema for `sso`
+
+Optional:
+
+- `acs_url` (String) App Name.	This is only returned after Creating a SAML App.
+- `certificate` (Block List, Max: 1) The certificate used for signing.	This is only returned after Creating a SAML App. (see [below for nested schema](#nestedblock--sso--certificate))
+- `client_id` (String) The OpenId Connect Client Id. Note that client_secret is only returned after Creating an OIDC App.
+- `issuer` (String) Issuer of app.	This is only returned after Creating a SAML App.
+- `metadata_url` (String) ID of the apps underlying connector.	This is only returned after Creating a SAML App.
+
+<a id="nestedblock--sso--certificate"></a>
+### Nested Schema for `sso.certificate`
+
+Optional:
+
+- `name` (String)
+- `value` (String)
+
+Read-Only:
+
+- `id` (Number) The ID of this resource.
 
 
