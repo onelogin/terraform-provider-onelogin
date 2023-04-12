@@ -75,7 +75,6 @@ One of the following:
   - SHA-512
 - `token_endpoint_auth_method` (Number) OIDC Apps only Number of minutes the refresh token will be valid for.
 
-
 <a id="nestedblock--enforcement_point"></a>
 ### Nested Schema for `enforcement_point`
 

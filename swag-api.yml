@@ -9251,6 +9251,7 @@ definitions:
             readOnly: true
           client_secret:
             type: string
+            description: OpenId Connet Client Secret
             readOnly: true
           metadata_url:
             type: string

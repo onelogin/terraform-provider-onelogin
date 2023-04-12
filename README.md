@@ -215,7 +215,15 @@ The following arguments are supported:
 - tab_id [integer] - (Optional) ID of the OneLogin portal tab that the app is assigned to.
 - role_ids [list of integers] - (Optional) List of Role IDs that are assigned to the app. On App Create or Update the entire array is replaced with the values provided.
 - allow_assumed_signin [boolean] - (Optional) Indicates whether or not administrators can access the app as a user that they have assumed control over.
-- auth_method [integer] - (Optional) An ID indicating the type of app: - 0: Password - 1: OpenId - 2: SAML - 3: API - 4: Google - 6: Forms Based App - 7: WSFED - 8: OpenId Connect
+- auth_method [integer] - (Optional) An ID indicating the type of app: 
+  - 0: Password
+  - 1: OpenId
+  - 2: SAML
+  - 3: API
+  - 4: Google
+  - 6: Forms Based App
+  - 7: WSFED
+  - 8: OpenId Connect
 - policy_id [integer] - (Optional) The security policy assigned to the app.
 - notes [string] - (Optional) Freeform notes about the app.
 - _ enforcement_point [object] - (Optional) For apps that connect to a OneLogin Access Enforcement Point the following enforcement_point object will be included with the app payload.. The following properties compose the object schema :
