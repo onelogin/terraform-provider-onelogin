@@ -9101,27 +9101,81 @@ definitions:
   generic-app:
     x-terraform-computed: true
     properties:
+      auth_method_description:
+        type: string
+        example: "OpenId Connect"
+        readOnly: true
+      brand_id:
+        type: integer
+      login_config:
+        type: integer
+        readOnly: true
+        example: 0
       configuration:
-        description: Onelogin currently only supports OIDC App configuration through Terraform Provider. Leave blank for SAML Apps
+        description: Only apply configurations that are applicable to the type of app
         type: object
         properties: 
           redirect_uri:
             type: string
-            description: Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
+            description: >-
+             OIDC Apps only
+             Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
           login_url:
             type: string
-            description: The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
+            description: >-
+              OIDC Apps only
+              The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
+          oidc_api_version:
+            type: string
+            readOnly: true
+          oidc_encryption_key:
+            type: string
+            description: OIDC Apps only
+          post_logout_redirect_url:
+            type: string
+            description: OIDC Apps only
+          refresh_token_expiration_minutes:
+            type: integer
+            readOnly: true
           oidc_application_type:
             type: integer
             description: >-
-              - 0- Web
-              - 1- Native/Mobile
+              OIDC Apps Only
+              - 0: Web
+              - 1: Native/Mobile
           token_endpoint_auth_method:
             type: integer
-            description: Number of minutes the refresh token will be valid for.
+            description: >-
+             OIDC Apps only
+             Number of minutes the refresh token will be valid for.
           access_token_expiration_minutes:
             type: integer
-            description: Number of minutes the refresh token will be valid for.
+            description: >-
+             OIDC Apps only
+             Number of minutes the refresh token will be valid for.
+          external_role:
+            type: string
+            description: This is for SAML Apps ONLY.
+          external_id:
+            type: integer
+            description: This is for SAML Apps ONLY.
+          certificate_id:
+            description: >-
+              This is for SAML Apps ONLY.
+              When creating apps the default certificate will be used unless the
+              `certificate_id` attribute is applied in the `configuration` object.
+            example: 123456
+            type: integer
+          signature_algorithm:
+            description: |-
+              This is for SAML Apps ONLY.
+              One of the following:
+                - SHA-1
+                - SHA-256
+                - SHA-348
+                - SHA-512
+            example: SHA-512
+            type: string
       allow_assumed_signin:
         description: >-
           Indicates whether or not administrators can access the app as a user
@@ -9170,6 +9224,9 @@ definitions:
           enabled:
             example: true
             type: boolean
+          status:
+            type: string
+            readOnly: true
         type: object
       role_ids:
         description: >-
@@ -9191,6 +9248,10 @@ definitions:
           client_id:
             type: string
             description: The OpenId Connect Client Id. Note that client_secret is only returned after Creating an OIDC App.
+            readOnly: true
+          client_secret:
+            type: string
+            description: OpenId Connet Client Secret
             readOnly: true
           metadata_url:
             type: string
