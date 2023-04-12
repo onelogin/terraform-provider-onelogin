@@ -27,7 +27,7 @@ func main() {
 	//log.Printf("[INFO] Initializing OpenAPI Terraform provider '%s' with service provider's OpenAPI document: %s", ProviderName, ProviderOpenAPIURL)
 
 	var providerName = "onelogin"
-	var providerOpenAPIURL = "https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/tpoas/swag-api.yml"
+	var providerOpenAPIURL = "https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/swag-api.yml"
 
 	p := openapi.ProviderOpenAPI{ProviderName: providerName}
 	serviceProviderConfig := &openapi.ServiceConfigV1{

@@ -64,7 +64,7 @@ Optional:
 - `oidc_api_version` (String)
 - `oidc_application_type` (Number) OIDC Apps Only - 0: Web - 1: Native/Mobile
 - `oidc_encryption_key` (String) OIDC Apps only
-- `post_logout_redirect_url` (String) OIDC Apps only
+- `post_logout_redirect_uri` (String) OIDC Apps only
 - `redirect_uri` (String) OIDC Apps only Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
 - `refresh_token_expiration_minutes` (Number)
 - `signature_algorithm` (String) This is for SAML Apps ONLY.
@@ -74,6 +74,7 @@ One of the following:
   - SHA-348
   - SHA-512
 - `token_endpoint_auth_method` (Number) OIDC Apps only Number of minutes the refresh token will be valid for.
+
 
 <a id="nestedblock--enforcement_point"></a>
 ### Nested Schema for `enforcement_point`
@@ -151,7 +152,7 @@ Optional:
 - `acs_url` (String) App Name.	This is only returned after Creating a SAML App.
 - `certificate` (Block List, Max: 1) The certificate used for signing.	This is only returned after Creating a SAML App. (see [below for nested schema](#nestedblock--sso--certificate))
 - `client_id` (String) The OpenId Connect Client Id. Note that client_secret is only returned after Creating an OIDC App.
-- `client_secret` (String)
+- `client_secret` (String) OpenId Connet Client Secret
 - `issuer` (String) Issuer of app.	This is only returned after Creating a SAML App.
 - `metadata_url` (String) ID of the apps underlying connector.	This is only returned after Creating a SAML App.
 
