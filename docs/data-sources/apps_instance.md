@@ -56,9 +56,6 @@ description: |-
 Optional:
 
 - `access_token_expiration_minutes` (Number) OIDC Apps only Number of minutes the refresh token will be valid for.
-- `certificate_id` (Number) This is for SAML Apps ONLY. When creating apps the default certificate will be used unless the `certificate_id` attribute is applied in the `configuration` object.
-- `external_id` (Number) This is for SAML Apps ONLY.
-- `external_role` (String) This is for SAML Apps ONLY.
 - `login_url` (String) OIDC Apps only The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
 - `oidc_api_version` (String)
 - `oidc_application_type` (Number) OIDC Apps Only - 0: Web - 1: Native/Mobile
@@ -66,12 +63,6 @@ Optional:
 - `post_logout_redirect_uri` (String) OIDC Apps only
 - `redirect_uri` (String) OIDC Apps only Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
 - `refresh_token_expiration_minutes` (Number)
-- `signature_algorithm` (String) This is for SAML Apps ONLY.
-One of the following:
-  - SHA-1
-  - SHA-256
-  - SHA-348
-  - SHA-512
 - `token_endpoint_auth_method` (Number) OIDC Apps only Number of minutes the refresh token will be valid for.
 
 
