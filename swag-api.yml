@@ -9097,31 +9097,6 @@ definitions:
             description: >-
              OIDC Apps only
              Number of minutes the refresh token will be valid for.
-          external_role:
-            type: string
-            description: This is for SAML Apps ONLY.
-            x-terraform-computed: true
-          external_id:
-            type: integer
-            description: This is for SAML Apps ONLY.
-            x-terraform-computed: true
-          certificate_id:
-            description: >-
-              This is for SAML Apps ONLY.
-              When creating apps the default certificate will be used unless the
-              `certificate_id` attribute is applied in the `configuration` object.
-            x-terraform-computed: true
-            type: integer
-          signature_algorithm:
-            x-terraform-computed: true
-            description: |-
-              This is for SAML Apps ONLY.
-              One of the following:
-                - SHA-1
-                - SHA-256
-                - SHA-348
-                - SHA-512
-            type: string
       allow_assumed_signin:
         description: >-
           Indicates whether or not administrators can access the app as a user
