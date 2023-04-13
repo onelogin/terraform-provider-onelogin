@@ -9130,6 +9130,7 @@ definitions:
           oidc_api_version:
             type: string
             readOnly: true
+            x-terraform-computed: true
           oidc_encryption_key:
             type: string
             x-terraform-computed: true
@@ -9174,7 +9175,7 @@ definitions:
               When creating apps the default certificate will be used unless the
               `certificate_id` attribute is applied in the `configuration` object.
             x-terraform-computed: true
-            example: 123456
+
             type: integer
           signature_algorithm:
             x-terraform-computed: true
@@ -9185,7 +9186,6 @@ definitions:
                 - SHA-256
                 - SHA-348
                 - SHA-512
-            example: SHA-512
             type: string
       allow_assumed_signin:
         description: >-
