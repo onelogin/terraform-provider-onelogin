@@ -9065,7 +9065,6 @@ definitions:
               The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
           oidc_api_version:
             type: string
-            readOnly: true
             x-terraform-computed: true
           oidc_encryption_key:
             type: string
