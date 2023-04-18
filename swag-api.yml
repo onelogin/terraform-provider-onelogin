@@ -9860,9 +9860,6 @@ securityDefinitions:
     name: Authorization
     # name: "something" the name paramter will be ignored when using the 'x-terraform-authentication-scheme-bearer' extension, "Authorization" name will be use as default value
     x-terraform-authentication-scheme-bearer: true
-    x-terraform-refresh-token-url: https://api.onelogin.com/auth/oauth2/v2/token      
-    x-terraform-env-client-id: "ONELOGIN_CLIENT_ID"
-    x-terraform-env-client-secret: "ONELOGIN_CLIENT_SECRET"
 tags:
   - description: OAuth2
     name: OAuth2

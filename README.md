@@ -192,7 +192,6 @@ terraform {
 ```hcl
 provider "onelogin" {
  apikey_auth = "..."
- content_type = "..."
 }
 ```
 
