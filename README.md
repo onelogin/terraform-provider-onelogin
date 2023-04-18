@@ -178,8 +178,8 @@ This guide lists the configuration for 'onelogin' Terraform provider resources t
 terraform {
   required_providers {
     onelogin = {
-      source  = "registry.terraform.io/onelogin/onelogin"
-      version = ">= 2.0.1"
+      source  = "onelogin/onelogin"
+      version = ">= 0.4.7"
     }
   }
 }

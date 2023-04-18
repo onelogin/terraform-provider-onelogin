@@ -1,4 +1,0 @@
-version: '1'
-services:
-  onelogin:
-    swagger-url: https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/swag-api.yml
