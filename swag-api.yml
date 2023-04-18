@@ -9053,13 +9053,11 @@ definitions:
         properties: 
           redirect_uri:
             type: string
-            x-terraform-computed: true
             description: >-
              OIDC Apps only
              Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
           login_url:
             type: string
-            x-terraform-computed: true
             description: >-
               OIDC Apps only
               The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
@@ -9068,31 +9066,28 @@ definitions:
             readOnly: true
           oidc_encryption_key:
             type: string
-            x-terraform-computed: true
             description: OIDC Apps only
           post_logout_redirect_uri:
             type: string
-            x-terraform-computed: true
             description: OIDC Apps only
           refresh_token_expiration_minutes:
             type: integer
-            readOnly: true
+            description: Number of minutes the refresh token will be valid for.
           oidc_application_type:
             type: integer
-            x-terraform-computed: true
             description: >-
               OIDC Apps Only
-              - 0: Web
-              - 1: Native/Mobile
+                - 0: Web
+                - 1: Native/Mobile
           token_endpoint_auth_method:
             type: integer
-            x-terraform-computed: true
             description: >-
              OIDC Apps only
-             Number of minutes the refresh token will be valid for.
+              - 0: Basic
+              - 1: POST
+              - 2: None / PKCE
           access_token_expiration_minutes:
             type: integer
-            x-terraform-computed: true
             description: >-
              OIDC Apps only
              Number of minutes the refresh token will be valid for.
@@ -9864,7 +9859,8 @@ securityDefinitions:
     name: Authorization
     # name: "something" the name paramter will be ignored when using the 'x-terraform-authentication-scheme-bearer' extension, "Authorization" name will be use as default value
     x-terraform-authentication-scheme-bearer: true
-          
+    x-terraform-refresh-token-url: https://api.onelogin.com/auth/oauth2/v2/token      
+
 tags:
   - description: OAuth2
     name: OAuth2
