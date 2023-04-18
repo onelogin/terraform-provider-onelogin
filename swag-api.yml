@@ -9049,6 +9049,7 @@ definitions:
         example: 0
       configuration:
         description: Only apply configurations that are applicable to the type of app
+        x-terraform-computed: true
         type: object
         properties: 
           redirect_uri:
