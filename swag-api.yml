@@ -4027,15 +4027,12 @@ paths:
       description: List Apps
       operationId: listApps
       summary: List Apps
-  '/2/apps/{app_id}':
+  '/2/apps/{id}':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
       responses:
         '200':
           description: Successful response
@@ -4070,10 +4067,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
       responses:
         '204':
           description: No Content
@@ -4108,10 +4102,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: body
           name: body
           schema:
@@ -4146,17 +4137,14 @@ paths:
       description: Update App
       operationId: updateApp
       summary: Update App
-  '/2/apps/{app_id}/rules':
+  '/2/apps/{id}/rules':
     post:
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: body
           name: body
           schema:
@@ -4192,10 +4180,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - description: >-
             Filters Rules based on their Conditions. Values formatted as :,
             where name is the Condition to look for, and value is the value to
@@ -4303,15 +4288,12 @@ paths:
       description: List App Rules
       operationId: listAppRules
       summary: List Rules
-  '/2/apps/{app_id}/rules/{rule_id}':
+  '/2/apps/{id}/rules/{rule_id}':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: path
           name: rule_id
           required: true
@@ -4350,10 +4332,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: path
           name: rule_id
           required: true
@@ -4392,10 +4371,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: path
           name: rule_id
           required: true
@@ -4432,15 +4408,12 @@ paths:
       description: Update App Rule.
       operationId: updateAppRule
       summary: Update Rule
-  '/2/apps/{app_id}/rules/actions':
+  '/2/apps/{id}/rules/actions':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
       responses:
         '200':
           description: Successful response
@@ -4462,15 +4435,12 @@ paths:
       description: List Actions
       operationId: listActions
       summary: List Actions
-  '/2/apps/{app_id}/rules/actions/{rule_action_value}/values':
+  '/2/apps/{id}/rules/actions/{rule_action_value}/values':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: path
           name: rule_action_value
           required: true
@@ -4496,15 +4466,12 @@ paths:
       description: Sort App rules
       operationId: listActionValies
       summary: List Actions Values
-  '/2/apps/{app_id}/rules/conditions':
+  '/2/apps/{id}/rules/conditions':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
       responses:
         '200':
           description: Successful response
@@ -4537,15 +4504,12 @@ paths:
       description: List App Conditions
       operationId: listConditions
       summary: List Conditions
-  '/2/apps/{app_id}/rules/conditions/{rule_condition_value}/operators':
+  '/2/apps/{id}/rules/conditions/{rule_condition_value}/operators':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: path
           name: rule_condition_value
           required: true
@@ -4571,15 +4535,12 @@ paths:
       description: List Condition Operators
       operationId: listConditionOperators
       summary: List Conditions Operators
-  '/2/apps/{app_id}/rules/conditions/{rule_condition_value}/values':
+  '/2/apps/{id}/rules/conditions/{rule_condition_value}/values':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: path
           name: rule_condition_value
           required: true
@@ -4603,17 +4564,14 @@ paths:
       description: List Condition Values
       operationId: listConditionValues
       summary: List Conditions Values
-  '/2/apps/{app_id}/rules/sort':
+  '/2/apps/{id}/rules/sort':
     put:
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: body
           name: body
           schema:
@@ -4662,15 +4620,12 @@ paths:
       description: Sort App rules
       operationId: sortAppRules
       summary: Bulk Sort
-  '/2/apps/{app_id}/parameters/{parameter_id}':
+  '/2/apps/{id}/parameters/{parameter_id}':
     delete:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
         - in: path
           name: parameter_id
           required: true
@@ -4713,15 +4668,12 @@ paths:
       operationId: deleteAppParameter
       summary: Delete Parameter from App
 
-  '/2/apps/{app_id}/users':
+  '/2/apps/{id}/users':
     get:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: app_id
-          required: true
-          type: integer
+        - $ref: '#/parameters/id'
       responses:
         '200':
           description: Successful response
@@ -7869,6 +7821,13 @@ paths:
       description: Get User Apps
       operationId: getUserApps2
       summary: Get User Apps
+parameters:
+  id:
+    name: id
+    in: path
+    required: true
+    type: integer
+    description: 'id'
 definitions:
   Error:
     properties:
@@ -9205,6 +9164,41 @@ definitions:
         description: Indicates if the app is visible in the OneLogin portal.
         example: true
         type: boolean
+      parameters:
+        type: object
+        x-terraform-computed: true
+        additionalProperties:
+          type: object
+          x-terraform-computed: true
+          additionalProperties: 
+            type: string
+            x-terraform-computed: true
+        properties: 
+          groups:
+            type: object
+            properties: 
+              provisioned_entitlements:
+                type: boolean
+                example: false
+              label:
+                type: string
+                example: Groups
+              skip_if_blank:
+                type: boolean
+                example: false
+              user_attribute_mappings:
+                type: string
+              user_attribute_macros:
+                type: string
+              default_values:
+                type: string
+              values:
+                type: string
+              attributes_transformations:
+                type: string
+              id:
+                type: integer
+                example: 237825
     required:
       - connector_id
       - name
@@ -9916,12 +9910,12 @@ x-components:
       type: string
     app_id:
       in: path
-      name: app_id
+      name: id
       required: true
       type: integer
     app_id_query:
       in: query
-      name: app_id
+      name: id
       required: true
       type: integer
     app_name:
