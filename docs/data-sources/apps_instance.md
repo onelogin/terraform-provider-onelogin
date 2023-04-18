@@ -58,12 +58,17 @@ Optional:
 - `access_token_expiration_minutes` (Number) OIDC Apps only Number of minutes the refresh token will be valid for.
 - `login_url` (String) OIDC Apps only The OpenId Connect Client Id. Note that client_secret is only returned after Creating an App.
 - `oidc_api_version` (String)
-- `oidc_application_type` (Number) OIDC Apps Only - 0: Web - 1: Native/Mobile
+- `oidc_application_type` (Number) OIDC Apps Only
+  - 0: Web
+  - 1: Native/Mobile
 - `oidc_encryption_key` (String) OIDC Apps only
 - `post_logout_redirect_uri` (String) OIDC Apps only
 - `redirect_uri` (String) OIDC Apps only Comma or newline separated list of valid redirect uris for the OpenId Connect Authorization Code flow.
-- `refresh_token_expiration_minutes` (Number)
-- `token_endpoint_auth_method` (Number) OIDC Apps only Number of minutes the refresh token will be valid for.
+- `refresh_token_expiration_minutes` (Number) Number of minutes the refresh token will be valid for.
+- `token_endpoint_auth_method` (Number) OIDC Apps only
+ - 0: Basic
+ - 1: POST
+ - 2: None / PKCE
 
 
 <a id="nestedblock--enforcement_point"></a>
