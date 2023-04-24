@@ -1,8 +1,0 @@
-version: '1'
-services:
-  saml:
-    swagger-url: https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/saml_apps.yml
-  oidc:
-    swagger-url: https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/oidc_apps.yml
-  generic:
-    swagger-url: https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/swag-api.yml
