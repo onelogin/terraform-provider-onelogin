@@ -1,49 +1,47 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"log"
 
-	"github.com/dikhan/terraform-provider-openapi/v3/openapi"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/onelogin/terraform-provider-onelogin/internal/provider"
 )
+
+// Run "go generate" to format example terraform files and generate the docs for the registry/website
+
+// If you do not have terraform installed, you can remove the formatting command, but its suggested to
+// ensure the documentation is formatted properly.
+//go:generate terraform fmt -recursive ./examples/
+
+// Run the docs generation tool, check its repository for more information on how it works and how docs
+// can be customized.
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 var (
-	// Version specifies the version of the provider (will be set statically at compile time)
-	Version = "dev"
-	// Commit specifies the commit hash of the provider at the time of building the binary (will be set statically at compile time)
-	Commit = "none"
-	// Date specifies the data which the binary was build (will be set statically at compile time)
-	Date = "unknown"
+	// these will be set by the goreleaser configuration
+	// to appropriate values for the compiled binary.
+	version string = "dev"
 
-// Generate the Terraform provider documentation using `tfplugindocs`:
+	// goreleaser can pass other information to the main package, such as the specific commit
+	// https://goreleaser.com/cookbooks/using-main.version/
 )
 
-//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 func main() {
+	var debug bool
 
-	//log.Printf("[INFO] Running Terraform Provider %s v%s-%s; Released on: %s", ProviderName, Version, Commit, Date)
+	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	flag.Parse()
 
-	//log.Printf("[INFO] Initializing OpenAPI Terraform provider '%s' with service provider's OpenAPI document: %s", ProviderName, ProviderOpenAPIURL)
-
-	var providerName = "onelogin"
-	var providerOpenAPIURL = "https://raw.githubusercontent.com/onelogin/terraform-provider-onelogin/develop/onelogin_config.yml"
-
-	p := openapi.ProviderOpenAPI{ProviderName: providerName}
-	serviceProviderConfig := &openapi.ServiceConfigV1{
-		SwaggerURL: providerOpenAPIURL,
+	opts := providerserver.ServeOpts{
+		// TODO: Update this string with the published name of your provider.
+		Address: "registry.terraform.io/onelogin/onelogin",
 	}
 
-	provider, err := p.CreateSchemaProviderFromServiceConfiguration(serviceProviderConfig)
+	err := providerserver.Serve(context.Background(), provider.New(version), opts)
+
 	if err != nil {
-		log.Fatalf("[ERROR] Failed to initialize the terraform provider: %s", err)
+		log.Fatal(err.Error())
 	}
-
-	plugin.Serve(
-		&plugin.ServeOpts{
-			ProviderFunc: func() *schema.Provider {
-				return provider
-			},
-		},
-	)
 }
