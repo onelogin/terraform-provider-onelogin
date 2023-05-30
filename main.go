@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/onelogin/terraform-provider-onelogin/internal/provider"
+	"github.com/onelogin/terraform-provider-onelogin/onelogin"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -39,7 +39,7 @@ func main() {
 		Address: "registry.terraform.io/onelogin/onelogin",
 	}
 
-	err := providerserver.Serve(context.Background(), provider.New(version), opts)
+	err := providerserver.Serve(context.Background(), onelogin.New(version), opts)
 
 	if err != nil {
 		log.Fatal(err.Error())
