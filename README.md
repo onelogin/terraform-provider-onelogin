@@ -47,3 +47,6 @@ Please note that the milestones and success criteria may be subject to change ba
 ## Contributing
 
 As this is a work-in-progress project, contributions and feedback are very much welcome. Please open an issue or submit a pull request if you'd like to contribute.
+
+## Updates
+6-1-23: In order to provide full functionality on Terraform, I need to rewrite the Onelogin Go SDK. Here is the [work in progress branch](https://github.com/onelogin/onelogin-go-sdk/tree/non-generated-updates)

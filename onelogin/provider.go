@@ -164,8 +164,8 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 
 	ctx = tflog.SetField(ctx, "ONELOGIN_CLIENT_ID", client_id)
 	ctx = tflog.SetField(ctx, "ONELOGIN_CLIENT_SECRET", client_secret)
-	ctx = tflog.SetField(ctx, "ONELOGIN_URL", url)
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "ONELOGIN_CLIENT_SECRET")
+	ctx = tflog.SetField(ctx, "ONELOGIN_URL", url)
 
 	tflog.Debug(ctx, "Creating onelogin client")
 
