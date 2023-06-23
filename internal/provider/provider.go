@@ -1,4 +1,4 @@
-package onelogin
+package provider
 
 import (
 	"context"
@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/onelogin/onelogin-go-sdk/client"
+	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 )
 
 // Ensure oneloginProvider satisfies various provider interfaces.
@@ -38,7 +37,7 @@ type oneloginProvider struct {
 type oneloginProviderModel struct {
 	ClientId     types.String `tfsdk:"client_id"`
 	ClientSecret types.String `tfsdk:"client_secret"`
-	Url          types.String `tfsdk:"url"`
+	SubDomain    types.String `tfsdk:"subdomain"`
 }
 
 func (p *oneloginProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -59,8 +58,8 @@ func (p *oneloginProvider) Schema(ctx context.Context, req provider.SchemaReques
 				Optional:    true,
 				Sensitive:   true,
 			},
-			"url": schema.StringAttribute{
-				MarkdownDescription: "onelogin URL",
+			"subdomain": schema.StringAttribute{
+				MarkdownDescription: "onelogin subdomain",
 				Optional:            true,
 			},
 		},
@@ -96,12 +95,12 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 		)
 	}
 
-	if config.Url.IsUnknown() {
+	if config.SubDomain.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("url"),
-			"Unknown Onelogin URL",
-			"The provider cannot create the Onelogin API client as there is an unknown configuration value for the Onelogin API url. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the ONELOGIN_OAPI_URL environment variable.",
+			path.Root("subomain"),
+			"Unknown Onelogin subdomain",
+			"The provider cannot create the Onelogin API client as there is an unknown configuration value for the Onelogin subdomain. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the ONELOGIN_SUBDOMAIN environment variable.",
 		)
 	}
 
@@ -111,7 +110,7 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 	// Example client configuration for data sources and resources
 	client_id := os.Getenv("ONELOGIN_CLIENT_ID")
 	client_secret := os.Getenv("ONELOGIN_CLIENT_SECRET")
-	url := os.Getenv("ONELOGIN_URL")
+	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
 
 	if !config.ClientId.IsNull() {
 		client_id = config.ClientId.ValueString()
@@ -121,8 +120,8 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 		client_secret = config.ClientSecret.ValueString()
 	}
 
-	if !config.Url.IsNull() {
-		url = config.Url.ValueString()
+	if !config.SubDomain.IsNull() {
+		subdomain = config.SubDomain.ValueString()
 	}
 
 	// If any of the expected configurations are missing, return
@@ -148,12 +147,12 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 		)
 	}
 
-	if url == "" {
+	if subdomain == "" {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("url"),
-			"Missing onelogin API url",
-			"The provider cannot create the onelogin API client as there is a missing or empty value for the onelogin API url. "+
-				"Set the url value in the configuration or use the ONELOGIN_URL environment variable. "+
+			path.Root("subdomain"),
+			"Missing onelogin API subdomain",
+			"The provider cannot create the onelogin API client as there is a missing or empty value for the onelogin subdomain. "+
+				"Set the url value in the configuration or use the ONELOGIN_SUBDOMAIN environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -165,7 +164,7 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 	ctx = tflog.SetField(ctx, "ONELOGIN_CLIENT_ID", client_id)
 	ctx = tflog.SetField(ctx, "ONELOGIN_CLIENT_SECRET", client_secret)
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "ONELOGIN_CLIENT_SECRET")
-	ctx = tflog.SetField(ctx, "ONELOGIN_URL", url)
+	ctx = tflog.SetField(ctx, "ONELOGIN_SUBDOMAIN", subdomain)
 
 	tflog.Debug(ctx, "Creating onelogin client")
 
@@ -173,7 +172,7 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 	client, err := client.NewClient(&client.APIClientConfig{
 		ClientID:     client_id,
 		ClientSecret: client_secret,
-		Url:          url,
+		SubDomain:    subdomain,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError(

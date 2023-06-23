@@ -1,4 +1,4 @@
-package onelogin
+package provider
 
 import (
 	"testing"
