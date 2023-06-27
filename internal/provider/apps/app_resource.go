@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -49,17 +51,17 @@ func (r *appResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"visible": schema.BoolAttribute{
 				MarkdownDescription: "app visibility",
 				Optional:            true,
-				Default:             
+				Default:             booldefault.StaticBool(true),
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "app description",
 				Optional:            true,
-				Default:             "",
+				Default:             stringdefault.StaticString(""),
 			},
 			"notes": schema.StringAttribute{
 				MarkdownDescription: "app notes",
 				Optional:            true,
-				Default:             "",
+				Default:             stringdefault.StaticString(""),
 			},
 			"icon_url": schema.StringAttribute{
 				MarkdownDescription: "app icon url",
@@ -84,7 +86,7 @@ func (r *appResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 			"allow_assumed_signin": schema.BoolAttribute{
 				MarkdownDescription: "app allow assumed signin",
 				Optional:            true,
-				Default:             types.BoolDefault(false),
+				Default:             booldefault.StaticBool(true),
 			},
 			"tab_id": schema.Int64Attribute{
 				MarkdownDescription: "app tab id",
@@ -98,16 +100,16 @@ func (r *appResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 				MarkdownDescription: "app updated at",
 				Computed:            true,
 			},
-			"provisioning": schema.NestedAttribute{
+			"provisioning": schema.ListNestedAttribute{
 				MarkdownDescription: "app provisioning",
 				Optional:            true,
 				Computed:            true,
-				schema.NestedAttributeObject{
-					Attribute: schema.StringAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
 						"enabled": schema.BoolAttribute{
-							MarkdownDescription: "app provisioning enabled",
+							MarkdownDescription: "app parameter key",
 							Optional:            true,
-							Default:             types.BoolDefault(false),
+							Default:             booldefault.StaticBool(false),
 						},
 					},
 				},
@@ -121,6 +123,60 @@ func (r *appResource) Schema(ctx context.Context, req resource.SchemaRequest, re
 						"param_key": schema.StringAttribute{
 							MarkdownDescription: "app parameter key",
 							Required:            true,
+						},
+						"param_id": schema.Int64Attribute{
+							MarkdownDescription: "app parameter id",
+							Computed:            true,
+						},
+						"label": schema.StringAttribute{
+							MarkdownDescription: "app parameter label",
+							Optional:            true,
+							Computed:            true,
+						},
+						"user_attribute_mappings": schema.StringAttribute{
+							MarkdownDescription: "app parameter user attribute mappings",
+							Optional:            true,
+							Computed:            true,
+						},
+						"user_attribute_macros": schema.StringAttribute{
+							MarkdownDescription: "app parameter user attribute macros",
+							Optional:            true,
+							Computed:            true,
+						},
+						"attributes_transformations": schema.StringAttribute{
+							MarkdownDescription: "app parameter attributes transformations",
+							Optional:            true,
+							Computed:            true,
+						},
+						"default_value": schema.StringAttribute{
+							MarkdownDescription: "app parameter default value",
+							Optional:            true,
+							Computed:            true,
+						},
+						"skip_if_blank": schema.BoolAttribute{
+							MarkdownDescription: "app parameter skip if blank",
+							Optional:            true,
+							Computed:            true,
+						},
+						"values": schema.StringAttribute{
+							MarkdownDescription: "app parameter values",
+							Optional:            true,
+							Computed:            true,
+						},
+						"provisioned_entitlements": schema.BoolAttribute{
+							MarkdownDescription: "app parameter provisioned entitlements",
+							Optional:            true,
+							Computed:            true,
+						},
+						"safe_entitlements_enabled": schema.BoolAttribute{
+							MarkdownDescription: "app parameter safe entitlements enabled",
+							Optional:            true,
+							Computed:            true,
+						},
+						"include_in_saml_assertion": schema.BoolAttribute{
+							MarkdownDescription: "app parameter include in saml assertion",
+							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},

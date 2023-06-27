@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
 )
 
 // Ensure oneloginProvider satisfies various provider interfaces.
@@ -46,24 +46,7 @@ func (p *oneloginProvider) Metadata(ctx context.Context, req provider.MetadataRe
 }
 
 func (p *oneloginProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "Interact with Onelogin",
-		Attributes: map[string]schema.Attribute{
-			"client_id": schema.StringAttribute{
-				Description: "onelogin Client Id",
-				Optional:    true,
-			},
-			"client_secret": schema.StringAttribute{
-				Description: "onelogin Client Secret",
-				Optional:    true,
-				Sensitive:   true,
-			},
-			"subdomain": schema.StringAttribute{
-				MarkdownDescription: "onelogin subdomain",
-				Optional:            true,
-			},
-		},
-	}
+	resp.Schema = schema.Schema{}
 }
 
 func (p *oneloginProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
@@ -72,38 +55,6 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 	var config oneloginProviderModel
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Configuration values are now available.
-	if config.ClientId.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("client_id"),
-			"Unknown Onelogin Client ID",
-			"The provider cannot create the Onelogin API client as there is an unknown configuration value for the Onelogin API client_id. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the ONELOGIN_CLIENT_ID environment variable.",
-		)
-	}
-
-	if config.ClientSecret.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("client_secret"),
-			"Unknown Onelogin Client Secret",
-			"The provider cannot create the Onelogin API client as there is an unknown configuration value for the Onelogin API client_secret. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the ONELOGIN_CLIENT_SECRET environment variable.",
-		)
-	}
-
-	if config.SubDomain.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("subomain"),
-			"Unknown Onelogin subdomain",
-			"The provider cannot create the Onelogin API client as there is an unknown configuration value for the Onelogin subdomain. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the ONELOGIN_SUBDOMAIN environment variable.",
-		)
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -169,11 +120,7 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 	tflog.Debug(ctx, "Creating onelogin client")
 
 	// Create a new onelogin client using the configuration values
-	client, err := client.NewClient(&client.APIClientConfig{
-		ClientID:     client_id,
-		ClientSecret: client_secret,
-		SubDomain:    subdomain,
-	})
+	client, err := onelogin.NewClient()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create onelogin API Client",
