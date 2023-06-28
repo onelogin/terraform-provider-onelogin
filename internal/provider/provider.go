@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
 )
@@ -35,9 +34,6 @@ type oneloginProvider struct {
 
 // oneloginProviderModel describes the provider data model.
 type oneloginProviderModel struct {
-	ClientId     types.String `tfsdk:"client_id"`
-	ClientSecret types.String `tfsdk:"client_secret"`
-	SubDomain    types.String `tfsdk:"subdomain"`
 }
 
 func (p *oneloginProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -62,21 +58,6 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 	client_id := os.Getenv("ONELOGIN_CLIENT_ID")
 	client_secret := os.Getenv("ONELOGIN_CLIENT_SECRET")
 	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
-
-	if !config.ClientId.IsNull() {
-		client_id = config.ClientId.ValueString()
-	}
-
-	if !config.ClientSecret.IsNull() {
-		client_secret = config.ClientSecret.ValueString()
-	}
-
-	if !config.SubDomain.IsNull() {
-		subdomain = config.SubDomain.ValueString()
-	}
-
-	// If any of the expected configurations are missing, return
-	// errors with provider-specific guidance.
 
 	if client_id == "" {
 		resp.Diagnostics.AddAttributeError(
@@ -120,7 +101,7 @@ func (p *oneloginProvider) Configure(ctx context.Context, req provider.Configure
 	tflog.Debug(ctx, "Creating onelogin client")
 
 	// Create a new onelogin client using the configuration values
-	client, err := onelogin.NewClient()
+	client, err := onelogin.NewOneloginSDK()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create onelogin API Client",

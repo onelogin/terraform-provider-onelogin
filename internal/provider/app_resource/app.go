@@ -1,4 +1,4 @@
-package apps
+package app_resource
 
 type App struct {
 	ID                 int32                `json:"id"`

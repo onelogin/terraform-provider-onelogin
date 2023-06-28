@@ -1,4 +1,4 @@
-package apps
+package app_resource
 
 import (
 	"context"
@@ -29,9 +29,109 @@ type appResource struct {
 
 // appResourceModel describes the resource data model.
 type appResourceModel struct {
-	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
-	Defaulted             types.String `tfsdk:"defaulted"`
-	Id                    types.String `tfsdk:"id"`
+	Name               types.String              `tfsdk:"name"`
+	Visible            types.Bool                `tfsdk:"visible"`
+	Description        types.String              `tfsdk:"description"`
+	ConnectorID        types.Int                 `tfsdk:"connector_id"`
+	ID                 types.Int                 `tfsdk:"id"`
+	Notes              types.String              `tfsdk:"notes"`
+	PolicyID           types.Int                 `tfsdk:"policy_id"`
+	BrandID            types.Int                 `tfsdk:"brand_id"`
+	IconURL            types.String              `tfsdk:"icon_url"`
+	AuthMethod         types.Int                 `tfsdk:"auth_method"`
+	TabID              types.Int                 `tfsdk:"tab_id"`
+	CreatedAt          types.String              `tfsdk:"created_at"`
+	UpdatedAt          types.String              `tfsdk:"updated_at"`
+	RoleIDs            types.List                `tfsdk:"role_ids"`
+	AllowAssumedSignin types.Bool                `tfsdk:"allow_assumed_signin"`
+	Provisioning       ProvisioningModel         `tfsdk:"provisioning"`
+	SSO                interface{}               `tfsdk:"sso"`
+	Configuration      interface{}               `tfsdk:"configuration"`
+	Parameters         map[string]ParameterModel `tfsdk:"parameters"`
+	EnforcementPoint   EnforcementPointModel     `tfsdk:"enforcement_point"`
+}
+
+type ParameterModel struct {
+	Values                    interface{}  `tfsdk:"values"`
+	UserAttributeMappings     interface{}  `tfsdk:"user_attribute_mappings"`
+	ProvisionedEntitlements   types.Bool   `tfsdk:"provisioned_entitlements"`
+	SkipIfBlank               types.Bool   `tfsdk:"skip_if_blank"`
+	ID                        types.Int    `tfsdk:"id"`
+	DefaultValues             interface{}  `tfsdk:"default_values"`
+	AttributesTransformations interface{}  `tfsdk:"attributes_transformations"`
+	Label                     types.String `tfsdk:"label"`
+	UserAttributeMacros       interface{}  `tfsdk:"user_attribute_macros"`
+	IncludeInSamlAssertion    types.Bool   `tfsdk:"include_in_saml_assertion"`
+}
+
+type ConfigurationOpenIdModel struct {
+	RedirectURI             types.String `tfsdk:"redirect_uri"`
+	LoginURL                types.String `tfsdk:"login_url"`
+	OidcApplicationType     types.Int    `tfsdk:"oidc_application_type"`
+	TokenEndpointAuthMethod types.Int    `tfsdk:"token_endpoint_auth_method"`
+}
+
+type ConfigurationSAMLModel struct {
+	ProviderArn        interface{}  `tfsdk:"provider_arn"`
+	SignatureAlgorithm types.String `tfsdk:"signature_algorithm"`
+	CertificateID      types.Int    `tfsdk:"certificate_id"`
+}
+
+type ProvisioningModel struct {
+	Enabled types.Bool `tfsdk:"enabled"`
+}
+
+type SSOOpenIdModel struct {
+	ClientID types.String `tfsdk:"client_id"`
+}
+
+type SSOSAMLModel struct {
+	MetadataURL types.String     `tfsdk:"metadata_url"`
+	AcsURL      types.String     `tfsdk:"acs_url"`
+	SlsURL      types.String     `tfsdk:"sls_url"`
+	Issuer      types.String     `tfsdk:"issuer"`
+	Certificate CertificateModel `tfsdk:"certificate"`
+}
+
+type CertificateModel struct {
+	ID    types.Int    `tfsdk:"id"`
+	Name  types.String `tfsdk:"name"`
+	Value types.String `tfsdk:"value"`
+}
+
+type EnforcementPointModel struct {
+	RequireSitewideAuthentication types.Bool                 `tfsdk:"require_sitewide_authentication"`
+	Conditions                    *ConditionsModel           `tfsdk:"conditions,omitempty"`
+	SessionExpiryFixed            DurationModel              `tfsdk:"session_expiry_fixed"`
+	SessionExpiryInactivity       DurationModel              `tfsdk:"session_expiry_inactivity"`
+	Permissions                   types.String               `tfsdk:"permissions"`
+	Token                         types.String               `tfsdk:"token,omitempty"`
+	Target                        types.String               `tfsdk:"target"`
+	Resources                     []EnforcementResourceModel `tfsdk:"resources"`
+	ContextRoot                   types.String               `tfsdk:"context_root"`
+	UseTargetHostHeader           types.Bool                 `tfsdk:"use_target_host_header"`
+	Vhost                         types.String               `tfsdk:"vhost"`
+	LandingPage                   types.String               `tfsdk:"landing_page"`
+	CaseSensitive                 types.Bool                 `tfsdk:"case_sensitive"`
+}
+
+type ConditionsModel struct {
+	Type  types.String `tfsdk:"type"`
+	Roles types.List   `tfsdk:"roles"`
+}
+
+type DurationModel struct {
+	Value types.Int `tfsdk:"value"`
+	Unit  types.Int `tfsdk:"unit"`
+}
+
+type EnforcementResourceModel struct {
+	Path        types.String  `tfsdk:"path"`
+	RequireAuth types.String  `tfsdk:"require_authentication"`
+	Permissions types.String  `tfsdk:"permissions"`
+	Conditions  *types.String `tfsdk:"conditions,omitempty"`
+	IsPathRegex *types.Bool   `tfsdk:"is_path_regex,omitempty"`
+	ResourceID  types.Int     `tfsdk:"resource_id,omitempty"`
 }
 
 func (r *appResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
