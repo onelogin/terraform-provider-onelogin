@@ -32,14 +32,14 @@ type appResourceModel struct {
 	Name               types.String              `tfsdk:"name"`
 	Visible            types.Bool                `tfsdk:"visible"`
 	Description        types.String              `tfsdk:"description"`
-	ConnectorID        types.Int                 `tfsdk:"connector_id"`
-	ID                 types.Int                 `tfsdk:"id"`
+	ConnectorID        types.Int64               `tfsdk:"connector_id"`
+	ID                 types.Int64               `tfsdk:"id"`
 	Notes              types.String              `tfsdk:"notes"`
-	PolicyID           types.Int                 `tfsdk:"policy_id"`
-	BrandID            types.Int                 `tfsdk:"brand_id"`
+	PolicyID           types.Int64               `tfsdk:"policy_id"`
+	BrandID            types.Int64               `tfsdk:"brand_id"`
 	IconURL            types.String              `tfsdk:"icon_url"`
-	AuthMethod         types.Int                 `tfsdk:"auth_method"`
-	TabID              types.Int                 `tfsdk:"tab_id"`
+	AuthMethod         types.Int64               `tfsdk:"auth_method"`
+	TabID              types.Int64               `tfsdk:"tab_id"`
 	CreatedAt          types.String              `tfsdk:"created_at"`
 	UpdatedAt          types.String              `tfsdk:"updated_at"`
 	RoleIDs            types.List                `tfsdk:"role_ids"`
@@ -56,7 +56,7 @@ type ParameterModel struct {
 	UserAttributeMappings     interface{}  `tfsdk:"user_attribute_mappings"`
 	ProvisionedEntitlements   types.Bool   `tfsdk:"provisioned_entitlements"`
 	SkipIfBlank               types.Bool   `tfsdk:"skip_if_blank"`
-	ID                        types.Int    `tfsdk:"id"`
+	ID                        types.Int64  `tfsdk:"id"`
 	DefaultValues             interface{}  `tfsdk:"default_values"`
 	AttributesTransformations interface{}  `tfsdk:"attributes_transformations"`
 	Label                     types.String `tfsdk:"label"`
@@ -67,14 +67,14 @@ type ParameterModel struct {
 type ConfigurationOpenIdModel struct {
 	RedirectURI             types.String `tfsdk:"redirect_uri"`
 	LoginURL                types.String `tfsdk:"login_url"`
-	OidcApplicationType     types.Int    `tfsdk:"oidc_application_type"`
-	TokenEndpointAuthMethod types.Int    `tfsdk:"token_endpoint_auth_method"`
+	OidcApplicationType     types.Int64  `tfsdk:"oidc_application_type"`
+	TokenEndpointAuthMethod types.Int64  `tfsdk:"token_endpoint_auth_method"`
 }
 
 type ConfigurationSAMLModel struct {
 	ProviderArn        interface{}  `tfsdk:"provider_arn"`
 	SignatureAlgorithm types.String `tfsdk:"signature_algorithm"`
-	CertificateID      types.Int    `tfsdk:"certificate_id"`
+	CertificateID      types.Int64  `tfsdk:"certificate_id"`
 }
 
 type ProvisioningModel struct {
@@ -94,7 +94,7 @@ type SSOSAMLModel struct {
 }
 
 type CertificateModel struct {
-	ID    types.Int    `tfsdk:"id"`
+	ID    types.Int64  `tfsdk:"id"`
 	Name  types.String `tfsdk:"name"`
 	Value types.String `tfsdk:"value"`
 }
@@ -121,8 +121,8 @@ type ConditionsModel struct {
 }
 
 type DurationModel struct {
-	Value types.Int `tfsdk:"value"`
-	Unit  types.Int `tfsdk:"unit"`
+	Value types.Int64 `tfsdk:"value"`
+	Unit  types.Int64 `tfsdk:"unit"`
 }
 
 type EnforcementResourceModel struct {
@@ -131,7 +131,7 @@ type EnforcementResourceModel struct {
 	Permissions types.String  `tfsdk:"permissions"`
 	Conditions  *types.String `tfsdk:"conditions,omitempty"`
 	IsPathRegex *types.Bool   `tfsdk:"is_path_regex,omitempty"`
-	ResourceID  types.Int     `tfsdk:"resource_id,omitempty"`
+	ResourceID  types.Int64   `tfsdk:"resource_id,omitempty"`
 }
 
 func (r *appResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -325,7 +325,6 @@ func (r *appResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// For the purposes of this app code, hardcoding a response value to
 	// save into the Terraform state.
-	data.Id = types.StringValue("app-id")
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
