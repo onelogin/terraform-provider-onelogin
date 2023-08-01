@@ -4,11 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
-	appconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
-	appparametersschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
-	appprovisioningschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models" // Replace with the new SDK package path
 )
 
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.
@@ -83,13 +79,17 @@ func Schema() map[string]*schema.Schema {
 				Schema: appparametersschema.Schema(),
 			},
 		},
+		"app_type": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 	}
 }
 
 // Inflate takes a map of interfaces and constructs a OneLogin App.
-func Inflate(s map[string]interface{}) (apps.App, error) {
+func Inflate(s map[string]interface{}) (models.App, error) {
 	var err error
-	app := apps.App{
+	app := models.App{
 		Name:               oltypes.String(s["name"].(string)),
 		Description:        oltypes.String(s["description"].(string)),
 		Notes:              oltypes.String(s["notes"].(string)),
@@ -108,7 +108,7 @@ func Inflate(s map[string]interface{}) (apps.App, error) {
 	}
 	if s["parameters"] != nil {
 		p := s["parameters"].(*schema.Set).List()
-		app.Parameters = make(map[string]apps.AppParameters, len(p))
+		app.Parameters = make(map[string]models.Parameter, len(p))
 		for _, val := range p {
 			valMap := val.(map[string]interface{})
 			app.Parameters[valMap["param_key_name"].(string)] = appparametersschema.Inflate(valMap)
@@ -118,10 +118,54 @@ func Inflate(s map[string]interface{}) (apps.App, error) {
 		prov := appprovisioningschema.Inflate(s["provisioning"].(map[string]interface{}))
 		app.Provisioning = &prov
 	}
+	if s["app_type"] != nil {
+		app.AppType = s["app_type"].(string)
+	}
+	if s["sso"] != nil {
+		switch ssoType := s["sso"].(type) {
+		case map[string]interface{}:
+			switch ssoType["type"].(string) {
+			case "openid":
+				app.SSO = &SSOOpenID{
+					ClientID: ssoType["client_id"].(string),
+				}
+			case "saml":
+				app.SSO = &SSOSAML{
+					MetadataURL: ssoType["metadata_url"].(string),
+					AcsURL:      ssoType["acs_url"].(string),
+					SlsURL:      ssoType["sls_url"].(string),
+					Issuer:      ssoType["issuer"].(string),
+					Certificate: Certificate{
+						ID:    ssoType["certificate"].(map[string]interface{})["id"].(int),
+						Name:  ssoType["certificate"].(map[string]interface{})["name"].(string),
+						Value: ssoType["certificate"].(map[string]interface{})["value"].(string),
+					},
+				}
+			}
+		}
+	}
+
 	if s["configuration"] != nil {
-		var conf apps.AppConfiguration
-		conf, err = appconfigurationschema.Inflate(s["configuration"].(map[string]interface{}))
-		app.Configuration = &conf
+		switch configType := s["configuration"].(type) {
+		case map[string]interface{}:
+			switch configType["type"].(string) {
+			case "openid":
+				app.Configuration = &ConfigurationOpenID{
+					RedirectURI:                   configType["redirect_uri"].(string),
+					LoginURL:                      configType["login_url"].(string),
+					OidcApplicationType:           configType["oidc_application_type"].(int),
+					TokenEndpointAuthMethod:       configType["token_endpoint_auth_method"].(int),
+					AccessTokenExpirationMinutes:  configType["access_token_expiration_minutes"].(int),
+					RefreshTokenExpirationMinutes: configType["refresh_token_expiration_minutes"].(int),
+				}
+			case "saml":
+				app.Configuration = &ConfigurationSAML{
+					ProviderArn:        configType["provider_arn"],
+					SignatureAlgorithm: configType["signature_algorithm"].(string),
+					CertificateID:      configType["certificate_id"].(int),
+				}
+			}
+		}
 	}
 	return app, err
 }
