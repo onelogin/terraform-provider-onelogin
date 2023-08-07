@@ -3,8 +3,8 @@ package appparametersschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/services/apps"
 	"github.com/stretchr/testify/assert"
 )
 

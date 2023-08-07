@@ -44,7 +44,7 @@ If you are sideloading this provider (i.e. not getting this via the Terraform st
 
 # Shipping Code
 ### Development
-1. Adding a new resource generally requires that service to be defined in the [OneLogin SDK](https://github.com/onelogin/onelogin-go-sdk) see `AppsService` for an example.
+1. Adding a new resource generally requires that service to be defined in the [OneLogin SDK](https://github.com/onelogin/onelogin-go-sdk/v4) see `AppsService` for an example.
 
 2. Define the new resource in `onelogin/provider.go` in a similar fashion to how the other resources are identified there.
 

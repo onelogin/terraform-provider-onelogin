@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/client"
 	smarthookenvironmentvariablesschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/environment_variable"
 )
 

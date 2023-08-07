@@ -3,8 +3,8 @@ package usermappingactionsschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/services/user_mappings"
 	"github.com/stretchr/testify/assert"
 )
 

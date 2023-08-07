@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	usermappings "github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	usermappings "github.com/onelogin/onelogin-go-sdk/v4/pkg/services/user_mappings"
 	"github.com/stretchr/testify/assert"
 )
 

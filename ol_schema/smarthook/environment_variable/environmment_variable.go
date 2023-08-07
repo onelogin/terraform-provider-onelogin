@@ -2,8 +2,8 @@ package smarthookenvironmentvariablesschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	smarthookenvs "github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	smarthookenvs "github.com/onelogin/onelogin-go-sdk/v4/pkg/services/smarthooks/envs"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.

@@ -2,8 +2,8 @@ package appparametersschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/services/apps"
 )
 
 // Schema returns a key/value map of the various fields that make up

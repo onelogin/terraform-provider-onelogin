@@ -2,9 +2,9 @@ package smarthooksschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
-	smarthookenvs "github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/services/smarthooks"
+	smarthookenvs "github.com/onelogin/onelogin-go-sdk/v4/pkg/services/smarthooks/envs"
 	smarthookconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/conditions"
 	smarthookoptions "github.com/onelogin/terraform-provider-onelogin/ol_schema/smarthook/options"
 	"github.com/onelogin/terraform-provider-onelogin/utils"

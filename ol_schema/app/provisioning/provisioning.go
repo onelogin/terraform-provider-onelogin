@@ -1,8 +1,8 @@
 package appprovisioningschema
 
 import (
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/services/apps"
 )
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct

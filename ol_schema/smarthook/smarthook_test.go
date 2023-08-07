@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/services/smarthooks"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/services/smarthooks/envs"
 	"github.com/stretchr/testify/assert"
 )
 

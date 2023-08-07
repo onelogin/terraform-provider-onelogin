@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models" // Replace with the new SDK package path
+	"github.com/onelogin/onelogin-go-sdk/v4/v4/pkg/onelogin/models" // Replace with the new SDK package path
 )
 
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.

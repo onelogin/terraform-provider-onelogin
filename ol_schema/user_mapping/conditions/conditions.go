@@ -3,8 +3,8 @@ package usermappingconditionsschema
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	usermappings "github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	usermappings "github.com/onelogin/onelogin-go-sdk/v4/pkg/services/user_mappings"
 )
 
 // Schema returns a key/value map of the various fields that make up the Actions of a OneLogin Rule.

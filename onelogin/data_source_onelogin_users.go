@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	users "github.com/onelogin/onelogin-go-sdk/pkg/services/users"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/client"
+	users "github.com/onelogin/onelogin-go-sdk/v4/pkg/services/users"
 	userschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
 )
 

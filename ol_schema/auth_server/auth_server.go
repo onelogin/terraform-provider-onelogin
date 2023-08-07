@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	authservers "github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/oltypes"
+	authservers "github.com/onelogin/onelogin-go-sdk/v4/pkg/services/auth_servers"
 	authserverconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/auth_server/configuration"
 )
 

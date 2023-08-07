@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/client"
 	appschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app"
 	appconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	appparametersschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
