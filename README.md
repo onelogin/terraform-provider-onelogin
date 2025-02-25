@@ -5,7 +5,11 @@
 # Prerequisites
     1) Install Golang
     2) Install Terraform v0.12.24 or later
-    3) Install code dependencies
+    3) Install gosec (for security scanning):
+       ```
+       curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
+       ```
+    4) Install code dependencies
 
 # Getting Started W/ Local Testing & Development
 If you are sideloading this provider (i.e. not getting this via the Terraform store) You must clone this repository to run the following commands.
@@ -143,4 +147,3 @@ make test
 **secure** runs gosec code analysis to warn about possible exploits specific to go
 ```
 make secure
-````

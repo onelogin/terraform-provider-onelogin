@@ -61,5 +61,4 @@ secure:
 	# excludes G304 (potential file inclusion) - The file needs to be read in order to run acceptance tests by hashicorp
 	# excludes G401 (Use of weak cryptographic primitive) - md5 is perfectly enough to create a unique data source ID
 	# excludes G501 (Blocklisted import crypto/md5: weak cryptographic primitive) - md5 is perfectly enough to create a unique data source ID
-	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s
-	./bin/gosec -exclude=G104,G304,G109,G401,G501 ./...
+	gosec -exclude=G104,G304,G109,G401,G501 ./...
