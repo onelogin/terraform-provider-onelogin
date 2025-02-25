@@ -2,6 +2,7 @@ on:
   push:
     tags:
     - '*'
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
 name: Release
 jobs:
   release:
