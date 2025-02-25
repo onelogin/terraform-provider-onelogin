@@ -74,13 +74,27 @@ make secure
 ```
 
 ## Release Process
-1. Create PR against `develop`
-2. After approval and CI passing, merge to `develop`
-3. Create release branch `vX.X.XX`
-4. After testing, merge to `master` and `develop`
-5. Tag the release
-6. Push changes and tags
-7. Verify release artifacts in GitHub
+1. Create feature branch from `main`
+2. Create PR against `main`
+3. After approval and CI passing, merge to `main`
+4. Create a new release either:
+   - Through GitHub UI:
+     1. Go to "Releases" on GitHub
+     2. Click "Draft a new release"
+     3. Create a new tag (e.g., v0.5.2)
+     4. Fill in release details
+     5. Click "Publish release"
+   - Or via command line:
+     ```bash
+     git tag vX.X.X
+     git push origin vX.X.X
+     ```
+5. The GitHub Action will automatically:
+   - Build the provider
+   - Create a GitHub release
+   - Publish to the Terraform Registry
+
+Note: Tags should follow semantic versioning (e.g., v0.5.2)
 
 ## Terraform Overview
 Terraform enables declarative infrastructure management using HashiCorp Configuration Language (HCL). It tracks the desired state in `.tf` files and the current state in `.tfstate` files.
