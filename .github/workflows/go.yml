@@ -28,5 +28,9 @@ jobs:
     - name: Test
       run: make test
 
+    - name: Install gosec
+      run: |
+        curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
+
     - name: Secure
       run: make secure
