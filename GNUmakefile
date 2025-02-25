@@ -1,4 +1,3 @@
-
 .PHONY: clean build ti tp ta
 
 PKG_NAME=onelogin
@@ -54,8 +53,7 @@ ta:
 	terraform apply -auto-approve
 
 test:
-	go get -u github.com/dcaponi/gopherbadger@v2.2.1
-	gopherbadger -root="./ol_schema" -md="readme.md" -png=false
+	go test -v -count=1 -short ./...
 
 secure:
 	# excludes G104 (unhandled go errors) - Approved by security team
