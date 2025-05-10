@@ -3,8 +3,10 @@ package onelogin
 import (
 	"context"
 	"errors"
+	"os"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	ol "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -42,9 +44,16 @@ func Provider() *schema.Provider {
 				Optional:    true,
 			},
 			"region": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  USRegion,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Default:    USRegion,
+				Deprecated: "Use subdomain instead",
+			},
+			"subdomain": {
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_SUBDOMAIN", nil),
+				Required:    true,
+				Description: "OneLogin subdomain (e.g. 'company' for company.onelogin.com)",
 			},
 			"timeout": {
 				Type:        schema.TypeInt,
@@ -87,8 +96,8 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 	// Get timeout from configuration
 	timeoutSeconds := d.Get("timeout").(int)
 
-	// Use the original client for now for backward compatibility
-	oneloginClient, err := client.NewClient(&client.APIClientConfig{
+	// For resource types that use v1 client - we're not using this currently
+	_, err := client.NewClient(&client.APIClientConfig{
 		Timeout:      timeoutSeconds,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -99,5 +108,23 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 		return nil, diag.FromErr(err)
 	}
 
-	return oneloginClient, nil
+	// For resource types that use v4 client (like custom attributes)
+	subdomain := d.Get("subdomain").(string)
+	if subdomain == "" {
+		return nil, diag.Errorf("OneLogin subdomain is required. Please set the ONELOGIN_SUBDOMAIN environment variable.")
+	}
+
+	// Set environment variables for the SDK
+	os.Setenv("ONELOGIN_CLIENT_ID", clientID)
+	os.Setenv("ONELOGIN_CLIENT_SECRET", clientSecret)
+	os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
+
+	// Initialize the SDK
+	clientV4, err := ol.NewOneloginSDK()
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	// For now, return the v4 client as we're updating custom attributes
+	return clientV4, nil
 }

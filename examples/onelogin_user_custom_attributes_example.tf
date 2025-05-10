@@ -4,17 +4,16 @@ resource onelogin_users test_user {
   email    = "test.user@example.com"
 }
 
-# Reference a custom attribute that was created in the OneLogin UI
-# Note: Due to an API bug, custom attributes must first be created in the OneLogin UI
-resource onelogin_user_custom_attributes employee_id_reference {
-  name      = "Employee ID"    # For reference only - must match the UI
-  shortname = "employee_id"    # For reference only - must match the UI
+# Create a custom attribute definition (schema)
+resource onelogin_user_custom_attributes employee_id_definition {
+  name      = "Employee ID"    # Display name shown in the UI
+  shortname = "employee_id"    # Technical name/identifier for the attribute
 }
 
-# Reference another custom attribute from the OneLogin UI
-resource onelogin_user_custom_attributes department_code_reference {
-  name      = "Department Code"    # For reference only - must match the UI
-  shortname = "dept_code"          # For reference only - must match the UI
+# Create another custom attribute definition
+resource onelogin_user_custom_attributes department_definition {
+  name      = "Department Code"
+  shortname = "dept_code"
 }
 
 # Set a custom attribute value for a specific user

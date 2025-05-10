@@ -1,8 +1,9 @@
 # onelogin_user_custom_attributes Resource
 
-This resource allows you to manage custom user attributes in OneLogin.
+This resource allows you to manage custom user attributes in OneLogin. You can:
 
-> **Note:** Due to a bug in the OneLogin API (returning "Missing param: user_field"), creating, updating, and deleting custom attribute definitions must currently be done through the OneLogin UI. Once created, you can use this resource to set the values for those attributes on specific users.
+1. Create, read, update, and delete custom attribute definitions
+2. Set, update, and remove custom attribute values for specific users
 
 ## Example Usage
 
@@ -13,10 +14,16 @@ resource onelogin_users test_user {
   email    = "test.user@example.com"
 }
 
-# Reference a custom attribute that was created in the OneLogin UI
-resource onelogin_user_custom_attributes employee_id_reference {
-  name      = "Employee ID"    # For reference only - must match the UI
-  shortname = "employee_id"    # For reference only - must match the UI
+# Create a custom attribute definition (schema)
+resource onelogin_user_custom_attributes employee_id_definition {
+  name      = "Employee ID"    # Display name shown in the UI
+  shortname = "employee_id"    # Technical name/identifier for the attribute
+}
+
+# Create another custom attribute definition
+resource onelogin_user_custom_attributes department_definition {
+  name      = "Department Code"
+  shortname = "dept_code"
 }
 
 # Set a custom attribute value for a specific user
@@ -29,22 +36,19 @@ resource onelogin_user_custom_attributes user_employee_id {
 # Set another custom attribute value for the same user
 resource onelogin_user_custom_attributes user_department_code {
   user_id   = onelogin_users.test_user.id
-  shortname = "dept_code"       # Must match an existing attribute in OneLogin
+  shortname = "dept_code"       # Must match an existing attribute
   value     = "IT-DEPT"
 }
 ```
-
-> **Important:** Due to a bug in the OneLogin API, the custom attributes must first be created in the OneLogin UI before they can be used in Terraform.
 
 ## Argument Reference
 
 The following arguments are supported:
 
-### For Custom Attribute References
+### For Custom Attribute Definitions
 
-* `name` - (Required) The human-readable name of the custom attribute (for reference only, must be created in the OneLogin UI).
-* `shortname` - (Required) The short name (identifier) of the custom attribute (for reference only, must be created in the OneLogin UI).
-* `position` - (Optional) The position of the custom attribute in the UI (for reference only).
+* `name` - (Required) The human-readable display name of the custom attribute.
+* `shortname` - (Required) The short name (identifier) of the custom attribute.
 
 ### For User-Specific Custom Attribute Values
 
@@ -54,7 +58,15 @@ The following arguments are supported:
 
 ## Import
 
-> Note: Due to the OneLogin API bug, importing custom attribute definitions is currently limited. You can only import user-specific values.
+### Custom Attribute Definitions
+
+Custom attribute definitions can be imported using the attribute ID:
+
+```bash
+terraform import onelogin_user_custom_attributes.employee_id_definition attr_12345
+```
+
+### User-Specific Custom Attribute Values
 
 User-specific custom attribute values can be imported using the format `{user_id}_{shortname}`:
 
@@ -64,8 +76,5 @@ terraform import onelogin_user_custom_attributes.user_employee_id 789012_employe
 
 ## Attribute Reference
 
-* `id` - The composite ID for user-specific attribute values in the format `{user_id}_{shortname}`.
-
-## Future Enhancements
-
-Once OneLogin fixes the API bug with the "Missing param: user_field" error, this resource will be updated to fully support creating, updating, and deleting custom attribute definitions via Terraform.
+* `id` - For attribute definitions, the ID with the format `attr_{id}`.
+* `id` - For user-specific attribute values, the composite ID with the format `{user_id}_{shortname}`.
