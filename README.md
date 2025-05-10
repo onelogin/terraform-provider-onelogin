@@ -2,8 +2,21 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/onelogin/terraform-provider-onelogin)](https://goreportcard.com/report/github.com/onelogin/terraform-provider-onelogin)
 <a href='https://github.com/dcaponi/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-100%25-brightgreen.svg?longCache=true&style=flat)</a>
 
+## Latest Updates
+
+### v4.0.0 - Custom User Attributes Support
+
+This version includes support for Custom User Attributes using the OneLogin v4 API:
+
+- Added new resource `onelogin_user_custom_attributes` for setting values of existing custom user attributes
+- Updated to OneLogin Go SDK v4.1.0
+- Improved user management with custom attributes
+- See examples in `examples/onelogin_user_custom_attributes_example.tf`
+
+> **Note:** Due to a bug in the OneLogin API (returning "Missing param: user_field"), creating, updating, and deleting custom attribute definitions must currently be done through the OneLogin UI. Once created, you can use the `onelogin_user_custom_attributes` resource to set the values for those attributes on specific users.
+
 ## Prerequisites
-1. Install Go 1.21 or later
+1. Install Go 1.18 or later
 2. Install Terraform v0.13.x or later
 3. Install gosec (for security scanning):
    ```bash

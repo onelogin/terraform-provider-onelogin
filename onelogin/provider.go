@@ -10,6 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const (
+	// USRegion is the US region identifier
+	USRegion string = "us"
+	// EURegion is the EU region identifier
+	EURegion string = "eu"
+)
+
 var (
 	errClientCredentials = errors.New("client_id or client_sercret or region missing")
 )
@@ -37,7 +44,7 @@ func Provider() *schema.Provider {
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  client.USRegion,
+				Default:  USRegion,
 			},
 			"timeout": {
 				Type:        schema.TypeInt,
@@ -63,6 +70,7 @@ func Provider() *schema.Provider {
 			"onelogin_smarthooks":                      SmartHooks(),
 			"onelogin_smarthook_environment_variables": SmarthookEnvironmentVariables(),
 			"onelogin_privileges":                      Privileges(),
+			"onelogin_user_custom_attributes":          UserCustomAttributes(),
 		},
 		ConfigureContextFunc: configProvider,
 	}
@@ -79,6 +87,7 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 	// Get timeout from configuration
 	timeoutSeconds := d.Get("timeout").(int)
 
+	// Use the original client for now for backward compatibility
 	oneloginClient, err := client.NewClient(&client.APIClientConfig{
 		Timeout:      timeoutSeconds,
 		ClientID:     clientID,
@@ -89,5 +98,6 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
+
 	return oneloginClient, nil
 }
