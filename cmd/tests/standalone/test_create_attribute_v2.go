@@ -83,7 +83,6 @@ func TestCreateAttribute_V2() {
 	payload := map[string]interface{}{
 		"name":      attributeName,
 		"shortname": attributeShortname,
-		"position":  3,
 	}
 	
 	// Print the payload for verification
