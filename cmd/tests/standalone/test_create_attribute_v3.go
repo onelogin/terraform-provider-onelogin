@@ -49,7 +49,6 @@ func TestCreateAttribute_V3() {
 	payload := map[string]interface{}{
 		"name":      attributeName,
 		"shortname": attributeShortname,
-		"position":  3,
 	}
 	
 	result, err := client.CreateCustomAttributes(payload)
