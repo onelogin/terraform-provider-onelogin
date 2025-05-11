@@ -12,15 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	// USRegion is the US region identifier
-	USRegion string = "us"
-	// EURegion is the EU region identifier
-	EURegion string = "eu"
-)
-
 var (
-	errClientCredentials = errors.New("client_id or client_sercret or region missing")
+	errClientCredentials = errors.New("client_id or client_secret missing")
 )
 
 // Provider creates a new provider with all the neccessary configurations.
@@ -43,10 +36,10 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_OAPI_URL", nil),
 				Optional:    true,
 			},
+			// Region is deprecated and will be removed in a future version
 			"region": {
 				Type:       schema.TypeString,
 				Optional:   true,
-				Default:    USRegion,
 				Deprecated: "Use subdomain instead",
 			},
 			"subdomain": {
@@ -90,20 +83,14 @@ func Provider() *schema.Provider {
 func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
-	region := d.Get("region").(string)
 	url := d.Get("url").(string)
 
 	// Get timeout from configuration
 	timeoutSeconds := d.Get("timeout").(int)
 
 	// For resource types that use v1 client - we're not using this currently
-	_, err := client.NewClient(&client.APIClientConfig{
-		Timeout:      timeoutSeconds,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		Region:       region,
-		Url:          url,
-	})
+	// We pass nil for configuration as we're not using the v1 client
+	_, err := client.NewClient(nil)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
