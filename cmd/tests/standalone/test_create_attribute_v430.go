@@ -49,7 +49,6 @@ func main() {
 	payload := map[string]interface{}{
 		"name":      attributeName,
 		"shortname": attributeShortname,
-		"position":  3,
 	}
 	
 	result, err := client.CreateCustomAttributes(payload)
