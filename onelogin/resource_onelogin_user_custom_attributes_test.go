@@ -27,7 +27,6 @@ func testAccCheckUserCustomAttributesConfig() string {
 resource onelogin_user_custom_attributes test_attr {
   name      = "Test Attribute"
   shortname = "test_attr"
-  position  = 1
 }
 `
 }
@@ -61,7 +60,6 @@ resource onelogin_users test_user {
 resource onelogin_user_custom_attributes test_attr {
   name      = "Test Attribute"
   shortname = "test_attr"
-  position  = 1
 }
 
 resource onelogin_user_custom_attributes user_attr_value {

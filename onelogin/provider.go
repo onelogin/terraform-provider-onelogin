@@ -5,7 +5,6 @@ import (
 	"errors"
 	"os"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
 	ol "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -83,17 +82,22 @@ func Provider() *schema.Provider {
 func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
-	url := d.Get("url").(string)
 
-	// Get timeout from configuration
-	timeoutSeconds := d.Get("timeout").(int)
+	// These are no longer used but kept for reference
+	// url := d.Get("url").(string)
+	// timeoutSeconds := d.Get("timeout").(int)
 
-	// For resource types that use v1 client - we're not using this currently
-	// We pass nil for configuration as we're not using the v1 client
-	_, err := client.NewClient(nil)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
+	// We're not using the v1 client anymore, but keeping this commented code for reference
+	// in case we need to initialize it in the future
+	// _, err := client.NewClient(&client.APIClientConfig{
+	//	Timeout:      60,
+	//	ClientID:     clientID,
+	//	ClientSecret: clientSecret,
+	//	Region:       "us",
+	// })
+	// if err != nil {
+	//	return nil, diag.FromErr(err)
+	// }
 
 	// For resource types that use v4 client (like custom attributes)
 	subdomain := d.Get("subdomain").(string)
