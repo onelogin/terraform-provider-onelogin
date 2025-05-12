@@ -1,6 +1,6 @@
 module github.com/onelogin/terraform-provider-onelogin
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/hashicorp/terraform-plugin-log v0.2.1
@@ -56,7 +56,7 @@ require (
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/zclconf/go-cty v1.2.1 // indirect
 	go.opencensus.io v0.22.4 // indirect
-	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
