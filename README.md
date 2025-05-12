@@ -4,7 +4,11 @@
 
 ## Latest Updates
 
-### v0.1.11 - Fixed Custom User Attributes Support
+### v0.6.0 - Version Alignment
+
+This version aligns the version number with the GitHub releases:
+
+- Version number synchronized with GitHub releases (current v0.5.4)
 
 This version fixes the custom attribute support in the OneLogin v4 API:
 
@@ -50,7 +54,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin.com/onelogin/onelogin"
-      version = "0.1.11"
+      version = "0.6.0"
     }
   }
 }
