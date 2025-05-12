@@ -2,8 +2,28 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/onelogin/terraform-provider-onelogin)](https://goreportcard.com/report/github.com/onelogin/terraform-provider-onelogin)
 <a href='https://github.com/dcaponi/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-100%25-brightgreen.svg?longCache=true&style=flat)</a>
 
+## Latest Updates
+
+### v0.1.11 - Fixed Custom User Attributes Support
+
+This version fixes the custom attribute support in the OneLogin v4 API:
+
+- Fixed custom attribute creation by wrapping payload with `user_field` object
+- **Now supports** creating, reading, updating, and deleting custom attribute definitions
+- Improved user management with custom attributes
+- Updated provider to use subdomain instead of region for API connections
+- See examples in `examples/onelogin_user_custom_attributes_example.tf`
+
+### v0.1.10 - Custom User Attributes Support
+
+This version includes support for Custom User Attributes using the OneLogin v4 API:
+
+- Added new resource `onelogin_user_custom_attributes` for setting values of existing custom user attributes
+- Updated to OneLogin Go SDK v4.1.0
+- Improved user management with custom attributes
+
 ## Prerequisites
-1. Install Go 1.21 or later
+1. Install Go 1.18 or later
 2. Install Terraform v0.13.x or later
 3. Install gosec (for security scanning):
    ```bash
@@ -17,7 +37,7 @@
    ```bash
    export ONELOGIN_CLIENT_ID=<your client id>
    export ONELOGIN_CLIENT_SECRET=<your client secret>
-   export ONELOGIN_OAPI_URL=<the api url for your region>
+   export ONELOGIN_SUBDOMAIN=<your OneLogin subdomain>
    ```
 3. Build and install the provider locally:
    ```bash
@@ -30,7 +50,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin.com/onelogin/onelogin"
-      version = "0.1.10"
+      version = "0.1.11"
     }
   }
 }

@@ -108,6 +108,7 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeMap,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
+			Description: "Map of custom attribute key/value pairs. This field is being deprecated in favor of the onelogin_user_custom_attributes resource.",
 		},
 	}
 }
@@ -401,6 +402,7 @@ func ReadSchema() map[string]*schema.Schema {
 			Type:     schema.TypeMap,
 			Computed: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
+			Description: "Map of custom attribute key/value pairs. This field is being deprecated in favor of the onelogin_user_custom_attributes resource.",
 		},
 	}
 }

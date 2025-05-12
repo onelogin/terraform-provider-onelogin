@@ -32,13 +32,24 @@ func TestAccPreCheck(t *testing.T) {
 		t.Skip("Skipping acceptance test in short mode")
 	}
 
-	if v := os.Getenv("ONELOGIN_OAPI_URL"); v == "" {
-		t.Fatal("ONELOGIN_OAPI_URL must be set for acceptance tests")
-	}
+	// Check for client credentials
 	if v := os.Getenv("ONELOGIN_CLIENT_ID"); v == "" {
 		t.Fatal("ONELOGIN_CLIENT_ID must be set for acceptance tests")
 	}
 	if v := os.Getenv("ONELOGIN_CLIENT_SECRET"); v == "" {
 		t.Fatal("ONELOGIN_CLIENT_SECRET must be set for acceptance tests")
+	}
+
+	// Check for subdomain (preferred) or legacy URL
+	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
+	legacyURL := os.Getenv("ONELOGIN_OAPI_URL")
+
+	if subdomain == "" && legacyURL == "" {
+		t.Fatal("Either ONELOGIN_SUBDOMAIN or ONELOGIN_OAPI_URL must be set for acceptance tests")
+	}
+
+	// Warn if using legacy URL
+	if subdomain == "" && legacyURL != "" {
+		t.Logf("WARNING: Using legacy ONELOGIN_OAPI_URL. Please consider switching to ONELOGIN_SUBDOMAIN.")
 	}
 }

@@ -3,15 +3,16 @@ package onelogin
 import (
 	"context"
 	"errors"
+	"os"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	ol "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var (
-	errClientCredentials = errors.New("client_id or client_sercret or region missing")
+	errClientCredentials = errors.New("client_id or client_secret missing")
 )
 
 // Provider creates a new provider with all the neccessary configurations.
@@ -34,10 +35,17 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_OAPI_URL", nil),
 				Optional:    true,
 			},
+			// Region is deprecated and will be removed in a future version
 			"region": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  client.USRegion,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "Use subdomain instead",
+			},
+			"subdomain": {
+				Type:        schema.TypeString,
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_SUBDOMAIN", nil),
+				Required:    true,
+				Description: "OneLogin subdomain (e.g. 'company' for company.onelogin.com)",
 			},
 			"timeout": {
 				Type:        schema.TypeInt,
@@ -63,6 +71,7 @@ func Provider() *schema.Provider {
 			"onelogin_smarthooks":                      SmartHooks(),
 			"onelogin_smarthook_environment_variables": SmarthookEnvironmentVariables(),
 			"onelogin_privileges":                      Privileges(),
+			"onelogin_user_custom_attributes":          UserCustomAttributes(),
 		},
 		ConfigureContextFunc: configProvider,
 	}
@@ -73,21 +82,40 @@ func Provider() *schema.Provider {
 func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
-	region := d.Get("region").(string)
-	url := d.Get("url").(string)
 
-	// Get timeout from configuration
-	timeoutSeconds := d.Get("timeout").(int)
+	// These are no longer used but kept for reference
+	// url := d.Get("url").(string)
+	// timeoutSeconds := d.Get("timeout").(int)
 
-	oneloginClient, err := client.NewClient(&client.APIClientConfig{
-		Timeout:      timeoutSeconds,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		Region:       region,
-		Url:          url,
-	})
+	// We're not using the v1 client anymore, but keeping this commented code for reference
+	// in case we need to initialize it in the future
+	// _, err := client.NewClient(&client.APIClientConfig{
+	//	Timeout:      60,
+	//	ClientID:     clientID,
+	//	ClientSecret: clientSecret,
+	//	Region:       "us",
+	// })
+	// if err != nil {
+	//	return nil, diag.FromErr(err)
+	// }
+
+	// For resource types that use v4 client (like custom attributes)
+	subdomain := d.Get("subdomain").(string)
+	if subdomain == "" {
+		return nil, diag.Errorf("OneLogin subdomain is required. Please set the ONELOGIN_SUBDOMAIN environment variable.")
+	}
+
+	// Set environment variables for the SDK
+	os.Setenv("ONELOGIN_CLIENT_ID", clientID)
+	os.Setenv("ONELOGIN_CLIENT_SECRET", clientSecret)
+	os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
+
+	// Initialize the SDK
+	clientV4, err := ol.NewOneloginSDK()
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
-	return oneloginClient, nil
+
+	// For now, return the v4 client as we're updating custom attributes
+	return clientV4, nil
 }

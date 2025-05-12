@@ -10,3 +10,16 @@ dist
 coverage.out
 bin
 *.asc
+
+# Development and test files
+**/.claude/settings.local.json
+.env
+.terraformrc
+*_test.tf
+test_*.tf
+test_*.sh
+test-dir/
+test_dir/
+test_tool
+modified_*.go
+*.bak
