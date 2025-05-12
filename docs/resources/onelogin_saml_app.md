@@ -23,18 +23,25 @@ resource onelogin_saml_apps example_saml_app {
   name = "Example App"
   notes = "example saml app"
 
-  parameters = {
-    include_in_saml_assertion = false
-    provisioned_entitlements = false
-    user_attribute_macros = ""
+  parameters {
+    param_key_name = "email"
+    label = "Email"
     user_attribute_mappings = "email"
-    attributes_transformations = ""
-    label = "I done reset it"
-    param_key_name = "tmp"
-    safe_entitlements_enabled = false
-    skip_if_blank = false
-    values = ""
-    default_values = ""
+    include_in_saml_assertion = true
+  }
+
+  parameters {
+    param_key_name = "firstname"
+    label = "First Name"
+    user_attribute_mappings = "firstname"
+    include_in_saml_assertion = true
+  }
+
+  parameters {
+    param_key_name = "lastname"
+    label = "Last Name"
+    user_attribute_mappings = "lastname"
+    include_in_saml_assertion = true
   }
 
   configuration = {
@@ -67,16 +74,16 @@ The following arguments are supported:
   * `enabled` - (Required) Indicates if provisioning is enabled for this app.
 
 
-* `parameters` - (Optional) a list of custom parameters for this app.
-  * `param_key_name` - (Required) Name to represent the parameter in OneLogin.
+* `parameters` - (Optional) A set of parameters for this app. Define a separate `parameters` block for each parameter you want to configure.
+  * `param_key_name` - (Required) Name to represent the parameter in OneLogin. This is used as the unique identifier for the parameter.
 
   * `safe_entitlements_enabled` - (Optional) Indicates that the parameter is used to support creating entitlements using OneLogin Mappings. Defaults to `false`.
 
-  * `user_attribute_mappings` - (Optional) A user attribute to map values from. For custom attributes prefix the name of the attribute with `custom_attribute_`.
+  * `user_attribute_mappings` - (Optional) A user attribute to map values from. For custom attributes prefix the name of the attribute with `custom_attribute_`. For example, to map a custom attribute named "department", use `custom_attribute_department`.
 
-  * `provisioned_entitlements` - (Optional)  Provisioned access entitlements for the app. Defaults to `false`.
+  * `provisioned_entitlements` - (Optional) Provisioned access entitlements for the app. Defaults to `false`.
 
-  * `skip_if_blank` - (Optional)  Flag to let the SCIM provisioner know not include this value if it's blank. Defaults to `false`.
+  * `skip_if_blank` - (Optional) Flag to let the SCIM provisioner know not include this value if it's blank. Defaults to `false`.
 
   * `user_attribute_macros` - (Optional) When `user_attribute_mappings` is set to `_macro_` this macro will be used to assign the parameter value.
 
@@ -84,9 +91,9 @@ The following arguments are supported:
 
   * `default_values` - (Optional) Default parameter values.
 
-  * `include_in_saml_assertion` - (Optional) When true, this parameter will be included in a SAML assertion payload.
+  * `include_in_saml_assertion` - (Optional) When true, this parameter will be included in a SAML assertion payload. Important for SAML attribute statements.
 
-  * `label` - (Optional) The can only be set when creating a new parameter. It can not be updated.
+  * `label` - (Optional) The label for the parameter. This can only be set when creating a new parameter. It cannot be updated.
 
   * `values` - (Optional) Parameter values.
 
