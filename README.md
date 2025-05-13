@@ -4,6 +4,16 @@
 
 ## Latest Updates
 
+### v0.7.0 - SDK v4 Refactoring
+
+This version includes major internal refactoring to fully support OneLogin SDK v4:
+
+- Removed legacy implementation code and standardized resource implementations
+- Fixed SDK v4 compatibility issues across all resources
+- Improved error handling with proper context
+- Temporarily disabled User Mappings resource (will be re-enabled when SDK v4 adds support)
+- Enhanced code maintainability and consistency
+
 ### v0.6.0 - Version Alignment
 
 This version aligns the version number with the GitHub releases:
@@ -54,7 +64,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin.com/onelogin/onelogin"
-      version = "0.6.0"
+      version = "0.7.0"
     }
   }
 }

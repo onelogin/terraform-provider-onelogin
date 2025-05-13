@@ -8,6 +8,8 @@ description: |-
 
 # onelogin_user_mappings
 
+> **NOTE:** This resource is currently disabled as it is not compatible with OneLogin SDK v4. It will be re-enabled in a future release when the SDK adds support for user mappings.
+
 Manage User Mappings resources.
 
 This resource allows you to create and configure User Mappings.
