@@ -244,25 +244,13 @@ github.com/oklog/run
 # github.com/onelogin/onelogin-go-sdk v1.1.22
 ## explicit; go 1.12
 github.com/onelogin/onelogin-go-sdk/internal/customerrors
-github.com/onelogin/onelogin-go-sdk/pkg/client
 github.com/onelogin/onelogin-go-sdk/pkg/oltypes
 github.com/onelogin/onelogin-go-sdk/pkg/services
-github.com/onelogin/onelogin-go-sdk/pkg/services/apps
-github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules
-github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers
-github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/access_token_claims
-github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/scopes
-github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values
 github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp
-github.com/onelogin/onelogin-go-sdk/pkg/services/privileges
-github.com/onelogin/onelogin-go-sdk/pkg/services/roles
-github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens
 github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks
 github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs
-github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings
-github.com/onelogin/onelogin-go-sdk/pkg/services/users
 github.com/onelogin/onelogin-go-sdk/pkg/utils
-# github.com/onelogin/onelogin-go-sdk/v4 v4.3.0
+# github.com/onelogin/onelogin-go-sdk/v4 v4.4.0
 ## explicit; go 1.18
 github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin
 github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/api

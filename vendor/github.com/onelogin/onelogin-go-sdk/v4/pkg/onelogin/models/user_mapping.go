@@ -12,6 +12,20 @@ type UserMappingsQuery struct {
 	Enabled          string `json:"enabled,omitempty"`
 }
 
+// GetKeyValidators implements the Queryable interface
+func (q *UserMappingsQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":              validateString,
+		"page":               validateString,
+		"cursor":             validateString,
+		"has_condition":      validateString,
+		"has_condition_type": validateString,
+		"has_action":         validateString,
+		"has_action_type":    validateString,
+		"enabled":            validateString,
+	}
+}
+
 // UserMapping is the contract for User Mappings.
 type UserMapping struct {
 	ID         *int32                  `json:"id,omitempty"`
