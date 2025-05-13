@@ -63,12 +63,12 @@ func Provider() *schema.Provider {
 			"onelogin_users": dataSourceUsers(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"onelogin_app_role_attachments": AppRoleAttachment(),
-			"onelogin_apps":                 Apps(),
-			"onelogin_oidc_apps":            OIDCApps(),
-			"onelogin_saml_apps":            SAMLApps(),
-			"onelogin_app_rules":            AppRules(),
-			// "onelogin_user_mappings":                   UserMappings(), // Disabled until SDK support is added
+			"onelogin_app_role_attachments":            AppRoleAttachment(),
+			"onelogin_apps":                            Apps(),
+			"onelogin_oidc_apps":                       OIDCApps(),
+			"onelogin_saml_apps":                       SAMLApps(),
+			"onelogin_app_rules":                       AppRules(),
+			"onelogin_user_mappings":                   UserMappings(),
 			"onelogin_users":                           Users(),
 			"onelogin_auth_servers":                    AuthServers(),
 			"onelogin_roles":                           Roles(),

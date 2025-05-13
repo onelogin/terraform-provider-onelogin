@@ -54,7 +54,7 @@ func validMatch(val interface{}, key string) (warns []string, errs []error) {
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct a user mapping struct
-func Inflate(s map[string]interface{}) models.UserMapping {
+func Inflate(s map[string]interface{}) (models.UserMapping, error) {
 	out := models.UserMapping{}
 	if s["id"] != nil {
 		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
@@ -91,7 +91,7 @@ func Inflate(s map[string]interface{}) models.UserMapping {
 			out.Actions = append(out.Actions, action)
 		}
 	}
-	return out
+	return out, nil
 }
 
 // Flatten takes a UserMappings array and converts it to an array of maps
@@ -109,4 +109,37 @@ func Flatten(UserMappings []models.UserMapping) []map[string]interface{} {
 		}
 	}
 	return out
+}
+
+// FlattenConditions converts an array of interface{} to an array of maps for conditions
+func FlattenConditions(conditions []interface{}) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(conditions))
+	for i, condition := range conditions {
+		if condMap, ok := condition.(map[string]interface{}); ok {
+			result[i] = map[string]interface{}{
+				"source":   condMap["source"],
+				"operator": condMap["operator"],
+				"value":    condMap["value"],
+			}
+		}
+	}
+	return result
+}
+
+// FlattenActions converts an array of interface{} to an array of maps for actions
+func FlattenActions(actions []interface{}) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(actions))
+	for i, action := range actions {
+		if actMap, ok := action.(map[string]interface{}); ok {
+			var vals []interface{}
+			if v, ok := actMap["value"].([]interface{}); ok {
+				vals = v
+			}
+			result[i] = map[string]interface{}{
+				"action": actMap["action"],
+				"value":  vals,
+			}
+		}
+	}
+	return result
 }

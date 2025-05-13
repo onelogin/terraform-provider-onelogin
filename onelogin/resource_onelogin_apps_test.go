@@ -23,7 +23,7 @@ func TestApps(t *testing.T) {
 // TestAppsSchema verifies the schema has required fields
 func TestAppsSchema(t *testing.T) {
 	schema := Apps().Schema
-	
+
 	// Verify required fields exist
 	requiredFields := []string{"name", "connector_id"}
 	for _, field := range requiredFields {

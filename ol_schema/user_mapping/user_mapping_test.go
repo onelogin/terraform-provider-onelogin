@@ -126,7 +126,8 @@ func TestInflate(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			subj := Inflate(test.ResourceData)
+			subj, err := Inflate(test.ResourceData)
+			assert.Nil(t, err)
 			// Compare pointer values properly
 			if subj.ID != nil && test.ExpectedOutput.ID != nil {
 				assert.Equal(t, *test.ExpectedOutput.ID, *subj.ID)

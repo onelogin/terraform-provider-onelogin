@@ -4,6 +4,15 @@
 
 ## Latest Updates
 
+### v0.8.0 - User Mappings Support
+
+This version adds support for User Mappings with the OneLogin SDK v4.4.0:
+
+- Added User Mappings resource with full CRUD operations
+- Updated OneLogin SDK to v4.4.0
+- Improved code organization and naming consistency
+- Added examples for User Mappings configuration
+
 ### v0.7.0 - SDK v4 Refactoring
 
 This version includes major internal refactoring to fully support OneLogin SDK v4:
@@ -64,7 +73,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin/onelogin"
-      version = "0.7.0"
+      version = "0.8.0"
     }
   }
 }

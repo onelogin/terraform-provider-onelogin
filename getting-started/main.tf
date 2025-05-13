@@ -2,7 +2,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin/onelogin"
-      version = "0.7.0"
+      version = "0.8.0"
     }
   }
 }
@@ -10,7 +10,7 @@ terraform {
 provider "onelogin" {
   client_id     = "YOUR_CLIENT_ID"     # Replace with your OneLogin Client ID
   client_secret = "YOUR_CLIENT_SECRET" # Replace with your OneLogin Client Secret
-  url           = "YOUR_API_URL"       # Replace with your OneLogin API URL (e.g., "https://company.onelogin.com"). Note: The 'subdomain' attribute has been replaced by 'url' in version 0.6.0. Update your configuration by replacing 'subdomain = "company"' with 'url = "https://company.onelogin.com"'.
+  url           = "YOUR_API_URL"       # Replace with your OneLogin API URL (e.g., "https://company.onelogin.com")
 }
 
 # Example resource (uncomment if needed)
