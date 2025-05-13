@@ -14,7 +14,7 @@ This directory contains a minimal setup to get started with the OneLogin Terrafo
    - Log in to your OneLogin admin portal
    - Navigate to Developers > API Credentials
    - Create credentials with appropriate permissions
-   - Note the Client ID, Client Secret, and your OneLogin URL
+   - Note the Client ID, Client Secret, and your OneLogin API URL
 
 2. **Configure the Provider**
    - Open `main.tf`
@@ -81,22 +81,22 @@ If you encounter issues with the provider availability in the Terraform Registry
    # Check the actual contents and structure of the extracted files
    ls -la /tmp/provider
 
-   # For macOS Intel (adjust the destination directory path if needed)
-   cp /tmp/provider/terraform-provider-onelogin ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_amd64/
-   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_amd64/terraform-provider-onelogin
+   # For macOS Intel (adjust filenames based on what you see in the previous step)
+   cp /tmp/provider/terraform-provider-onelogin_v0.7.0 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_amd64/
+   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_amd64/terraform-provider-onelogin_v0.7.0
 
-   # For macOS Apple Silicon (adjust the destination directory path if needed)
-   cp /tmp/provider/terraform-provider-onelogin ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_arm64/
-   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_arm64/terraform-provider-onelogin
+   # For macOS Apple Silicon (adjust filenames based on what you see)
+   cp /tmp/provider/terraform-provider-onelogin_v0.7.0 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_arm64/
+   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/darwin_arm64/terraform-provider-onelogin_v0.7.0
 
-   # For Linux (adjust the destination directory path if needed)
-   cp /tmp/provider/terraform-provider-onelogin ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/linux_amd64/
-   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/linux_amd64/terraform-provider-onelogin
+   # For Linux (adjust filenames based on what you see)
+   cp /tmp/provider/terraform-provider-onelogin_v0.7.0 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/linux_amd64/
+   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.7.0/linux_amd64/terraform-provider-onelogin_v0.7.0
 
-   # For Windows (using PowerShell) (adjust the destination directory path if needed)
+   # For Windows (using PowerShell) (adjust filenames based on what you see)
    Expand-Archive -Path $env:TEMP\provider.zip -DestinationPath $env:TEMP\provider
    Get-ChildItem -Path $env:TEMP\provider -Recurse
-   Copy-Item $env:TEMP\provider\terraform-provider-onelogin.exe $env:APPDATA\terraform.d\plugins\registry.terraform.io\onelogin\onelogin\0.7.0\windows_amd64\
+   Copy-Item $env:TEMP\provider\terraform-provider-onelogin_v0.7.0.exe $env:APPDATA\terraform.d\plugins\registry.terraform.io\onelogin\onelogin\0.7.0\windows_amd64\
    ```
 
    > **Note:** The exact structure and filenames inside the zip may vary between releases. After extraction, check the actual contents with `ls` or `Get-ChildItem` and adjust the copy commands accordingly. The binary may be in a subdirectory or have a slightly different name.
