@@ -1,6 +1,3 @@
-//go:build exclude
-// +build exclude
-
 package onelogin
 
 import (
@@ -13,10 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
-	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	usermappingschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping"
-	usermappingactionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/actions"
-	usermappingconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
@@ -34,7 +28,7 @@ func UserMappings() *schema.Resource {
 
 // userMappingCreate creates a new user mapping in OneLogin
 func userMappingCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	userMapping := usermappingschema.Inflate(map[string]interface{}{
+	userMapping, err := usermappingschema.Inflate(map[string]interface{}{
 		"name":       d.Get("name"),
 		"match":      d.Get("match"),
 		"enabled":    d.Get("enabled"),
@@ -42,6 +36,9 @@ func userMappingCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		"conditions": d.Get("conditions"),
 		"actions":    d.Get("actions"),
 	})
+	if err != nil {
+		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "User Mapping", "")
+	}
 
 	client := m.(*onelogin.OneloginSDK)
 	tflog.Info(ctx, "[CREATE] Creating user mapping", map[string]interface{}{
@@ -54,23 +51,18 @@ func userMappingCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	// Extract user mapping ID from the result
-	mappingMap, ok := result.(map[string]interface{})
-	if !ok {
-		return diag.Errorf("failed to parse user mapping creation response")
-	}
+	if result != nil && result.ID != nil {
+		mappingID := int(*result.ID)
+		tflog.Info(ctx, "[CREATED] Created user mapping", map[string]interface{}{
+			"id":   mappingID,
+			"name": d.Get("name").(string),
+		})
 
-	id, ok := mappingMap["id"].(float64)
-	if !ok {
+		d.SetId(fmt.Sprintf("%d", mappingID))
+	} else {
 		return diag.Errorf("failed to extract user mapping ID from response")
 	}
 
-	mappingID := int(id)
-	tflog.Info(ctx, "[CREATED] Created user mapping", map[string]interface{}{
-		"id":   mappingID,
-		"name": d.Get("name").(string),
-	})
-
-	d.SetId(fmt.Sprintf("%d", mappingID))
 	return userMappingRead(ctx, d, m)
 }
 
@@ -78,12 +70,13 @@ func userMappingCreate(ctx context.Context, d *schema.ResourceData, m interface{
 func userMappingRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*onelogin.OneloginSDK)
 	mid, _ := strconv.Atoi(d.Id())
+	mid32 := int32(mid)
 
 	tflog.Info(ctx, "[READ] Reading user mapping", map[string]interface{}{
 		"id": mid,
 	})
 
-	result, err := client.GetUserMappingByID(mid)
+	result, err := client.GetUserMapping(mid32)
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "User Mapping", d.Id())
 	}
@@ -97,30 +90,51 @@ func userMappingRead(ctx context.Context, d *schema.ResourceData, m interface{})
 		return nil
 	}
 
-	// Parse the mapping from the result
-	mappingMap, ok := result.(map[string]interface{})
-	if !ok {
-		return diag.Errorf("failed to parse user mapping response")
-	}
-
 	// Set basic fields
-	basicFields := []string{
-		"name", "match", "enabled", "position", "created_at", "updated_at",
+	if result.Name != nil {
+		d.Set("name", *result.Name)
 	}
-	utils.SetResourceFields(d, mappingMap, basicFields)
+	if result.Match != nil {
+		d.Set("match", *result.Match)
+	}
+	if result.Enabled != nil {
+		d.Set("enabled", *result.Enabled)
+	}
+	if result.Position != nil {
+		d.Set("position", *result.Position)
+	}
 
 	// Handle conditions
-	if conditions, ok := mappingMap["conditions"].([]interface{}); ok {
-		if err := d.Set("conditions", usermappingconditionsschema.Flatten(convertToUserMappingConditions(conditions))); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting conditions: %s", err))
+	if len(result.Conditions) > 0 {
+		conditions := make([]map[string]interface{}, len(result.Conditions))
+		for i, condition := range result.Conditions {
+			condMap := map[string]interface{}{}
+			if condition.Source != nil {
+				condMap["source"] = *condition.Source
+			}
+			if condition.Operator != nil {
+				condMap["operator"] = *condition.Operator
+			}
+			if condition.Value != nil {
+				condMap["value"] = *condition.Value
+			}
+			conditions[i] = condMap
 		}
+		d.Set("conditions", conditions)
 	}
 
 	// Handle actions
-	if actions, ok := mappingMap["actions"].([]interface{}); ok {
-		if err := d.Set("actions", usermappingactionsschema.Flatten(convertToUserMappingActions(actions))); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting actions: %s", err))
+	if len(result.Actions) > 0 {
+		actions := make([]map[string]interface{}, len(result.Actions))
+		for i, action := range result.Actions {
+			actMap := map[string]interface{}{}
+			if action.Action != nil {
+				actMap["action"] = *action.Action
+			}
+			actMap["value"] = action.Value
+			actions[i] = actMap
 		}
+		d.Set("actions", actions)
 	}
 
 	return nil
@@ -129,8 +143,9 @@ func userMappingRead(ctx context.Context, d *schema.ResourceData, m interface{})
 // userMappingUpdate updates a user mapping by ID in OneLogin
 func userMappingUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	mid, _ := strconv.Atoi(d.Id())
+	mid32 := int32(mid)
 
-	userMapping := usermappingschema.Inflate(map[string]interface{}{
+	userMapping, err := usermappingschema.Inflate(map[string]interface{}{
 		"id":         d.Id(),
 		"name":       d.Get("name"),
 		"match":      d.Get("match"),
@@ -139,13 +154,16 @@ func userMappingUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		"conditions": d.Get("conditions"),
 		"actions":    d.Get("actions"),
 	})
+	if err != nil {
+		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "User Mapping", d.Id())
+	}
 
 	client := m.(*onelogin.OneloginSDK)
 	tflog.Info(ctx, "[UPDATE] Updating user mapping", map[string]interface{}{
 		"id": mid,
 	})
 
-	_, err = client.UpdateUserMapping(mid, userMapping)
+	_, err = client.UpdateUserMapping(mid32, userMapping)
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryUpdate, "User Mapping", d.Id())
 	}
@@ -161,60 +179,22 @@ func userMappingUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 func userMappingDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*onelogin.OneloginSDK)
 
-	return utils.StandardDeleteFunc(ctx, d, func(id string) (interface{}, error) {
-		mid, _ := strconv.Atoi(id)
-		return client.DeleteUserMapping(mid)
-	}, "User Mapping")
-}
+	mid, _ := strconv.Atoi(d.Id())
+	mid32 := int32(mid)
 
-// convertToUserMappingConditions converts an array of interface{} to an array of models.UserMappingConditions
-func convertToUserMappingConditions(conditions []interface{}) []models.UserMappingConditions {
-	result := make([]models.UserMappingConditions, len(conditions))
-	for i, condition := range conditions {
-		if condMap, ok := condition.(map[string]interface{}); ok {
-			var src, op, val string
-			if s, ok := condMap["source"].(string); ok {
-				src = s
-			}
-			if o, ok := condMap["operator"].(string); ok {
-				op = o
-			}
-			if v, ok := condMap["value"].(string); ok {
-				val = v
-			}
-			result[i] = models.UserMappingConditions{
-				Source:   &src,
-				Operator: &op,
-				Value:    &val,
-			}
-		}
-	}
-	return result
-}
+	tflog.Info(ctx, "[DELETE] Deleting user mapping", map[string]interface{}{
+		"id": mid,
+	})
 
-// convertToUserMappingActions converts an array of interface{} to an array of models.UserMappingActions
-func convertToUserMappingActions(actions []interface{}) []models.UserMappingActions {
-	result := make([]models.UserMappingActions, len(actions))
-	for i, action := range actions {
-		if actMap, ok := action.(map[string]interface{}); ok {
-			var act string
-			var vals []string
-			if a, ok := actMap["action"].(string); ok {
-				act = a
-			}
-			if v, ok := actMap["value"].([]interface{}); ok {
-				vals = make([]string, len(v))
-				for j, val := range v {
-					if s, ok := val.(string); ok {
-						vals[j] = s
-					}
-				}
-			}
-			result[i] = models.UserMappingActions{
-				Action: &act,
-				Value:  vals,
-			}
-		}
+	err := client.DeleteUserMapping(mid32)
+	if err != nil {
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryDelete, "User Mapping", d.Id())
 	}
-	return result
+
+	tflog.Info(ctx, "[DELETED] Deleted user mapping", map[string]interface{}{
+		"id": mid,
+	})
+
+	d.SetId("")
+	return nil
 }
