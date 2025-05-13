@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
-	users "github.com/onelogin/onelogin-go-sdk/pkg/services/users"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	userschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
 )
 
@@ -23,7 +23,7 @@ func dataSourceUsers() *schema.Resource {
 }
 
 func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*client.APIClient)
+	client := m.(*onelogin.OneloginSDK)
 	query, _ := userschema.QueryInflate(map[string]interface{}{
 		"username":       d.Get("username"),
 		"email":          d.Get("email"),
@@ -33,69 +33,139 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		"external_id":    d.Get("external_id"),
 		"directory_id":   d.Get("directory_id"),
 	})
-	users, err := client.Services.UsersV2.Query(&query)
 
+	// Create pointers for non-empty query parameters
+	var username, firstname, lastname, samaccountname, externalID, directoryID *string
+
+	if query.Username != "" {
+		usernameVal := query.Username
+		username = &usernameVal
+	}
+
+	if query.Firstname != "" {
+		firstnameVal := query.Firstname
+		firstname = &firstnameVal
+	}
+
+	if query.Lastname != "" {
+		lastnameVal := query.Lastname
+		lastname = &lastnameVal
+	}
+
+	if query.Samaccountname != "" {
+		samVal := query.Samaccountname
+		samaccountname = &samVal
+	}
+
+	if query.ExternalID != "" {
+		extIDVal := query.ExternalID
+		externalID = &extIDVal
+	}
+
+	if query.DirectoryID != "" {
+		dirIDVal := query.DirectoryID
+		directoryID = &dirIDVal
+	}
+
+	// Create the SDK query
+	sdkQuery := &models.UserQuery{
+		Username:       username,
+		Firstname:      firstname,
+		Lastname:       lastname,
+		Samaccountname: samaccountname,
+		ExternalID:     externalID,
+		DirectoryID:    directoryID,
+	}
+
+	result, err := client.GetUsers(sdkQuery)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem reading the user!")
+		log.Printf("[ERROR] There was a problem reading the users!")
 		log.Println(err)
 		return err
 	}
-	if users == nil {
-		log.Printf("[WARNING] Nil users returned by the query")
+
+	// Parse the response
+	respMap, ok := result.(map[string]interface{})
+	if !ok {
+		log.Printf("[WARNING] Invalid response format")
 		d.SetId("")
-		return nil
+		return fmt.Errorf("Invalid response format from API")
 	}
-	if len(users) == 0 {
+
+	data, ok := respMap["data"].([]interface{})
+	if !ok || len(data) == 0 {
 		log.Printf("[WARNING] No users returned by the query")
 		d.SetId("")
 		return nil
 	}
 
-	log.Printf("[READ] %d user returned", len(users))
+	log.Printf("[READ] %d users returned", len(data))
 
 	userIds := make([]string, 0)
 	userList := make([]map[string]interface{}, 0)
-	for _, user := range users {
-		userIds = append(userIds, fmt.Sprintf("%d", *(user.ID)))
+	for _, userData := range data {
+		user, ok := userData.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		// Get the user ID
+		userID, ok := user["id"].(float64)
+		if !ok {
+			continue
+		}
+
+		userIds = append(userIds, fmt.Sprintf("%d", int(userID)))
 
 		u := make(map[string]interface{})
+		u["id"] = int(userID)
 
-		u["id"] = *(user.ID)
-		if user.Username != nil {
-			u["username"] = *(user.Username)
+		if v, ok := user["username"]; ok {
+			u["username"] = v
 		}
-		if user.Email != nil {
-			u["email"] = *(user.Email)
+		if v, ok := user["email"]; ok {
+			u["email"] = v
 		}
-		if user.Firstname != nil {
-			u["firstname"] = *(user.Firstname)
+		if v, ok := user["firstname"]; ok {
+			u["firstname"] = v
 		}
-		if user.Lastname != nil {
-			u["lastname"] = *(user.Lastname)
+		if v, ok := user["lastname"]; ok {
+			u["lastname"] = v
 		}
-		if user.Samaccountname != nil {
-			u["samaccountname"] = *(user.Samaccountname)
+		if v, ok := user["samaccountname"]; ok {
+			u["samaccountname"] = v
 		}
-		if user.ExternalID != nil {
-			u["external_id"] = *(user.ExternalID)
+		if v, ok := user["external_id"]; ok {
+			u["external_id"] = v
 		}
-		if user.DirectoryID != nil {
-			u["directory_id"] = *(user.DirectoryID)
+		if v, ok := user["directory_id"]; ok {
+			u["directory_id"] = v
 		}
-		if user.LastLogin != nil {
-			u["last_login"] = user.LastLogin.Format(time.RFC3339)
+		if v, ok := user["last_login"]; ok {
+			// Handle last_login which might be a string or time value
+			switch lastLogin := v.(type) {
+			case string:
+				u["last_login"] = lastLogin
+			case time.Time:
+				u["last_login"] = lastLogin.Format(time.RFC3339)
+			}
 		}
+
 		userList = append(userList, u)
 	}
 
-	d.SetId(fmt.Sprintf("%d", HashQuery(&query)))
+	// Generate a hash for the ID
+	queryBytes, _ := json.Marshal(sdkQuery)
+	queryHash := md5.Sum(queryBytes)
+	d.SetId(fmt.Sprintf("%x", queryHash))
+
 	d.Set("ids", userIds)
 	d.Set("users", userList)
 
 	return nil
 }
 
-func HashQuery(query *users.UserQuery) [16]byte {
+func HashQuery(query *userschema.UserQuery) [16]byte {
 	bytes, _ := json.Marshal(query)
 	return md5.Sum(bytes)
 }

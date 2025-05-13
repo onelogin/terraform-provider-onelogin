@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +28,7 @@ func mockSetFn(interface{}) int {
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apprules.AppRule
+		ExpectedOutput models.AppRule
 	}{
 		"creates and returns the address of a Rule struct": {
 			ResourceData: map[string]interface{}{
@@ -54,25 +53,26 @@ func TestInflate(t *testing.T) {
 					},
 				},
 			},
-			ExpectedOutput: apprules.AppRule{
-				ID:       oltypes.Int32(int32(123)),
-				AppID:    oltypes.Int32(int32(123)),
-				Name:     oltypes.String("test"),
-				Match:    oltypes.String("test"),
-				Enabled:  oltypes.Bool(true),
-				Position: oltypes.Int32(int32(1)),
-				Conditions: []apprules.AppRuleConditions{
+			ExpectedOutput: models.AppRule{
+				AppID:    123,
+				Name:     "test",
+				Match:    "test",
+				Enabled:  true,
+				Position: 1,
+				Conditions: []models.Condition{
 					{
-						Source:   oltypes.String("test"),
-						Operator: oltypes.String("="),
-						Value:    oltypes.String("test"),
+						Source:   "test",
+						Operator: "=",
+						Value:    "test",
 					},
 				},
-				Actions: []apprules.AppRuleActions{
+				Actions: []models.Action{
 					{
-						Action:     oltypes.String("test"),
-						Expression: oltypes.String(".*"),
+						Action:     "test",
+						Expression: ".*",
 						Value:      []string{"test"},
+						Scriplet:   "",
+						Macro:      "",
 					},
 				},
 			},
@@ -99,25 +99,26 @@ func TestInflate(t *testing.T) {
 					},
 				},
 			},
-			ExpectedOutput: apprules.AppRule{
-				ID:       oltypes.Int32(int32(123)),
-				AppID:    oltypes.Int32(int32(123)),
-				Name:     oltypes.String("test"),
-				Match:    oltypes.String("test"),
-				Enabled:  oltypes.Bool(true),
-				Position: nil,
-				Conditions: []apprules.AppRuleConditions{
+			ExpectedOutput: models.AppRule{
+				AppID:    123,
+				Name:     "test",
+				Match:    "test",
+				Enabled:  true,
+				Position: 0,
+				Conditions: []models.Condition{
 					{
-						Source:   oltypes.String("test"),
-						Operator: oltypes.String("="),
-						Value:    oltypes.String("test"),
+						Source:   "test",
+						Operator: "=",
+						Value:    "test",
 					},
 				},
-				Actions: []apprules.AppRuleActions{
+				Actions: []models.Action{
 					{
-						Action:     oltypes.String("test"),
-						Expression: oltypes.String(".*"),
+						Action:     "test",
+						Expression: ".*",
 						Value:      []string{"test"},
+						Scriplet:   "",
+						Macro:      "",
 					},
 				},
 			},

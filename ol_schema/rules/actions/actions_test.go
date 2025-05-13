@@ -4,8 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,6 +14,8 @@ func TestRulesSchema(t *testing.T) {
 		assert.NotNil(t, provSchema["action"])
 		assert.NotNil(t, provSchema["expression"])
 		assert.NotNil(t, provSchema["value"])
+		assert.NotNil(t, provSchema["scriplet"])
+		assert.NotNil(t, provSchema["macro"])
 	})
 }
 
@@ -25,18 +26,22 @@ func mockSetFn(interface{}) int {
 func TestInflate(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apprules.AppRuleActions
+		ExpectedOutput models.Action
 	}{
-		"creates and returns the address of an AppParameters struct": {
+		"creates and returns the address of an Action struct": {
 			ResourceData: map[string]interface{}{
 				"action":     "test",
 				"expression": ".*",
 				"value":      schema.NewSet(mockSetFn, []interface{}{"test"}),
+				"scriplet":   "",
+				"macro":      "",
 			},
-			ExpectedOutput: apprules.AppRuleActions{
-				Action:     oltypes.String("test"),
-				Expression: oltypes.String(".*"),
+			ExpectedOutput: models.Action{
+				Action:     "test",
+				Expression: ".*",
 				Value:      []string{"test"},
+				Scriplet:   "",
+				Macro:      "",
 			},
 		},
 	}
@@ -49,30 +54,38 @@ func TestInflate(t *testing.T) {
 }
 
 func TestFlatten(t *testing.T) {
-	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
-		appConditionStruct := []apprules.AppRuleActions{
+	t.Run("It flattens the Action Struct", func(t *testing.T) {
+		appActionStruct := []models.Action{
 			{
-				Action:     oltypes.String("test"),
-				Expression: oltypes.String(".*"),
+				Action:     "test",
+				Expression: ".*",
 				Value:      []string{"test"},
+				Scriplet:   "",
+				Macro:      "",
 			},
 			{
-				Action:     oltypes.String("test2"),
-				Expression: oltypes.String(".*"),
+				Action:     "test2",
+				Expression: ".*",
 				Value:      []string{"test2"},
+				Scriplet:   "",
+				Macro:      "",
 			},
 		}
-		subj := Flatten(appConditionStruct)
+		subj := Flatten(appActionStruct)
 		expected := []map[string]interface{}{
 			{
-				"action":     oltypes.String("test"),
-				"expression": oltypes.String(".*"),
+				"action":     "test",
+				"expression": ".*",
 				"value":      []string{"test"},
+				"scriplet":   "",
+				"macro":      "",
 			},
 			{
-				"action":     oltypes.String("test2"),
-				"expression": oltypes.String(".*"),
+				"action":     "test2",
+				"expression": ".*",
 				"value":      []string{"test2"},
+				"scriplet":   "",
+				"macro":      "",
 			},
 		}
 		assert.Equal(t, expected, subj)

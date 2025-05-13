@@ -3,23 +3,22 @@ package appprovisioningschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInflateProvisioning(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apps.AppProvisioning
+		ExpectedOutput models.Provisioning
 	}{
 		"creates and returns the address of an AppProvisioning struct": {
 			ResourceData:   map[string]interface{}{"enabled": true},
-			ExpectedOutput: apps.AppProvisioning{Enabled: oltypes.Bool(true)},
+			ExpectedOutput: models.Provisioning{Enabled: true},
 		},
 		"ignores unprovided field": {
 			ResourceData:   map[string]interface{}{},
-			ExpectedOutput: apps.AppProvisioning{},
+			ExpectedOutput: models.Provisioning{},
 		},
 	}
 	for name, test := range tests {
@@ -32,8 +31,8 @@ func TestInflateProvisioning(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	t.Run("It flattens the AppProvisioning Struct", func(t *testing.T) {
-		appProvisioning := apps.AppProvisioning{
-			Enabled: oltypes.Bool(true),
+		appProvisioning := models.Provisioning{
+			Enabled: true,
 		}
 		subj := Flatten(appProvisioning)
 		expected := map[string]interface{}{"enabled": true}

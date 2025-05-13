@@ -1,100 +1,162 @@
 package onelogin
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 	authserverschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/auth_server"
-	authserverconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/auth_server/configuration"
 )
 
 // AuthServers returns a resource with the CRUD methods and Terraform Schema defined
 func AuthServers() *schema.Resource {
 	return &schema.Resource{
-		Create:   authServersCreate,
-		Read:     authServersRead,
-		Update:   authServersUpdate,
-		Delete:   authServersDelete,
-		Importer: &schema.ResourceImporter{},
-		Schema:   authserverschema.Schema(),
+		CreateContext: authServersCreate,
+		ReadContext:   authServersRead,
+		UpdateContext: authServersUpdate,
+		DeleteContext: authServersDelete,
+		Importer:      &schema.ResourceImporter{},
+		Schema:        authserverschema.Schema(),
 	}
 }
 
-func authServersCreate(d *schema.ResourceData, m interface{}) error {
-	AuthServer, _ := authserverschema.Inflate(map[string]interface{}{
+func authServersCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
+
+	authServer, _ := authserverschema.Inflate(map[string]interface{}{
 		"name":          d.Get("name"),
 		"description":   d.Get("description"),
 		"configuration": d.Get("configuration"),
 	})
-	client := m.(*client.APIClient)
-	err := client.Services.AuthServersV2.Create(&AuthServer)
-	if err != nil {
-		log.Println("[ERROR] There was a problem creating the AuthServer!", err)
-		return err
-	}
-	log.Printf("[CREATED] Created AuthServer with %d", *(AuthServer.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(AuthServer.ID)))
-	return authServersRead(d, m)
+	result, err := client.CreateAuthServer(&authServer)
+	if err != nil {
+		return diag.Errorf("error creating auth server: %v", err)
+	}
+
+	// Extract the auth server ID from the response
+	authServerMap, ok := result.(map[string]interface{})
+	if !ok || authServerMap["id"] == nil {
+		return diag.Errorf("failed to parse auth server creation response or auth server ID not found in response")
+	}
+
+	authServerID := int(authServerMap["id"].(float64))
+	d.SetId(fmt.Sprintf("%d", authServerID))
+	log.Printf("[CREATED] Created auth server with id %d", authServerID)
+
+	return authServersRead(ctx, d, m)
 }
 
-func authServersUpdate(d *schema.ResourceData, m interface{}) error {
-	AuthServer, _ := authserverschema.Inflate(map[string]interface{}{
+func authServersUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
+
+	authServer, _ := authserverschema.Inflate(map[string]interface{}{
 		"id":            d.Id(),
 		"name":          d.Get("name"),
 		"description":   d.Get("description"),
 		"configuration": d.Get("configuration"),
 	})
-	client := m.(*client.APIClient)
-	err := client.Services.AuthServersV2.Update(&AuthServer)
-	if err != nil {
-		log.Println("[ERROR] There was a problem updating the AuthServer!", err)
-		return err
-	}
-	log.Printf("[CREATED] Updated AuthServer with %d", *(AuthServer.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(AuthServer.ID)))
-	return authServersRead(d, m)
+	authID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.Errorf("error converting id to integer: %v", err)
+	}
+
+	_, err = client.UpdateAuthServer(authID, &authServer)
+	if err != nil {
+		return diag.Errorf("error updating auth server: %v", err)
+	}
+
+	log.Printf("[UPDATED] Updated auth server with id %d", authID)
+	return authServersRead(ctx, d, m)
 }
 
-func authServersRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*client.APIClient)
-	uid, _ := strconv.Atoi(d.Id())
-	authServer, err := client.Services.AuthServersV2.GetOne(int32(uid))
+func authServersRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
+
+	authID, err := strconv.Atoi(d.Id())
 	if err != nil {
-		log.Printf("[ERROR] There was a problem reading the AuthServer!")
-		log.Println(err)
-		return err
+		return diag.Errorf("error converting id to integer: %v", err)
 	}
-	if authServer == nil {
+
+	result, err := client.GetAuthServerByID(authID, nil)
+	if err != nil {
+		log.Printf("[ERROR] There was a problem reading the auth server: %v", err)
+		return diag.FromErr(err)
+	}
+
+	// Check if the resource was not found
+	if result == nil {
 		d.SetId("")
 		return nil
 	}
-	log.Printf("[READ] Reading AuthServer with %d", *(authServer.ID))
 
-	d.Set("name", authServer.Name)
-	d.Set("description", authServer.Description)
-	d.Set("configuration", authserverconfigurationschema.Flatten(*authServer.Configuration))
+	// Parse the response
+	authServerMap, ok := result.(map[string]interface{})
+	if !ok {
+		return diag.Errorf("failed to parse auth server response")
+	}
+
+	log.Printf("[READ] Reading auth server with id %d", authID)
+
+	if authServerMap["name"] != nil {
+		d.Set("name", authServerMap["name"])
+	}
+
+	if authServerMap["description"] != nil {
+		d.Set("description", authServerMap["description"])
+	}
+
+	// Handle configuration
+	if authServerMap["configuration"] != nil {
+		configMap, ok := authServerMap["configuration"].(map[string]interface{})
+		if ok {
+			// Convert the configuration back to a nested structure
+			d.Set("configuration", []interface{}{
+				map[string]interface{}{
+					"resource_identifier": configMap["resource_identifier"],
+					"audiences":           configMap["audiences"],
+					"access_token_expiration_minutes": func() interface{} {
+						if v, ok := configMap["access_token_expiration_minutes"]; ok {
+							return int(v.(float64))
+						}
+						return nil
+					}(),
+					"refresh_token_expiration_minutes": func() interface{} {
+						if v, ok := configMap["refresh_token_expiration_minutes"]; ok {
+							return int(v.(float64))
+						}
+						return nil
+					}(),
+				},
+			})
+		}
+	}
 
 	return nil
 }
 
-func authServersDelete(d *schema.ResourceData, m interface{}) error {
-	uid, _ := strconv.Atoi(d.Id())
-	client := m.(*client.APIClient)
+func authServersDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
 
-	err := client.Services.AuthServersV2.Destroy(int32(uid))
+	authID, err := strconv.Atoi(d.Id())
 	if err != nil {
-		log.Printf("[ERROR] There was a problem deleting the AuthServer!")
-		log.Println(err)
-	} else {
-		log.Printf("[DELETED] Deleted AuthServer with %d", uid)
-		d.SetId("")
+		return diag.Errorf("error converting id to integer: %v", err)
 	}
+
+	_, err = client.DeleteAuthServer(authID)
+	if err != nil {
+		log.Printf("[ERROR] There was a problem deleting the auth server: %v", err)
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[DELETED] Deleted auth server with id %d", authID)
+	d.SetId("")
 
 	return nil
 }

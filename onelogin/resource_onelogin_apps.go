@@ -1,33 +1,37 @@
 package onelogin
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	appschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app"
 	appparametersschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	appprovisioningschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
-// Apps returns a resource with the CRUD methods and Terraform Schema defined
+// Apps returns a resource with enhanced CRUD methods and the appropriate schemas
+// This implementation uses utility functions for better error handling and logging
 func Apps() *schema.Resource {
 	return &schema.Resource{
-		Create:   appCreate,
-		Read:     appRead,
-		Update:   appUpdate,
-		Delete:   appDelete,
-		Importer: &schema.ResourceImporter{},
-		Schema:   appschema.Schema(),
+		CreateContext: appCreate,
+		ReadContext:   appRead,
+		UpdateContext: appUpdate,
+		DeleteContext: appDelete,
+		Importer:      &schema.ResourceImporter{},
+		Schema:        appschema.Schema(),
 	}
 }
 
-// appCreate takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the POST request to OneLogin to create an App with its sub-resources
-func appCreate(d *schema.ResourceData, m interface{}) error {
+// appCreate creates an app
+func appCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	basicApp, _ := appschema.Inflate(map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
@@ -38,57 +42,129 @@ func appCreate(d *schema.ResourceData, m interface{}) error {
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 	})
-	client := m.(*client.APIClient)
-	err := client.Services.AppsV2.Create(&basicApp)
-	if err != nil {
-		log.Println("[ERROR] There was a problem creating the app!", err)
-		return err
-	}
-	log.Printf("[CREATED] Created app with %d", *(basicApp.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(basicApp.ID)))
-	return appRead(d, m)
+	client := m.(*onelogin.OneloginSDK)
+	result, err := client.CreateApp(basicApp)
+	if err != nil {
+		tflog.Error(ctx, "[ERROR] Error creating app", map[string]interface{}{"error": err})
+		return diag.FromErr(err)
+	}
+
+	// Extract app ID from the result
+	appMap, ok := result.(map[string]interface{})
+	if !ok {
+		return diag.Errorf("failed to parse app creation response")
+	}
+
+	id, ok := appMap["id"].(float64)
+	if !ok {
+		return diag.Errorf("failed to extract app ID from response")
+	}
+
+	appID := int(id)
+	tflog.Info(ctx, "[CREATED] Created app", map[string]interface{}{"id": appID})
+
+	d.SetId(fmt.Sprintf("%d", appID))
+	return appRead(ctx, d, m)
 }
 
-// appRead takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the GET request to OneLogin to read an App with its sub-resources
-func appRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*client.APIClient)
+// appRead reads an app
+func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
 	aid, _ := strconv.Atoi(d.Id())
-	app, err := client.Services.AppsV2.GetOne(int32(aid))
+
+	result, err := client.GetAppByID(aid, nil)
 	if err != nil {
-		log.Printf("[ERROR] There was a problem reading the app!")
-		log.Println(err)
-		return err
+		tflog.Error(ctx, "[ERROR] Error reading app", map[string]interface{}{"id": aid, "error": err})
+		return diag.FromErr(err)
 	}
-	if app == nil {
+
+	// Check if app exists
+	if result == nil {
+		tflog.Info(ctx, "[NOT FOUND] App not found", map[string]interface{}{"id": aid})
 		d.SetId("")
 		return nil
 	}
-	log.Printf("[READ] Reading app with %d", *(app.ID))
 
-	d.Set("name", app.Name)
-	d.Set("visible", app.Visible)
-	d.Set("description", app.Description)
-	d.Set("notes", app.Notes)
-	d.Set("icon_url", app.IconURL)
-	d.Set("auth_method", app.AuthMethod)
-	d.Set("policy_id", app.PolicyID)
-	d.Set("allow_assumed_signin", app.AllowAssumedSignin)
-	d.Set("tab_id", app.TabID)
-	d.Set("brand_id", app.BrandID)
-	d.Set("connector_id", app.ConnectorID)
-	d.Set("created_at", app.CreatedAt.String())
-	d.Set("updated_at", app.UpdatedAt.String())
-	d.Set("parameters", appparametersschema.Flatten(app.Parameters))
-	d.Set("provisioning", appprovisioningschema.Flatten(*app.Provisioning))
+	// Parse the app map from the result
+	appMap, ok := result.(map[string]interface{})
+	if !ok {
+		return diag.Errorf("failed to parse app response")
+	}
+
+	tflog.Info(ctx, "[READ] Reading app", map[string]interface{}{"id": aid})
+
+	// Use utility function to set basic fields
+	basicFields := []string{
+		"name", "visible", "description", "notes", "icon_url",
+		"auth_method", "policy_id", "allow_assumed_signin", "tab_id",
+		"brand_id", "connector_id", "created_at", "updated_at",
+	}
+	utils.SetResourceFields(d, appMap, basicFields)
+
+	// Handle parameters if they exist
+	if v, ok := appMap["parameters"]; ok {
+		if params, ok := v.(map[string]interface{}); ok {
+			paramMap := make(map[string]models.Parameter)
+			for key, val := range params {
+				if paramData, ok := val.(map[string]interface{}); ok {
+					// Convert each param to a Parameter model
+					param := models.Parameter{}
+
+					// Set string fields
+					if label, ok := paramData["label"].(string); ok {
+						param.Label = label
+					}
+
+					// Set optional fields
+					param.UserAttributeMappings = paramData["user_attribute_mappings"]
+					param.UserAttributeMacros = paramData["user_attribute_macros"]
+					param.AttributesTransformations = paramData["attributes_transformations"]
+					param.Values = paramData["values"]
+					param.DefaultValues = paramData["default_values"]
+
+					// Set boolean fields
+					if skipIfBlank, ok := paramData["skip_if_blank"].(bool); ok {
+						param.SkipIfBlank = skipIfBlank
+					}
+					if provisioned, ok := paramData["provisioned_entitlements"].(bool); ok {
+						param.ProvisionedEntitlements = provisioned
+					}
+					if includeInAssertion, ok := paramData["include_in_saml_assertion"].(bool); ok {
+						param.IncludeInSamlAssertion = includeInAssertion
+					}
+
+					// Set ID if it exists
+					if id, ok := paramData["id"].(float64); ok {
+						param.ID = int(id)
+					}
+
+					paramMap[key] = param
+				}
+			}
+			d.Set("parameters", appparametersschema.Flatten(paramMap))
+		}
+	}
+
+	// Handle provisioning if it exists
+	if v, ok := appMap["provisioning"]; ok {
+		if provData, ok := v.(map[string]interface{}); ok {
+			if enabled, ok := provData["enabled"].(bool); ok {
+				prov := models.Provisioning{
+					Enabled: enabled,
+				}
+				d.Set("provisioning", appprovisioningschema.Flatten(prov))
+			}
+		}
+	}
 
 	return nil
 }
 
-// appUpdate takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the PUT request to OneLogin to update an App and its sub-resources
-func appUpdate(d *schema.ResourceData, m interface{}) error {
+// appUpdate updates an app
+func appUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	aid, _ := strconv.Atoi(d.Id())
+
 	basicApp, _ := appschema.Inflate(map[string]interface{}{
 		"id":                   d.Id(),
 		"name":                 d.Get("name"),
@@ -99,38 +175,26 @@ func appUpdate(d *schema.ResourceData, m interface{}) error {
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
+		"brand_id":             d.Get("brand_id"),
 	})
 
-	client := m.(*client.APIClient)
-
-	appResp, err := client.Services.AppsV2.Update(&basicApp)
+	client := m.(*onelogin.OneloginSDK)
+	_, err := client.UpdateApp(aid, basicApp)
 	if err != nil {
-		log.Println("[ERROR] There was a problem updating the app!", err)
-		return err
+		tflog.Error(ctx, "[ERROR] Error updating app", map[string]interface{}{"id": aid, "error": err})
+		return diag.FromErr(err)
 	}
-	if appResp == nil { // app must be deleted in api so remove from tf state
-		d.SetId("")
-		return nil
-	}
-	log.Printf("[UPDATED] Updated app with %d", *(appResp.ID))
-	d.SetId(fmt.Sprintf("%d", *(appResp.ID)))
-	return appRead(d, m)
+
+	tflog.Info(ctx, "[UPDATED] Updated app", map[string]interface{}{"id": aid})
+	return appRead(ctx, d, m)
 }
 
-// appDelete takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the DELETE request to OneLogin to delete an App and its sub-resources
-func appDelete(d *schema.ResourceData, m interface{}) error {
-	aid, _ := strconv.Atoi(d.Id())
-	client := m.(*client.APIClient)
+// appDelete deletes an app using the standard delete pattern
+func appDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
 
-	err := client.Services.AppsV2.Destroy(int32(aid))
-	if err != nil {
-		log.Printf("[ERROR] There was a problem deleting the app!")
-		log.Println(err)
-	} else {
-		log.Printf("[DELETED] Deleted app with %d", aid)
-		d.SetId("")
-	}
-
-	return nil
+	return utils.StandardDeleteFunc(ctx, d, func(id string) (interface{}, error) {
+		aid, _ := strconv.Atoi(id)
+		return client.DeleteApp(aid)
+	}, "app")
 }

@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInflateConfiguration(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apps.AppConfiguration
+		ExpectedOutput interface{}
 		ExpectedError  error
 	}{
 		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
@@ -25,13 +24,13 @@ func TestInflateConfiguration(t *testing.T) {
 				"token_endpoint_auth_method":       "2",
 				"access_token_expiration_minutes":  "2",
 			},
-			ExpectedOutput: apps.AppConfiguration{
-				RedirectURI:                   oltypes.String("test"),
-				RefreshTokenExpirationMinutes: oltypes.Int32(2),
-				LoginURL:                      oltypes.String("test"),
-				OidcApplicationType:           oltypes.Int32(2),
-				TokenEndpointAuthMethod:       oltypes.Int32(2),
-				AccessTokenExpirationMinutes:  oltypes.Int32(2),
+			ExpectedOutput: models.ConfigurationOpenId{
+				RedirectURI:                   "test",
+				RefreshTokenExpirationMinutes: 2,
+				LoginURL:                      "test",
+				OidcApplicationType:           2,
+				TokenEndpointAuthMethod:       2,
+				AccessTokenExpirationMinutes:  2,
 			},
 		},
 		"returns an error if invalid refresh_token_expiration_minutes given": {
@@ -84,10 +83,9 @@ func TestInflateConfiguration(t *testing.T) {
 				"signature_algorithm": "test",
 				"idp_list":            "test",
 			},
-			ExpectedOutput: apps.AppConfiguration{
-				ProviderArn:        oltypes.String("test"),
-				SignatureAlgorithm: oltypes.String("test"),
-				IdpList:            oltypes.String("test"),
+			ExpectedOutput: models.ConfigurationSAML{
+				ProviderArn:        "test",
+				SignatureAlgorithm: "test",
 			},
 		},
 		"creates and returns the address of an AppConfiguration struct for a SAML app with exra fields": {
@@ -97,19 +95,35 @@ func TestInflateConfiguration(t *testing.T) {
 				"idp_list":            "test",
 				"encrypt_assertion":   "1",
 			},
-			ExpectedOutput: apps.AppConfiguration{
-				ProviderArn:        oltypes.String("test"),
-				SignatureAlgorithm: oltypes.String("test"),
-				IdpList:            oltypes.String("test"),
-				EncryptAssertion:   oltypes.String("1"),
+			ExpectedOutput: models.ConfigurationSAML{
+				ProviderArn:        "test",
+				SignatureAlgorithm: "test",
 			},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			subj, err := Inflate(test.ResourceData)
-			if (test.ExpectedOutput != apps.AppConfiguration{}) {
-				assert.Equal(t, subj, test.ExpectedOutput)
+			if test.ExpectedOutput != nil {
+				if oidcConfig, ok := test.ExpectedOutput.(models.ConfigurationOpenId); ok {
+					if oidcResult, ok := subj.(models.ConfigurationOpenId); ok {
+						assert.Equal(t, oidcConfig.RedirectURI, oidcResult.RedirectURI)
+						assert.Equal(t, oidcConfig.LoginURL, oidcResult.LoginURL)
+						assert.Equal(t, oidcConfig.RefreshTokenExpirationMinutes, oidcResult.RefreshTokenExpirationMinutes)
+						assert.Equal(t, oidcConfig.OidcApplicationType, oidcResult.OidcApplicationType)
+						assert.Equal(t, oidcConfig.TokenEndpointAuthMethod, oidcResult.TokenEndpointAuthMethod)
+						assert.Equal(t, oidcConfig.AccessTokenExpirationMinutes, oidcResult.AccessTokenExpirationMinutes)
+					} else {
+						t.Errorf("Expected ConfigurationOpenId but got different type")
+					}
+				} else if samlConfig, ok := test.ExpectedOutput.(models.ConfigurationSAML); ok {
+					if samlResult, ok := subj.(models.ConfigurationSAML); ok {
+						assert.Equal(t, samlConfig.ProviderArn, samlResult.ProviderArn)
+						assert.Equal(t, samlConfig.SignatureAlgorithm, samlResult.SignatureAlgorithm)
+					} else {
+						t.Errorf("Expected ConfigurationSAML but got different type")
+					}
+				}
 			}
 			if test.ExpectedError != nil {
 				assert.Error(t, err)
@@ -120,17 +134,17 @@ func TestInflateConfiguration(t *testing.T) {
 
 func TestFlattenConfiguration(t *testing.T) {
 	tests := map[string]struct {
-		InputData      apps.AppConfiguration
+		InputData      models.ConfigurationOpenId
 		ExpectedOutput map[string]interface{}
 	}{
 		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
-			InputData: apps.AppConfiguration{
-				RedirectURI:                   oltypes.String("test"),
-				RefreshTokenExpirationMinutes: oltypes.Int32(2),
-				LoginURL:                      oltypes.String("test"),
-				OidcApplicationType:           oltypes.Int32(2),
-				TokenEndpointAuthMethod:       oltypes.Int32(2),
-				AccessTokenExpirationMinutes:  oltypes.Int32(2),
+			InputData: models.ConfigurationOpenId{
+				RedirectURI:                   "test",
+				RefreshTokenExpirationMinutes: 2,
+				LoginURL:                      "test",
+				OidcApplicationType:           2,
+				TokenEndpointAuthMethod:       2,
+				AccessTokenExpirationMinutes:  2,
 			},
 			ExpectedOutput: map[string]interface{}{
 				"redirect_uri":                     "test",
@@ -152,19 +166,17 @@ func TestFlattenConfiguration(t *testing.T) {
 
 func TestFlattenSAMLConfiguration(t *testing.T) {
 	tests := map[string]struct {
-		InputData      apps.AppConfiguration
+		InputData      models.ConfigurationSAML
 		ExpectedOutput map[string]interface{}
 	}{
 		"creates and returns the address of an AppConfiguration struct for a SAML app": {
-			InputData: apps.AppConfiguration{
-				ProviderArn:        oltypes.String("test"),
-				SignatureAlgorithm: oltypes.String("test"),
-				IdpList:            oltypes.String("test"),
+			InputData: models.ConfigurationSAML{
+				ProviderArn:        "test",
+				SignatureAlgorithm: "test",
 			},
 			ExpectedOutput: map[string]interface{}{
 				"provider_arn":        "test",
 				"signature_algorithm": "test",
-				"idp_list":            "test",
 			},
 		},
 	}

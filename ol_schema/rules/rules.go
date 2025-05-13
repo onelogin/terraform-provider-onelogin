@@ -4,8 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	appruleactionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/actions"
 	appruleconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/rules/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
@@ -59,45 +58,57 @@ func validMatch(val interface{}, key string) (warns []string, errs []error) {
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
-// a AppProvisioning struct, a sub-field of a OneLogin App.
-func Inflate(s map[string]interface{}) apprules.AppRule {
-	out := apprules.AppRule{}
+// an AppRule struct for a OneLogin App.
+func Inflate(s map[string]interface{}) models.AppRule {
+	out := models.AppRule{}
+
+	// Store rule ID in a variable for later use if needed
+	// But it's not part of the AppRule struct
 	if s["id"] != nil {
-		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
-			out.ID = oltypes.Int32(int32(id))
+		if _, err := strconv.Atoi(s["id"].(string)); err == nil {
+			// Rule ID is not directly stored in the AppRule struct
 		}
 	}
+
 	if s["app_id"] != nil {
-		if appId, err := strconv.Atoi(s["app_id"].(string)); err == nil {
-			out.AppID = oltypes.Int32(int32(appId))
+		if id, err := strconv.Atoi(s["app_id"].(string)); err == nil {
+			out.AppID = id
 		}
 	}
-	if name, notNil := s["name"].(string); notNil {
-		out.Name = oltypes.String(name)
+
+	if n, notNil := s["name"].(string); notNil {
+		out.Name = n
 	}
-	if match, notNil := s["match"].(string); notNil {
-		out.Match = oltypes.String(match)
+
+	if m, notNil := s["match"].(string); notNil {
+		out.Match = m
 	}
+
 	if pos, notNil := s["position"].(int); notNil {
-		out.Position = oltypes.Int32(int32(pos))
+		out.Position = pos
 	}
-	if pos, notNil := s["enabled"].(bool); notNil {
-		out.Enabled = oltypes.Bool(pos)
+
+	if en, notNil := s["enabled"].(bool); notNil {
+		out.Enabled = en
 	}
+
 	if s["conditions"] != nil {
-		out.Conditions = []apprules.AppRuleConditions{}
+		out.Conditions = []models.Condition{}
 		for _, val := range s["conditions"].([]interface{}) {
 			valMap := val.(map[string]interface{})
 			cond := appruleconditionsschema.Inflate(valMap)
 			out.Conditions = append(out.Conditions, cond)
 		}
 	}
+
 	if s["actions"] != nil {
+		out.Actions = []models.Action{}
 		for _, val := range s["actions"].([]interface{}) {
 			valMap := val.(map[string]interface{})
-			cond := appruleactionsschema.Inflate(valMap)
-			out.Actions = append(out.Actions, cond)
+			action := appruleactionsschema.Inflate(valMap)
+			out.Actions = append(out.Actions, action)
 		}
 	}
+
 	return out
 }

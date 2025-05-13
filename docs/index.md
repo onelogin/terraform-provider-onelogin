@@ -39,5 +39,15 @@ your OneLogin credentials like so:
 ```
 export ONELOGIN_CLIENT_ID=<your client id>
 export ONELOGIN_CLIENT_SECRET=<your client secret>
-export ONELOGIN_OAPI_URL=<the api url for your region>
+export ONELOGIN_API_URL=<the complete api url, e.g., https://company.onelogin.com>
 ```
+
+For backward compatibility, you can also use the subdomain approach, but this is deprecated:
+
+```
+export ONELOGIN_CLIENT_ID=<your client id>
+export ONELOGIN_CLIENT_SECRET=<your client secret>
+export ONELOGIN_SUBDOMAIN=<your onelogin subdomain, e.g., 'company' for company.onelogin.com>
+```
+
+Using the `ONELOGIN_API_URL` is now the recommended approach.

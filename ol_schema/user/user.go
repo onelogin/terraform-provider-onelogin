@@ -5,9 +5,30 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/users"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
+
+// UserQueryable implements the Queryable interface for user queries
+type UserQueryable struct {
+	Limit  string `json:"limit,omitempty"`
+	Page   string `json:"page,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
+}
+
+// GetKeyValidators returns the validation functions for the query keys
+func (u *UserQueryable) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":  validateString,
+		"page":   validateString,
+		"cursor": validateString,
+	}
+}
+
+// validateString ensures a value is a string
+func validateString(v interface{}) bool {
+	_, ok := v.(string)
+	return ok
+}
 
 // Schema returns a key/value map of the various fields that make up a OneLogin User.
 func Schema() map[string]*schema.Schema {
@@ -105,82 +126,113 @@ func Schema() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"custom_attributes": &schema.Schema{
-			Type:     schema.TypeMap,
-			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "Map of custom attribute key/value pairs. This field is being deprecated in favor of the onelogin_user_custom_attributes resource.",
 		},
 	}
 }
 
 // Inflate takes a map representation of a User and returns a User object
-func Inflate(s map[string]interface{}) (users.User, error) {
-	out := users.User{
-		Username: oltypes.String(s["username"].(string)),
-		Email:    oltypes.String(s["email"].(string)),
+func Inflate(s map[string]interface{}) (models.User, error) {
+	// In v4 SDK, fields are directly assigned without wrapper functions
+	var userID int32
+	out := models.User{
+		Username: s["username"].(string),
+		Email:    s["email"].(string),
 	}
+
 	if s["id"] != nil {
 		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
-			out.ID = oltypes.Int32(int32(id))
+			userID = int32(id)
+			out.ID = userID
 		}
 	}
+
 	if state, notNil := s["state"].(int); state != 0 && notNil {
-		out.State = oltypes.Int32(int32(state))
+		stateInt32 := int32(state)
+		out.State = stateInt32
 	}
+
 	if status, notNil := s["status"].(int); status != 0 && notNil {
-		out.Status = oltypes.Int32(int32(status))
+		statusInt32 := int32(status)
+		out.Status = statusInt32
 	}
+
 	if groupid, notNil := s["group_id"].(int); groupid != 0 && notNil {
-		out.GroupID = oltypes.Int32(int32(groupid))
+		groupInt32 := int32(groupid)
+		out.GroupID = groupInt32
 	}
+
 	if directoryid, notNil := s["directory_id"].(int); directoryid != 0 && notNil {
-		out.DirectoryID = oltypes.Int32(int32(directoryid))
+		dirInt32 := int32(directoryid)
+		out.DirectoryID = dirInt32
 	}
+
 	if trustedidpid, notNil := s["trusted_idp_id"].(int); trustedidpid != 0 && notNil {
-		out.TrustedIDPID = oltypes.Int32(int32(trustedidpid))
+		idpInt32 := int32(trustedidpid)
+		out.TrustedIDPID = idpInt32
 	}
+
 	if manageradid, notNil := s["manager_ad_id"].(int); manageradid != 0 && notNil {
-		out.ManagerADID = oltypes.Int32(int32(manageradid))
+		managerAdInt32 := int32(manageradid)
+		out.ManagerADID = managerAdInt32
 	}
+
 	if manageruserid, notNil := s["manager_user_id"].(int); manageruserid != 0 && notNil {
-		out.ManagerUserID = oltypes.Int32(int32(manageruserid))
+		managerUserInt32 := int32(manageruserid)
+		out.ManagerUserID = managerUserInt32
 	}
+
 	if externalid, notNil := s["external_id"].(int); externalid != 0 && notNil {
-		out.ExternalID = oltypes.Int32(int32(externalid))
+		out.ExternalID = strconv.Itoa(externalid)
 	}
+
 	if firstname, notNil := s["firstname"].(string); notNil {
-		out.Firstname = oltypes.String(firstname)
+		out.Firstname = firstname
 	}
+
 	if lastname, notNil := s["lastname"].(string); notNil {
-		out.Lastname = oltypes.String(lastname)
+		out.Lastname = lastname
 	}
+
 	if distinguishedname, notNil := s["distinguished_name"].(string); notNil {
-		out.DistinguishedName = oltypes.String(distinguishedname)
+		out.DistinguishedName = distinguishedname
 	}
+
 	if samaccountname, notNil := s["samaccountname"].(string); notNil {
-		out.Samaccountname = oltypes.String(samaccountname)
+		out.Samaccountname = samaccountname
 	}
-	if userprincipalname, notNil := s["userprincipalname"].(string); notNil {
-		out.UserPrincipalName = oltypes.String(userprincipalname)
+
+	if userprincipalname, notNil := s["user_principal_name"].(string); notNil {
+		out.UserPrincipalName = userprincipalname
 	}
+
 	if memberof, notNil := s["member_of"].(string); notNil {
-		out.MemberOf = oltypes.String(memberof)
+		out.MemberOf = []string{memberof}
 	}
+
 	if phone, notNil := s["phone"].(string); notNil {
-		out.Phone = oltypes.String(phone)
+		out.Phone = phone
 	}
+
 	if title, notNil := s["title"].(string); notNil {
-		out.Title = oltypes.String(title)
+		out.Title = title
 	}
+
 	if company, notNil := s["company"].(string); notNil {
-		out.Company = oltypes.String(company)
+		out.Company = company
 	}
+
 	if department, notNil := s["department"].(string); notNil {
-		out.Department = oltypes.String(department)
+		out.Department = department
 	}
+
 	if comment, notNil := s["comment"].(string); notNil {
-		out.Comment = oltypes.String(comment)
+		out.Comment = comment
 	}
+
 	if custom_attributes, notNil := s["custom_attributes"].(map[string]interface{}); notNil {
 		out.CustomAttributes = custom_attributes
 	}
@@ -279,28 +331,40 @@ func QuerySchema() map[string]*schema.Schema {
 	}
 }
 
-func QueryInflate(s map[string]interface{}) (users.UserQuery, error) {
-	out := users.UserQuery{}
+// UserQuery represents the query parameters for searching users
+// In v4 SDK, we need to define this since it's different from the previous SDK structure
+type UserQuery struct {
+	UserIDs        string
+	Username       string
+	DirectoryID    string
+	ExternalID     string
+	Firstname      string
+	Lastname       string
+	Samaccountname string
+}
+
+func QueryInflate(s map[string]interface{}) (UserQuery, error) {
+	out := UserQuery{}
 	if userid, notNil := s["user_id"].(string); notNil {
-		out.UserIDs = oltypes.String(fmt.Sprint(userid))
+		out.UserIDs = fmt.Sprint(userid)
 	}
 	if username, notNil := s["username"].(string); notNil {
-		out.Username = oltypes.String(username)
+		out.Username = username
 	}
 	if directoryid, notNil := s["directory_id"].(int); directoryid != 0 && notNil {
-		out.DirectoryID = oltypes.String(fmt.Sprint(directoryid))
+		out.DirectoryID = fmt.Sprint(directoryid)
 	}
 	if externalid, notNil := s["external_id"].(int); externalid != 0 && notNil {
-		out.ExternalID = oltypes.String(fmt.Sprint(externalid))
+		out.ExternalID = fmt.Sprint(externalid)
 	}
 	if firstname, notNil := s["firstname"].(string); notNil {
-		out.Firstname = oltypes.String(firstname)
+		out.Firstname = firstname
 	}
 	if lastname, notNil := s["lastname"].(string); notNil {
-		out.Lastname = oltypes.String(lastname)
+		out.Lastname = lastname
 	}
 	if samaccountname, notNil := s["samaccountname"].(string); notNil {
-		out.Samaccountname = oltypes.String(samaccountname)
+		out.Samaccountname = samaccountname
 	}
 
 	return out, nil
@@ -399,9 +463,9 @@ func ReadSchema() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"custom_attributes": &schema.Schema{
-			Type:     schema.TypeMap,
-			Computed: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Type:        schema.TypeMap,
+			Computed:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "Map of custom attribute key/value pairs. This field is being deprecated in favor of the onelogin_user_custom_attributes resource.",
 		},
 	}

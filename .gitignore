@@ -4,14 +4,17 @@ main.tf
 *.log
 ./vendor
 terraform-provider-onelogin
-.terraform
+*terraform-provider-onelogin*
+.terraform/
 .terraform.*
+dist/
 dist
 coverage.out
-bin
+bin/
 *.asc
 
 # Development and test files
+.claude/
 **/.claude/settings.local.json
 .env
 .terraformrc
@@ -23,3 +26,9 @@ test_dir/
 test_tool
 modified_*.go
 *.bak
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo

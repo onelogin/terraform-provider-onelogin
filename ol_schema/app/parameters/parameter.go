@@ -2,8 +2,7 @@ package appparametersschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 // Schema returns a key/value map of the various fields that make up
@@ -72,61 +71,57 @@ func Schema() map[string]*schema.Schema {
 }
 
 // Inflate takes a map of interfaces and uses the fields to construct
-// an AppParameter instance.
-func Inflate(s map[string]interface{}) apps.AppParameters {
-	out := apps.AppParameters{}
+// a Parameter instance.
+func Inflate(s map[string]interface{}) models.Parameter {
+	out := models.Parameter{}
 	var b, notNil bool
 	var d int
 	var st string
 
 	if st, notNil = s["label"].(string); notNil {
-		out.Label = oltypes.String(st)
+		out.Label = st
 	}
 
 	if st, notNil = s["user_attribute_mappings"].(string); notNil {
-		out.UserAttributeMappings = oltypes.String(st)
+		out.UserAttributeMappings = st
 	}
 
 	if st, notNil = s["user_attribute_macros"].(string); notNil {
-		out.UserAttributeMacros = oltypes.String(st)
+		out.UserAttributeMacros = st
 	}
 
 	if st, notNil = s["attributes_transformations"].(string); notNil {
-		out.AttributesTransformations = oltypes.String(st)
+		out.AttributesTransformations = st
 	}
 
 	if st, notNil = s["values"].(string); notNil {
-		out.Values = oltypes.String(st)
+		out.Values = st
 	}
 
 	if st, notNil = s["default_values"].(string); notNil {
-		out.DefaultValues = oltypes.String(st)
+		out.DefaultValues = st
 	}
 
 	if b, notNil = s["skip_if_blank"].(bool); notNil {
-		out.SkipIfBlank = oltypes.Bool(b)
+		out.SkipIfBlank = b
 	}
 
 	if b, notNil = s["provisioned_entitlements"].(bool); notNil {
-		out.ProvisionedEntitlements = oltypes.Bool(b)
-	}
-
-	if b, notNil = s["safe_entitlements_enabled"].(bool); notNil {
-		out.SafeEntitlementsEnabled = oltypes.Bool(b)
+		out.ProvisionedEntitlements = b
 	}
 
 	if b, notNil = s["include_in_saml_assertion"].(bool); notNil {
-		out.IncludeInSamlAssertion = oltypes.Bool(b)
+		out.IncludeInSamlAssertion = b
 	}
 
 	if d, notNil = s["param_id"].(int); d != 0 && notNil {
-		out.ID = oltypes.Int32(int32(d))
+		out.ID = d
 	}
 	return out
 }
 
-// Flatten takes a map of AppParamters instances and returns an array of maps
-func Flatten(params map[string]apps.AppParameters) []map[string]interface{} {
+// Flatten takes a map of Parameter instances and returns an array of maps
+func Flatten(params map[string]models.Parameter) []map[string]interface{} {
 	out := make([]map[string]interface{}, 0)
 	for k, v := range params {
 		param := map[string]interface{}{
@@ -140,10 +135,64 @@ func Flatten(params map[string]apps.AppParameters) []map[string]interface{} {
 			"values":                     v.Values,
 			"default_values":             v.DefaultValues,
 			"provisioned_entitlements":   v.ProvisionedEntitlements,
-			"safe_entitlements_enabled":  v.SafeEntitlementsEnabled,
 			"include_in_saml_assertion":  v.IncludeInSamlAssertion,
 		}
 		out = append(out, param)
+	}
+	return out
+}
+
+// FlattenV4 takes a map of interface{} and returns an array of maps for V4 SDK compatibility
+func FlattenV4(params map[string]interface{}) []map[string]interface{} {
+	out := make([]map[string]interface{}, 0)
+	for k, v := range params {
+		if paramMap, ok := v.(map[string]interface{}); ok {
+			param := map[string]interface{}{
+				"param_key_name": k,
+			}
+
+			if id, ok := paramMap["id"].(float64); ok {
+				param["param_id"] = int(id)
+			}
+
+			if val, ok := paramMap["label"].(string); ok {
+				param["label"] = val
+			}
+
+			if val, ok := paramMap["user_attribute_mappings"].(string); ok {
+				param["user_attribute_mappings"] = val
+			}
+
+			if val, ok := paramMap["user_attribute_macros"].(string); ok {
+				param["user_attribute_macros"] = val
+			}
+
+			if val, ok := paramMap["attributes_transformations"].(string); ok {
+				param["attributes_transformations"] = val
+			}
+
+			if val, ok := paramMap["skip_if_blank"].(bool); ok {
+				param["skip_if_blank"] = val
+			}
+
+			if val, ok := paramMap["values"].(string); ok {
+				param["values"] = val
+			}
+
+			if val, ok := paramMap["default_values"].(string); ok {
+				param["default_values"] = val
+			}
+
+			if val, ok := paramMap["provisioned_entitlements"].(bool); ok {
+				param["provisioned_entitlements"] = val
+			}
+
+			if val, ok := paramMap["include_in_saml_assertion"].(bool); ok {
+				param["include_in_saml_assertion"] = val
+			}
+
+			out = append(out, param)
+		}
 	}
 	return out
 }

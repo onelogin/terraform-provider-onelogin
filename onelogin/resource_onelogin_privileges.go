@@ -1,30 +1,33 @@
 package onelogin
 
 import (
+	"context"
 	"log"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 	privilegeschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/privilege"
 )
 
-// privileges attaches additional configuration and sso schemas and
-// returns a resource with the CRUD methods and Terraform Schema defined
+// Privileges returns a resource with the CRUD methods and Terraform Schema defined
 func Privileges() *schema.Resource {
 	privilegeSchema := privilegeschema.Schema()
 	return &schema.Resource{
-		Create:   privilegeCreate,
-		Read:     privilegeRead,
-		Update:   privilegeUpdate,
-		Delete:   privilegeDelete,
-		Importer: &schema.ResourceImporter{},
-		Schema:   privilegeSchema,
+		CreateContext: privilegeCreate,
+		ReadContext:   privilegeRead,
+		UpdateContext: privilegeUpdate,
+		DeleteContext: privilegeDelete,
+		Importer:      &schema.ResourceImporter{},
+		Schema:        privilegeSchema,
 	}
 }
 
 // privilegeCreate takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the POST request to OneLogin to create an privilege with its sub-resources
-func privilegeCreate(d *schema.ResourceData, m interface{}) error {
+// makes the POST request to OneLogin to create a privilege with its sub-resources
+func privilegeCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
+
 	privilege, err := privilegeschema.Inflate(map[string]interface{}{
 		"name":        d.Get("name"),
 		"description": d.Get("description"),
@@ -33,48 +36,106 @@ func privilegeCreate(d *schema.ResourceData, m interface{}) error {
 		"privilege":   d.Get("privilege"),
 	})
 	if err != nil {
-		log.Println("Unable to inflate privilege", err)
-		return err
+		return diag.Errorf("unable to inflate privilege: %v", err)
 	}
-	client := m.(*client.APIClient)
-	err = client.Services.PrivilegesV1.Create(&privilege)
-	if err != nil {
-		log.Println("[ERROR] There was a problem creating the privilege!", err)
-		return err
-	}
-	log.Printf("[CREATED] Created privilege with %s", *(privilege.ID))
 
-	d.SetId(*(privilege.ID))
-	return privilegeRead(d, m)
+	result, err := client.CreatePrivilege(privilege)
+	if err != nil {
+		return diag.Errorf("error creating privilege: %v", err)
+	}
+
+	// Extract the privilege ID from the response
+	privilegeMap, ok := result.(map[string]interface{})
+	if !ok || privilegeMap["id"] == nil {
+		return diag.Errorf("failed to parse privilege creation response or privilege ID not found in response")
+	}
+
+	privilegeID := privilegeMap["id"].(string)
+	d.SetId(privilegeID)
+	log.Printf("[CREATED] Created privilege with id %s", privilegeID)
+
+	return privilegeRead(ctx, d, m)
 }
 
 // privilegeRead takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the GET request to OneLogin to read an privilege with its sub-resources
-func privilegeRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*client.APIClient)
-	privilege, err := client.Services.PrivilegesV1.GetOne(d.Id())
+// makes the GET request to OneLogin to read a privilege with its sub-resources
+func privilegeRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
+
+	result, err := client.GetPrivilege(d.Id())
 	if err != nil {
-		log.Printf("[ERROR] There was a problem reading the privilege!")
-		log.Println(err)
-		return err
+		log.Printf("[ERROR] There was a problem reading the privilege: %v", err)
+		return diag.FromErr(err)
 	}
-	if privilege == nil {
+
+	// Check if the resource was not found
+	if result == nil {
 		d.SetId("")
 		return nil
 	}
-	log.Printf("[READ] Reading privilege with %s", *(privilege.ID))
 
-	d.Set("name", privilege.Name)
-	d.Set("description", privilege.Description)
-	d.Set("user_ids", privilege.UserIDs)
-	d.Set("role_ids", privilege.RoleIDs)
-	d.Set("privilege", privilegeschema.FlattenPrivilegeData(*privilege.Privilege))
+	// Parse the response
+	privilegeMap, ok := result.(map[string]interface{})
+	if !ok {
+		return diag.Errorf("failed to parse privilege response")
+	}
+
+	log.Printf("[READ] Reading privilege with id %s", d.Id())
+
+	if privilegeMap["name"] != nil {
+		d.Set("name", privilegeMap["name"])
+	}
+
+	if privilegeMap["description"] != nil {
+		d.Set("description", privilegeMap["description"])
+	}
+
+	// Handle user_ids
+	if privilegeMap["user_ids"] != nil {
+		d.Set("user_ids", privilegeMap["user_ids"])
+	}
+
+	// Handle role_ids
+	if privilegeMap["role_ids"] != nil {
+		d.Set("role_ids", privilegeMap["role_ids"])
+	}
+
+	// Handle privilege data
+	if privilegeMap["privilege"] != nil {
+		privilegeData, ok := privilegeMap["privilege"].(map[string]interface{})
+		if ok {
+			// Process statements
+			statements := []map[string]interface{}{}
+			if stmts, ok := privilegeData["Statement"].([]interface{}); ok {
+				for _, s := range stmts {
+					stmt, ok := s.(map[string]interface{})
+					if ok {
+						statements = append(statements, map[string]interface{}{
+							"effect": stmt["Effect"],
+							"action": stmt["Action"],
+							"scope":  stmt["Scope"],
+						})
+					}
+				}
+			}
+
+			d.Set("privilege", []map[string]interface{}{
+				{
+					"version":   privilegeData["version"],
+					"statement": statements,
+				},
+			})
+		}
+	}
+
 	return nil
 }
 
 // privilegeUpdate takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the PUT request to OneLogin to update an privilege and its sub-resources
-func privilegeUpdate(d *schema.ResourceData, m interface{}) error {
+// makes the PUT request to OneLogin to update a privilege and its sub-resources
+func privilegeUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
+
 	privilege, err := privilegeschema.Inflate(map[string]interface{}{
 		"id":          d.Id(),
 		"name":        d.Get("name"),
@@ -84,35 +145,31 @@ func privilegeUpdate(d *schema.ResourceData, m interface{}) error {
 		"privilege":   d.Get("privilege"),
 	})
 	if err != nil {
-		log.Println("Unable to inflate privilege", err)
-		return err
+		return diag.Errorf("unable to inflate privilege: %v", err)
 	}
-	client := m.(*client.APIClient)
 
-	err = client.Services.PrivilegesV1.Update(&privilege)
+	_, err = client.UpdatePrivilege(d.Id(), privilege)
 	if err != nil {
-		log.Println("[ERROR] There was a problem updating the privilege!", err)
-		return err
+		return diag.Errorf("error updating privilege: %v", err)
 	}
 
-	log.Printf("[UPDATED] Updated privilege with %s", *(privilege.ID))
-	d.SetId(*(privilege.ID))
-	return privilegeRead(d, m)
+	log.Printf("[UPDATED] Updated privilege with id %s", d.Id())
+	return privilegeRead(ctx, d, m)
 }
 
 // privilegeDelete takes a pointer to the ResourceData Struct and a HTTP client and
-// makes the DELETE request to OneLogin to delete an privilege and its sub-resources
-func privilegeDelete(d *schema.ResourceData, m interface{}) error {
-	client := m.(*client.APIClient)
+// makes the DELETE request to OneLogin to delete a privilege and its sub-resources
+func privilegeDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
 
-	err := client.Services.PrivilegesV1.Destroy(d.Id())
+	_, err := client.DeletePrivilege(d.Id())
 	if err != nil {
-		log.Printf("[ERROR] There was a problem creating the privilege!")
-		log.Println(err)
-	} else {
-		log.Printf("[DELETED] Deleted privilege with %s", d.Id())
-		d.SetId("")
+		log.Printf("[ERROR] There was a problem deleting the privilege: %v", err)
+		return diag.FromErr(err)
 	}
+
+	log.Printf("[DELETED] Deleted privilege with id %s", d.Id())
+	d.SetId("")
 
 	return nil
 }

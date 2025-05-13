@@ -5,8 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 const NO_EXPRESSION_SUFFIX = "_from_existing"
@@ -29,23 +28,31 @@ func Schema() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"scriplet": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"macro": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 	}
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
-// a AppProvisioning struct, a sub-field of a OneLogin App.
-func Inflate(s map[string]interface{}) apprules.AppRuleActions {
-	out := apprules.AppRuleActions{}
+// a Action struct, a sub-field of a OneLogin Rule.
+func Inflate(s map[string]interface{}) models.Action {
+	out := models.Action{}
 	if act, notNil := s["action"].(string); notNil {
 		if strings.HasSuffix(act, NO_EXPRESSION_SUFFIX) {
 			act = strings.TrimSuffix(act, NO_EXPRESSION_SUFFIX)
-			out.Expression = nil
+			// Expression is empty by default
 		} else {
 			if exp, notNil := s["expression"].(string); notNil {
-				out.Expression = oltypes.String(exp)
+				out.Expression = exp
 			}
 		}
-		out.Action = oltypes.String(act)
+		out.Action = act
 	}
 	if s["value"] != nil {
 		v := s["value"].(*schema.Set).List()
@@ -54,24 +61,33 @@ func Inflate(s map[string]interface{}) apprules.AppRuleActions {
 			out.Value[i] = val.(string)
 		}
 	}
+	if scriplet, notNil := s["scriplet"].(string); notNil {
+		out.Scriplet = scriplet
+	}
+	if macro, notNil := s["macro"].(string); notNil {
+		out.Macro = macro
+	}
 	return out
 }
 
-// Flatten takes a AppRuleActions instance and converts it to an array of maps
-func Flatten(acts []apprules.AppRuleActions) []map[string]interface{} {
+// Flatten takes a Action instance and converts it to an array of maps
+func Flatten(acts []models.Action) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(acts))
 	for i, action := range acts {
-		if action.Expression == nil && action.Action != nil {
+		if action.Expression == "" {
 			out[i] = map[string]interface{}{
-				"action":     fmt.Sprintf("%s%s", *action.Action, NO_EXPRESSION_SUFFIX),
-				"expression": action.Expression,
-				"value":      action.Value,
+				"action":   fmt.Sprintf("%s%s", action.Action, NO_EXPRESSION_SUFFIX),
+				"value":    action.Value,
+				"scriplet": action.Scriplet,
+				"macro":    action.Macro,
 			}
 		} else {
 			out[i] = map[string]interface{}{
 				"action":     action.Action,
 				"expression": action.Expression,
 				"value":      action.Value,
+				"scriplet":   action.Scriplet,
+				"macro":      action.Macro,
 			}
 		}
 	}

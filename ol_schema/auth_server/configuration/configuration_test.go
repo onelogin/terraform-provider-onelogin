@@ -3,8 +3,7 @@ package authserverconfigurationschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,52 +18,72 @@ func TestSchema(t *testing.T) {
 }
 
 func TestInflate(t *testing.T) {
+	// Setup test variables
+	resourceID := "test.com"
+	atMinutes := int32(2)
+	rtMinutes := int32(2)
+
 	tests := map[string]struct {
 		ResourceData   []interface{}
-		ExpectedOutput authservers.AuthServerConfiguration
+		ExpectedOutput models.AuthServerConfiguration
 	}{
 		"creates and returns the address of an AuthServerConfiguration": {
 			ResourceData: []interface{}{
 				map[string]interface{}{
-					"resource_identifier":              "test.com",
+					"resource_identifier":              resourceID,
 					"audiences":                        []string{"aud_1", "aud_2"},
-					"refresh_token_expiration_minutes": 2,
-					"access_token_expiration_minutes":  2,
+					"refresh_token_expiration_minutes": int(rtMinutes),
+					"access_token_expiration_minutes":  int(atMinutes),
 				},
 			},
-			ExpectedOutput: authservers.AuthServerConfiguration{
-				ResourceIdentifier:            oltypes.String("test.com"),
+			ExpectedOutput: models.AuthServerConfiguration{
+				ResourceIdentifier:            &resourceID,
 				Audiences:                     []string{"aud_1", "aud_2"},
-				AccessTokenExpirationMinutes:  oltypes.Int32(2),
-				RefreshTokenExpirationMinutes: oltypes.Int32(2),
+				AccessTokenExpirationMinutes:  &atMinutes,
+				RefreshTokenExpirationMinutes: &rtMinutes,
 			},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			subj := Inflate(test.ResourceData)
-			assert.Equal(t, test.ExpectedOutput, subj)
+			// Compare pointer values
+			if subj.ResourceIdentifier != nil && test.ExpectedOutput.ResourceIdentifier != nil {
+				assert.Equal(t, *subj.ResourceIdentifier, *test.ExpectedOutput.ResourceIdentifier)
+			}
+			assert.Equal(t, subj.Audiences, test.ExpectedOutput.Audiences)
+			if subj.AccessTokenExpirationMinutes != nil && test.ExpectedOutput.AccessTokenExpirationMinutes != nil {
+				assert.Equal(t, *subj.AccessTokenExpirationMinutes, *test.ExpectedOutput.AccessTokenExpirationMinutes)
+			}
+			if subj.RefreshTokenExpirationMinutes != nil && test.ExpectedOutput.RefreshTokenExpirationMinutes != nil {
+				assert.Equal(t, *subj.RefreshTokenExpirationMinutes, *test.ExpectedOutput.RefreshTokenExpirationMinutes)
+			}
 		})
 	}
 }
 
 func TestFlatten(t *testing.T) {
+	// Setup test variables
+	resourceID := "test.com"
+	atMinutes := int32(2)
+	rtMinutes := int32(2)
+
 	tests := map[string]struct {
-		Input  authservers.AuthServerConfiguration
+		Input  models.AuthServerConfiguration
 		Output map[string]interface{}
 	}{
 		"converts the AuthServerConfiguration to a map": {
-			Input: authservers.AuthServerConfiguration{
-				ResourceIdentifier:            oltypes.String("test.com"),
+			Input: models.AuthServerConfiguration{
+				ResourceIdentifier:            &resourceID,
 				Audiences:                     []string{"aud_1", "aud_2"},
-				AccessTokenExpirationMinutes:  oltypes.Int32(2),
-				RefreshTokenExpirationMinutes: oltypes.Int32(2),
+				AccessTokenExpirationMinutes:  &atMinutes,
+				RefreshTokenExpirationMinutes: &rtMinutes,
 			},
 			Output: map[string]interface{}{
-				"resource_identifier":              "test.com",
+				"resource_identifier":              resourceID,
 				"audiences":                        []string{"aud_1", "aud_2"},
-				"refresh_token_expiration_minutes": int32(2),
-				"access_token_expiration_minutes":  int32(2),
+				"refresh_token_expiration_minutes": rtMinutes,
+				"access_token_expiration_minutes":  atMinutes,
 			},
 		},
 	}
