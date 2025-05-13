@@ -41,7 +41,7 @@ This version includes support for Custom User Attributes using the OneLogin v4 A
    ```bash
    export ONELOGIN_CLIENT_ID=<your client id>
    export ONELOGIN_CLIENT_SECRET=<your client secret>
-   export ONELOGIN_SUBDOMAIN=<your OneLogin subdomain>
+   export ONELOGIN_API_URL=<your OneLogin API URL, e.g., https://company.onelogin.com>
    ```
 3. Build and install the provider locally:
    ```bash

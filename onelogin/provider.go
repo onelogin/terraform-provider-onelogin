@@ -3,7 +3,9 @@ package onelogin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 
 	ol "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 
@@ -32,19 +34,21 @@ func Provider() *schema.Provider {
 			},
 			"url": {
 				Type:        schema.TypeString,
-				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_OAPI_URL", nil),
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_API_URL", nil),
 				Optional:    true,
+				Description: "OneLogin API URL. This is an alternative to using subdomain. If both are provided, subdomain takes precedence.",
 			},
-			// Region is deprecated and will be removed in a future version
+			// Both region and subdomain are deprecated and will be removed in a future version
 			"region": {
 				Type:       schema.TypeString,
 				Optional:   true,
-				Deprecated: "Use subdomain instead",
+				Deprecated: "Use url instead",
 			},
 			"subdomain": {
 				Type:        schema.TypeString,
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_SUBDOMAIN", nil),
-				Required:    true,
+				Optional:    true,
+				Deprecated:  "Use url instead",
 				Description: "OneLogin subdomain (e.g. 'company' for company.onelogin.com)",
 			},
 			"timeout": {
@@ -59,12 +63,12 @@ func Provider() *schema.Provider {
 			"onelogin_users": dataSourceUsers(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"onelogin_app_role_attachments":            AppRoleAttachment(),
-			"onelogin_apps":                            Apps(),
-			"onelogin_oidc_apps":                       OIDCApps(),
-			"onelogin_saml_apps":                       SAMLApps(),
-			"onelogin_app_rules":                       AppRules(),
-			"onelogin_user_mappings":                   UserMappings(),
+			"onelogin_app_role_attachments": AppRoleAttachment(),
+			"onelogin_apps":                 Apps(),
+			"onelogin_oidc_apps":            OIDCApps(),
+			"onelogin_saml_apps":            SAMLApps(),
+			"onelogin_app_rules":            AppRules(),
+			// "onelogin_user_mappings":                   UserMappings(), // Disabled until SDK support is added
 			"onelogin_users":                           Users(),
 			"onelogin_auth_servers":                    AuthServers(),
 			"onelogin_roles":                           Roles(),
@@ -83,39 +87,41 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 
-	// These are no longer used but kept for reference
-	// url := d.Get("url").(string)
-	// timeoutSeconds := d.Get("timeout").(int)
-
-	// We're not using the v1 client anymore, but keeping this commented code for reference
-	// in case we need to initialize it in the future
-	// _, err := client.NewClient(&client.APIClientConfig{
-	//	Timeout:      60,
-	//	ClientID:     clientID,
-	//	ClientSecret: clientSecret,
-	//	Region:       "us",
-	// })
-	// if err != nil {
-	//	return nil, diag.FromErr(err)
-	// }
-
-	// For resource types that use v4 client (like custom attributes)
-	subdomain := d.Get("subdomain").(string)
-	if subdomain == "" {
-		return nil, diag.Errorf("OneLogin subdomain is required. Please set the ONELOGIN_SUBDOMAIN environment variable.")
-	}
-
-	// Set environment variables for the SDK
+	// Set client credentials environment variables for the SDK
 	os.Setenv("ONELOGIN_CLIENT_ID", clientID)
 	os.Setenv("ONELOGIN_CLIENT_SECRET", clientSecret)
-	os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
+
+	// Prioritize URL over subdomain
+	url := d.Get("url").(string)
+	subdomain := d.Get("subdomain").(string)
+
+	if url != "" {
+		// Set API URL for SDK - now the preferred way
+		os.Setenv("ONELOGIN_API_URL", url)
+
+		// Extract subdomain from URL for backward compatibility with SDK
+		// URL format is typically https://company.onelogin.com
+		urlParts := strings.Split(strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://"), ".")
+		if len(urlParts) > 0 {
+			extractedSubdomain := urlParts[0]
+			os.Setenv("ONELOGIN_SUBDOMAIN", extractedSubdomain)
+		} else {
+			return nil, diag.Errorf("Could not extract subdomain from URL. Please provide a valid OneLogin URL.")
+		}
+	} else if subdomain != "" {
+		// For backward compatibility
+		os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
+		// Also set the API URL for consistency
+		os.Setenv("ONELOGIN_API_URL", fmt.Sprintf("https://%s.onelogin.com", subdomain))
+	} else {
+		return nil, diag.Errorf("Either OneLogin API URL or subdomain is required. Please set the ONELOGIN_API_URL environment variable.")
+	}
 
 	// Initialize the SDK
-	clientV4, err := ol.NewOneloginSDK()
+	client, err := ol.NewOneloginSDK()
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
 
-	// For now, return the v4 client as we're updating custom attributes
-	return clientV4, nil
+	return client, nil
 }

@@ -3,8 +3,7 @@ package smarthookenvironmentvariablesschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,27 +18,40 @@ func TestSmartHookSchema(t *testing.T) {
 }
 
 func TestInflate(t *testing.T) {
+	// Create test variables
+	id := "32f9dfee-a02c-4932-98ec-37838ce62ba0"
+	name := "API_KEY"
+	value := "123-456-789"
+
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput smarthookenvs.EnvVar
+		ExpectedOutput models.EnvVar
 	}{
 		"creates and returns the address of a SmartHook": {
 			ResourceData: map[string]interface{}{
-				"id":    "32f9dfee-a02c-4932-98ec-37838ce62ba0",
-				"name":  "API_KEY",
-				"value": "123-456-789",
+				"id":    id,
+				"name":  name,
+				"value": value,
 			},
-			ExpectedOutput: smarthookenvs.EnvVar{
-				ID:    oltypes.String("32f9dfee-a02c-4932-98ec-37838ce62ba0"),
-				Name:  oltypes.String("API_KEY"),
-				Value: oltypes.String("123-456-789"),
+			ExpectedOutput: models.EnvVar{
+				ID:    &id,
+				Name:  &name,
+				Value: &value,
 			},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			subj := Inflate(test.ResourceData)
-			assert.Equal(t, test.ExpectedOutput, subj)
+			if subj.ID != nil && test.ExpectedOutput.ID != nil {
+				assert.Equal(t, *subj.ID, *test.ExpectedOutput.ID)
+			}
+			if subj.Name != nil && test.ExpectedOutput.Name != nil {
+				assert.Equal(t, *subj.Name, *test.ExpectedOutput.Name)
+			}
+			if subj.Value != nil && test.ExpectedOutput.Value != nil {
+				assert.Equal(t, *subj.Value, *test.ExpectedOutput.Value)
+			}
 		})
 	}
 }

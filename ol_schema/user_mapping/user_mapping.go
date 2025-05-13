@@ -4,8 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	usermappings "github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	usermappingactionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/actions"
 	usermappingconditionsschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user_mapping/conditions"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
@@ -55,26 +54,29 @@ func validMatch(val interface{}, key string) (warns []string, errs []error) {
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct a user mapping struct
-func Inflate(s map[string]interface{}) usermappings.UserMapping {
-	out := usermappings.UserMapping{}
+func Inflate(s map[string]interface{}) models.UserMapping {
+	out := models.UserMapping{}
 	if s["id"] != nil {
 		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
-			out.ID = oltypes.Int32(int32(id))
+			id32 := int32(id)
+			out.ID = &id32
 		}
 	}
 	if name, notNil := s["name"].(string); notNil {
-		out.Name = oltypes.String(name)
+		out.Name = &name
 	}
 	if match, notNil := s["match"].(string); notNil {
-		out.Match = oltypes.String(match)
+		out.Match = &match
 	}
 	if pos, notNil := s["position"].(int); notNil {
-		out.Position = oltypes.Int32(int32(pos))
+		pos32 := int32(pos)
+		out.Position = &pos32
 	}
-	if pos, notNil := s["enabled"].(bool); notNil {
-		out.Enabled = oltypes.Bool(pos)
+	if enabled, notNil := s["enabled"].(bool); notNil {
+		out.Enabled = &enabled
 	}
 	if s["conditions"] != nil {
+		out.Conditions = []models.UserMappingConditions{}
 		for _, val := range s["conditions"].([]interface{}) {
 			valMap := val.(map[string]interface{})
 			cond := usermappingconditionsschema.Inflate(valMap)
@@ -82,17 +84,18 @@ func Inflate(s map[string]interface{}) usermappings.UserMapping {
 		}
 	}
 	if s["actions"] != nil {
+		out.Actions = []models.UserMappingActions{}
 		for _, val := range s["actions"].([]interface{}) {
 			valMap := val.(map[string]interface{})
-			cond := usermappingactionsschema.Inflate(valMap)
-			out.Actions = append(out.Actions, cond)
+			action := usermappingactionsschema.Inflate(valMap)
+			out.Actions = append(out.Actions, action)
 		}
 	}
 	return out
 }
 
 // Flatten takes a UserMappings array and converts it to an array of maps
-func Flatten(UserMappings []usermappings.UserMapping) []map[string]interface{} {
+func Flatten(UserMappings []models.UserMapping) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(UserMappings))
 	for i, UserMapping := range UserMappings {
 		out[i] = map[string]interface{}{

@@ -3,8 +3,7 @@ package appruleconditionsschema
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 // Schema returns a key/value map of the various fields that make up the Actions of a OneLogin Rule.
@@ -26,23 +25,23 @@ func Schema() map[string]*schema.Schema {
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
-// a AppRuleConditions struct, a sub-field of a OneLogin Rule.
-func Inflate(s map[string]interface{}) apprules.AppRuleConditions {
-	out := apprules.AppRuleConditions{}
+// a Condition struct, a sub-field of a OneLogin Rule.
+func Inflate(s map[string]interface{}) models.Condition {
+	out := models.Condition{}
 	if enb, notNil := s["source"].(string); notNil {
-		out.Source = oltypes.String(enb)
+		out.Source = enb
 	}
 	if enb, notNil := s["operator"].(string); notNil {
-		out.Operator = oltypes.String(enb)
+		out.Operator = enb
 	}
 	if enb, notNil := s["value"].(string); notNil {
-		out.Value = oltypes.String(enb)
+		out.Value = enb
 	}
 	return out
 }
 
-// Flatten takes a AppProvisioning instance and converts it to an array of maps
-func Flatten(conds []apprules.AppRuleConditions) []map[string]interface{} {
+// Flatten takes a Condition instance and converts it to an array of maps
+func Flatten(conds []models.Condition) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(conds))
 	for i, condition := range conds {
 		out[i] = map[string]interface{}{

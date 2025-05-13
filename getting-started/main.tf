@@ -10,7 +10,7 @@ terraform {
 provider "onelogin" {
   client_id     = "YOUR_CLIENT_ID"     # Replace with your OneLogin Client ID
   client_secret = "YOUR_CLIENT_SECRET" # Replace with your OneLogin Client Secret
-  subdomain     = "YOUR_SUBDOMAIN"     # Replace with your OneLogin subdomain (e.g., "company" for company.onelogin.com)
+  url           = "YOUR_API_URL"       # Replace with your OneLogin API URL (e.g., "https://company.onelogin.com")
 }
 
 # Example resource (uncomment if needed)

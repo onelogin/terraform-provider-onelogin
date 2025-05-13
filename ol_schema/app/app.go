@@ -4,8 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	appconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	appparametersschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	appprovisioningschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
@@ -87,41 +86,81 @@ func Schema() map[string]*schema.Schema {
 }
 
 // Inflate takes a map of interfaces and constructs a OneLogin App.
-func Inflate(s map[string]interface{}) (apps.App, error) {
-	var err error
-	app := apps.App{
-		Name:               oltypes.String(s["name"].(string)),
-		Description:        oltypes.String(s["description"].(string)),
-		Notes:              oltypes.String(s["notes"].(string)),
-		ConnectorID:        oltypes.Int32(int32(s["connector_id"].(int))),
-		Visible:            oltypes.Bool(s["visible"].(bool)),
-		AllowAssumedSignin: oltypes.Bool(s["allow_assumed_signin"].(bool)),
+func Inflate(s map[string]interface{}) (models.App, error) {
+	var appID, connectorID int32
+	var name, description, notes string
+	var visible, allowAssumedSignin bool
+
+	// Set required/common fields
+	name = s["name"].(string)
+
+	if s["description"] != nil {
+		description = s["description"].(string)
 	}
+
+	if s["notes"] != nil {
+		notes = s["notes"].(string)
+	}
+
+	if s["connector_id"] != nil {
+		connectorID = int32(s["connector_id"].(int))
+	}
+
+	if s["visible"] != nil {
+		visible = s["visible"].(bool)
+	}
+
+	if s["allow_assumed_signin"] != nil {
+		allowAssumedSignin = s["allow_assumed_signin"].(bool)
+	}
+
+	app := models.App{
+		Name:               &name,
+		Description:        &description,
+		Notes:              &notes,
+		ConnectorID:        &connectorID,
+		Visible:            &visible,
+		AllowAssumedSignin: &allowAssumedSignin,
+	}
+
+	// Set optional fields
 	if s["id"] != nil {
 		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
-			app.ID = oltypes.Int32(int32(id))
+			appID = int32(id)
+			app.ID = &appID
 		}
 	}
+
 	if s["brand_id"] != nil {
 		brandID := s["brand_id"].(int)
-		app.BrandID = oltypes.Int32(int32(brandID))
+		app.BrandID = &brandID
 	}
+
+	// Handle parameters
 	if s["parameters"] != nil {
 		p := s["parameters"].(*schema.Set).List()
-		app.Parameters = make(map[string]apps.AppParameters, len(p))
+		params := make(map[string]models.Parameter, len(p))
 		for _, val := range p {
 			valMap := val.(map[string]interface{})
-			app.Parameters[valMap["param_key_name"].(string)] = appparametersschema.Inflate(valMap)
+			params[valMap["param_key_name"].(string)] = appparametersschema.Inflate(valMap)
 		}
+		app.Parameters = &params
 	}
+
+	// Handle provisioning
 	if s["provisioning"] != nil {
 		prov := appprovisioningschema.Inflate(s["provisioning"].(map[string]interface{}))
 		app.Provisioning = &prov
 	}
+
+	// Handle configuration
 	if s["configuration"] != nil {
-		var conf apps.AppConfiguration
-		conf, err = appconfigurationschema.Inflate(s["configuration"].(map[string]interface{}))
-		app.Configuration = &conf
+		conf, err := appconfigurationschema.Inflate(s["configuration"].(map[string]interface{}))
+		if err != nil {
+			return app, err
+		}
+		app.Configuration = conf
 	}
-	return app, err
+
+	return app, nil
 }

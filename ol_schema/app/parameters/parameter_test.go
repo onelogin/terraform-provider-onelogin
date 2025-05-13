@@ -3,8 +3,7 @@ package appparametersschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +27,7 @@ func TestParameterSchema(t *testing.T) {
 func TestInflateParameter(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apps.AppParameters
+		ExpectedOutput models.Parameter
 	}{
 		"creates and returns the address of an AppParameters struct": {
 			ResourceData: map[string]interface{}{
@@ -45,61 +44,67 @@ func TestInflateParameter(t *testing.T) {
 				"safe_entitlements_enabled":  true,
 				"include_in_saml_assertion":  true,
 			},
-			ExpectedOutput: apps.AppParameters{
-				ID:                        oltypes.Int32(int32(123)),
-				Label:                     oltypes.String("test"),
-				UserAttributeMappings:     oltypes.String("test"),
-				UserAttributeMacros:       oltypes.String("test"),
-				AttributesTransformations: oltypes.String("test"),
-				SkipIfBlank:               oltypes.Bool(true),
-				Values:                    oltypes.String("test"),
-				DefaultValues:             oltypes.String("test"),
-				ProvisionedEntitlements:   oltypes.Bool(true),
-				SafeEntitlementsEnabled:   oltypes.Bool(true),
-				IncludeInSamlAssertion:    oltypes.Bool(true),
+			ExpectedOutput: models.Parameter{
+				ID:                        123,
+				Label:                     "test",
+				UserAttributeMappings:     "test",
+				UserAttributeMacros:       "test",
+				AttributesTransformations: "test",
+				SkipIfBlank:               true,
+				Values:                    "test",
+				DefaultValues:             "test",
+				ProvisionedEntitlements:   true,
+				IncludeInSamlAssertion:    true,
 			},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			subj := Inflate(test.ResourceData)
-			assert.Equal(t, subj, test.ExpectedOutput)
+			assert.Equal(t, subj.ID, test.ExpectedOutput.ID)
+			assert.Equal(t, subj.Label, test.ExpectedOutput.Label)
+			assert.Equal(t, subj.UserAttributeMappings, test.ExpectedOutput.UserAttributeMappings)
+			assert.Equal(t, subj.UserAttributeMacros, test.ExpectedOutput.UserAttributeMacros)
+			assert.Equal(t, subj.AttributesTransformations, test.ExpectedOutput.AttributesTransformations)
+			assert.Equal(t, subj.SkipIfBlank, test.ExpectedOutput.SkipIfBlank)
+			assert.Equal(t, subj.Values, test.ExpectedOutput.Values)
+			assert.Equal(t, subj.DefaultValues, test.ExpectedOutput.DefaultValues)
+			assert.Equal(t, subj.ProvisionedEntitlements, test.ExpectedOutput.ProvisionedEntitlements)
+			assert.Equal(t, subj.IncludeInSamlAssertion, test.ExpectedOutput.IncludeInSamlAssertion)
 		})
 	}
 }
 
 func TestFlatten(t *testing.T) {
 	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
-		appParamStruct := map[string]apps.AppParameters{
-			"test": apps.AppParameters{
-				ID:                        oltypes.Int32(123),
-				Label:                     oltypes.String("test"),
-				UserAttributeMappings:     oltypes.String("test"),
-				UserAttributeMacros:       oltypes.String("test"),
-				AttributesTransformations: oltypes.String("test"),
-				SkipIfBlank:               oltypes.Bool(true),
-				Values:                    oltypes.String("test"),
-				DefaultValues:             oltypes.String("test"),
-				ProvisionedEntitlements:   oltypes.Bool(true),
-				SafeEntitlementsEnabled:   oltypes.Bool(true),
-				IncludeInSamlAssertion:    oltypes.Bool(true),
+		appParamStruct := map[string]models.Parameter{
+			"test": {
+				ID:                        123,
+				Label:                     "test",
+				UserAttributeMappings:     "test",
+				UserAttributeMacros:       "test",
+				AttributesTransformations: "test",
+				SkipIfBlank:               true,
+				Values:                    "test",
+				DefaultValues:             "test",
+				ProvisionedEntitlements:   true,
+				IncludeInSamlAssertion:    true,
 			},
 		}
 		subj := Flatten(appParamStruct)
 		expected := []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"param_key_name":             "test",
-				"param_id":                   oltypes.Int32(123),
-				"label":                      oltypes.String("test"),
-				"user_attribute_mappings":    oltypes.String("test"),
-				"user_attribute_macros":      oltypes.String("test"),
-				"attributes_transformations": oltypes.String("test"),
-				"skip_if_blank":              oltypes.Bool(true),
-				"values":                     oltypes.String("test"),
-				"default_values":             oltypes.String("test"),
-				"provisioned_entitlements":   oltypes.Bool(true),
-				"safe_entitlements_enabled":  oltypes.Bool(true),
-				"include_in_saml_assertion":  oltypes.Bool(true),
+				"param_id":                   123,
+				"label":                      "test",
+				"user_attribute_mappings":    "test",
+				"user_attribute_macros":      "test",
+				"attributes_transformations": "test",
+				"skip_if_blank":              true,
+				"values":                     "test",
+				"default_values":             "test",
+				"provisioned_entitlements":   true,
+				"include_in_saml_assertion":  true,
 			},
 		}
 		assert.Equal(t, expected, subj)

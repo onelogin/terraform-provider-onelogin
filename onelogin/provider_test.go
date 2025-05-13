@@ -40,16 +40,16 @@ func TestAccPreCheck(t *testing.T) {
 		t.Fatal("ONELOGIN_CLIENT_SECRET must be set for acceptance tests")
 	}
 
-	// Check for subdomain (preferred) or legacy URL
+	// Check for API URL or subdomain as fallback
+	apiURL := os.Getenv("ONELOGIN_API_URL")
 	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
-	legacyURL := os.Getenv("ONELOGIN_OAPI_URL")
 
-	if subdomain == "" && legacyURL == "" {
-		t.Fatal("Either ONELOGIN_SUBDOMAIN or ONELOGIN_OAPI_URL must be set for acceptance tests")
+	if apiURL == "" && subdomain == "" {
+		t.Fatal("ONELOGIN_API_URL must be set for acceptance tests")
 	}
 
-	// Warn if using legacy URL
-	if subdomain == "" && legacyURL != "" {
-		t.Logf("WARNING: Using legacy ONELOGIN_OAPI_URL. Please consider switching to ONELOGIN_SUBDOMAIN.")
+	// Warn if using subdomain instead of API URL
+	if apiURL == "" && subdomain != "" {
+		t.Logf("WARNING: Using ONELOGIN_SUBDOMAIN which is deprecated. Please switch to ONELOGIN_API_URL.")
 	}
 }

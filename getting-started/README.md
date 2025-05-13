@@ -14,12 +14,12 @@ This directory contains a minimal setup to get started with the OneLogin Terrafo
    - Log in to your OneLogin admin portal
    - Navigate to Developers > API Credentials
    - Create credentials with appropriate permissions
-   - Note the Client ID, Client Secret, and your subdomain
+   - Note the Client ID, Client Secret, and your OneLogin URL
 
 2. **Configure the Provider**
    - Open `main.tf`
-   - Replace `YOUR_CLIENT_ID`, `YOUR_CLIENT_SECRET`, and `YOUR_SUBDOMAIN` with your actual credentials
-   - The subdomain is the part before `.onelogin.com` in your OneLogin URL
+   - Replace `YOUR_CLIENT_ID`, `YOUR_CLIENT_SECRET`, and `YOUR_API_URL` with your actual credentials
+   - The API URL is your full OneLogin URL (e.g., https://company.onelogin.com)
 
 3. **Initialize Terraform**
    ```
@@ -129,6 +129,6 @@ Example with environment variables:
 provider "onelogin" {
   client_id     = "${env("ONELOGIN_CLIENT_ID")}"
   client_secret = "${env("ONELOGIN_CLIENT_SECRET")}"
-  subdomain     = "${env("ONELOGIN_SUBDOMAIN")}"
+  url           = "${env("ONELOGIN_API_URL")}"
 }
 ```

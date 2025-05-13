@@ -2,8 +2,7 @@ package authserverconfigurationschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	authservers "github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 // Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.
@@ -34,42 +33,64 @@ func Schema() map[string]*schema.Schema {
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
-// a AppProvisioning struct, a sub-field of a OneLogin App.
-func Inflate(in []interface{}) authservers.AuthServerConfiguration {
+// an AuthServerConfiguration struct for a OneLogin AuthServer.
+func Inflate(in []interface{}) models.AuthServerConfiguration {
 	s := in[0].(map[string]interface{})
-	out := authservers.AuthServerConfiguration{}
-	if val, notNil := s["audiences"].([]string); notNil {
-		out.Audiences = make([]string, len(val))
-		for i, str := range val {
-			out.Audiences[i] = str
+	out := models.AuthServerConfiguration{}
+
+	// Handle audiences
+	if s["audiences"] != nil {
+		switch audiences := s["audiences"].(type) {
+		case []interface{}:
+			// Handle the case where it's a []interface{}
+			out.Audiences = make([]string, len(audiences))
+			for i, val := range audiences {
+				out.Audiences[i] = val.(string)
+			}
+		case []string:
+			// Handle the case where it's already a []string
+			out.Audiences = audiences
 		}
 	}
+
+	// Handle resource identifier
 	if ri, notNil := s["resource_identifier"].(string); notNil {
-		out.ResourceIdentifier = oltypes.String(ri)
+		out.ResourceIdentifier = &ri
 	}
+
+	// Handle token expirations
 	if at, notNil := s["access_token_expiration_minutes"].(int); notNil {
-		out.AccessTokenExpirationMinutes = oltypes.Int32(int32(at))
+		at32 := int32(at)
+		out.AccessTokenExpirationMinutes = &at32
 	}
+
 	if rt, notNil := s["refresh_token_expiration_minutes"].(int); notNil {
-		out.RefreshTokenExpirationMinutes = oltypes.Int32(int32(rt))
+		rt32 := int32(rt)
+		out.RefreshTokenExpirationMinutes = &rt32
 	}
+
 	return out
 }
 
 // Flatten takes an AuthServer configuration and converts it to a map of varied types
-func Flatten(asc authservers.AuthServerConfiguration) map[string]interface{} {
+func Flatten(asc models.AuthServerConfiguration) map[string]interface{} {
 	out := map[string]interface{}{}
+
 	if asc.ResourceIdentifier != nil {
 		out["resource_identifier"] = *asc.ResourceIdentifier
 	}
+
 	if asc.Audiences != nil {
 		out["audiences"] = asc.Audiences
 	}
+
 	if asc.AccessTokenExpirationMinutes != nil {
 		out["access_token_expiration_minutes"] = *asc.AccessTokenExpirationMinutes
 	}
+
 	if asc.RefreshTokenExpirationMinutes != nil {
 		out["refresh_token_expiration_minutes"] = *asc.RefreshTokenExpirationMinutes
 	}
+
 	return out
 }

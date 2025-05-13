@@ -3,24 +3,21 @@ package appssoschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFlattenOIDCSSO(t *testing.T) {
 	tests := map[string]struct {
-		InputData      apps.AppSso
+		InputData      models.SSOOpenId
 		ExpectedOutput map[string]interface{}
 	}{
 		"creates and returns a map of SSO fields from an OIDC app": {
-			InputData: apps.AppSso{
-				ClientID:     oltypes.String("test"),
-				ClientSecret: oltypes.String("test"),
+			InputData: models.SSOOpenId{
+				ClientID: "test",
 			},
 			ExpectedOutput: map[string]interface{}{
-				"client_id":     oltypes.String("test"),
-				"client_secret": oltypes.String("test"),
+				"client_id": "test",
 			},
 		},
 	}
@@ -34,24 +31,24 @@ func TestFlattenOIDCSSO(t *testing.T) {
 
 func TestFlattenSAMLCert(t *testing.T) {
 	tests := map[string]struct {
-		InputData      apps.AppSso
+		InputData      models.SSOSAML
 		ExpectedOutput map[string]interface{}
 	}{
 		"creates and returns a map of SAML SSO Certificate fields for the given SAML app": {
-			InputData: apps.AppSso{
-				MetadataURL: oltypes.String("test"),
-				AcsURL:      oltypes.String("test"),
-				SlsURL:      oltypes.String("test"),
-				Issuer:      oltypes.String("test"),
-				Certificate: &apps.AppSsoCertificate{
-					Name:  oltypes.String("test"),
-					ID:    oltypes.Int32(123),
-					Value: oltypes.String("test"),
+			InputData: models.SSOSAML{
+				MetadataURL: "test",
+				AcsURL:      "test",
+				SlsURL:      "test",
+				Issuer:      "test",
+				Certificate: models.Certificate{
+					Name:  "test",
+					ID:    123,
+					Value: "test",
 				},
 			},
 			ExpectedOutput: map[string]interface{}{
-				"name":  oltypes.String("test"),
-				"value": oltypes.String("test"),
+				"name":  "test",
+				"value": "test",
 			},
 		},
 	}
@@ -65,26 +62,26 @@ func TestFlattenSAMLCert(t *testing.T) {
 
 func TestFlattenSAML(t *testing.T) {
 	tests := map[string]struct {
-		InputData      apps.AppSso
+		InputData      models.SSOSAML
 		ExpectedOutput map[string]interface{}
 	}{
 		"creates and returns a map of SSO fields for a SAML app": {
-			InputData: apps.AppSso{
-				MetadataURL: oltypes.String("test"),
-				AcsURL:      oltypes.String("test"),
-				SlsURL:      oltypes.String("test"),
-				Issuer:      oltypes.String("test"),
-				Certificate: &apps.AppSsoCertificate{
-					Name:  oltypes.String("test"),
-					ID:    oltypes.Int32(123),
-					Value: oltypes.String("test"),
+			InputData: models.SSOSAML{
+				MetadataURL: "test",
+				AcsURL:      "test",
+				SlsURL:      "test",
+				Issuer:      "test",
+				Certificate: models.Certificate{
+					Name:  "test",
+					ID:    123,
+					Value: "test",
 				},
 			},
 			ExpectedOutput: map[string]interface{}{
-				"metadata_url": oltypes.String("test"),
-				"acs_url":      oltypes.String("test"),
-				"sls_url":      oltypes.String("test"),
-				"issuer":       oltypes.String("test"),
+				"metadata_url": "test",
+				"acs_url":      "test",
+				"sls_url":      "test",
+				"issuer":       "test",
 			},
 		},
 	}

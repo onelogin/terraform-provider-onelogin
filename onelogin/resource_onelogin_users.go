@@ -1,156 +1,202 @@
 package onelogin
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 	userschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
+	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
-// Users returns a resource with the CRUD methods and Terraform Schema defined
+// Users returns a user resource with CRUD methods and the appropriate schemas
 func Users() *schema.Resource {
 	return &schema.Resource{
-		Create:   usersCreate,
-		Read:     usersRead,
-		Update:   usersUpdate,
-		Delete:   usersDelete,
-		Importer: &schema.ResourceImporter{},
-		Schema:   userschema.Schema(),
+		CreateContext: userCreate,
+		ReadContext:   userRead,
+		UpdateContext: userUpdate,
+		DeleteContext: userDelete,
+		Importer:      &schema.ResourceImporter{},
+		Schema:        userschema.Schema(),
 	}
 }
 
-func usersCreate(d *schema.ResourceData, m interface{}) error {
-	user, _ := userschema.Inflate(map[string]interface{}{
-		"username":            d.Get("username"),
-		"email":               d.Get("email"),
-		"firstname":           d.Get("firstname"),
-		"lastname":            d.Get("lastname"),
-		"distinguished_name":  d.Get("distinguished_name"),
-		"samaccountname":      d.Get("samaccountname"),
-		"user_principal_name": d.Get("user_principal_name"),
-		"member_of":           d.Get("member_of"),
-		"phone":               d.Get("phone"),
-		"title":               d.Get("title"),
-		"company":             d.Get("company"),
-		"department":          d.Get("department"),
-		"comment":             d.Get("comment"),
-		"state":               d.Get("state"),
-		"status":              d.Get("status"),
-		"group_id":            d.Get("group_id"),
-		"directory_id":        d.Get("directory_id"),
-		"trusted_idp_id":      d.Get("trusted_idp_id"),
-		"manager_ad_id":       d.Get("manager_ad_id"),
-		"manager_user_id":     d.Get("manager_user_id"),
-		"external_id":         d.Get("external_id"),
-		"custom_attributes":   d.Get("custom_attributes"),
+// userCreate creates a new user in OneLogin
+func userCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	user, err := userschema.Inflate(map[string]interface{}{
+		"username":           d.Get("username"),
+		"email":              d.Get("email"),
+		"firstname":          d.Get("firstname"),
+		"lastname":           d.Get("lastname"),
+		"title":              d.Get("title"),
+		"department":         d.Get("department"),
+		"company":            d.Get("company"),
+		"directory_id":       d.Get("directory_id"),
+		"distinguished_name": d.Get("distinguished_name"),
+		"external_id":        d.Get("external_id"),
+		"manager_ad_id":      d.Get("manager_ad_id"),
+		"manager_user_id":    d.Get("manager_user_id"),
+		"member_of":          d.Get("member_of"),
+		"phone":              d.Get("phone"),
+		"samaccountname":     d.Get("samaccountname"),
+		"userprincipalname":  d.Get("userprincipalname"),
+		"state":              d.Get("state"),
+		"status":             d.Get("status"),
+		"group_id":           d.Get("group_id"),
+		"role_ids":           d.Get("role_ids"),
+		"custom_attributes":  d.Get("custom_attributes"),
 	})
-	client := m.(*client.APIClient)
-	err := client.Services.UsersV2.Create(&user)
 	if err != nil {
-		log.Println("[ERROR] There was a problem creating the user!", err)
-		return err
+		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "User", "")
 	}
-	log.Printf("[CREATED] Created user with %d", *(user.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(user.ID)))
-	return usersRead(d, m)
-}
-
-func usersUpdate(d *schema.ResourceData, m interface{}) error {
-	user, _ := userschema.Inflate(map[string]interface{}{
-		"id":                  d.Id(),
-		"username":            d.Get("username"),
-		"email":               d.Get("email"),
-		"firstname":           d.Get("firstname"),
-		"lastname":            d.Get("lastname"),
-		"distinguished_name":  d.Get("distinguished_name"),
-		"samaccountname":      d.Get("samaccountname"),
-		"user_principal_name": d.Get("user_principal_name"),
-		"member_of":           d.Get("member_of"),
-		"phone":               d.Get("phone"),
-		"title":               d.Get("title"),
-		"company":             d.Get("company"),
-		"department":          d.Get("department"),
-		"comment":             d.Get("comment"),
-		"state":               d.Get("state"),
-		"status":              d.Get("status"),
-		"group_id":            d.Get("group_id"),
-		"directory_id":        d.Get("directory_id"),
-		"trusted_idp_id":      d.Get("trusted_idp_id"),
-		"manager_ad_id":       d.Get("manager_ad_id"),
-		"manager_user_id":     d.Get("manager_user_id"),
-		"external_id":         d.Get("external_id"),
-		"custom_attributes":   d.Get("custom_attributes"),
+	client := m.(*onelogin.OneloginSDK)
+	tflog.Info(ctx, "[CREATE] Creating user", map[string]interface{}{
+		"username": d.Get("username").(string),
 	})
-	client := m.(*client.APIClient)
-	err := client.Services.UsersV2.Update(&user)
-	if err != nil {
-		log.Println("[ERROR] There was a problem updating the user!", err)
-		return err
-	}
-	log.Printf("[UPDATED] Updated user with %d", *(user.ID))
 
-	d.SetId(fmt.Sprintf("%d", *(user.ID)))
-	return usersRead(d, m)
+	result, err := client.CreateUser(user)
+	if err != nil {
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryCreate, "User", "")
+	}
+
+	// Extract user ID from the result
+	userMap, ok := result.(map[string]interface{})
+	if !ok {
+		return diag.Errorf("failed to parse user creation response")
+	}
+
+	id, ok := userMap["id"].(float64)
+	if !ok {
+		return diag.Errorf("failed to extract user ID from response")
+	}
+
+	userID := int(id)
+	tflog.Info(ctx, "[CREATED] Created user", map[string]interface{}{
+		"id":       userID,
+		"username": d.Get("username").(string),
+	})
+
+	d.SetId(fmt.Sprintf("%d", userID))
+	return userRead(ctx, d, m)
 }
 
-func usersRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*client.APIClient)
+// userRead gets a user by ID from OneLogin
+func userRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
 	uid, _ := strconv.Atoi(d.Id())
-	user, err := client.Services.UsersV2.GetOne(int32(uid))
+
+	tflog.Info(ctx, "[READ] Reading user", map[string]interface{}{
+		"id": uid,
+	})
+
+	result, err := client.GetUserByID(uid, &userschema.UserQueryable{})
 	if err != nil {
-		log.Printf("[ERROR] There was a problem reading the user!")
-		log.Println(err)
-		return err
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "User", d.Id())
 	}
-	if user == nil {
+
+	// Check if user exists
+	if result == nil {
+		tflog.Info(ctx, "[NOT FOUND] User not found", map[string]interface{}{
+			"id": uid,
+		})
 		d.SetId("")
 		return nil
 	}
-	log.Printf("[READ] Reading user with %d", *(user.ID))
 
-	d.Set("username", user.Username)
-	d.Set("email", user.Email)
-	d.Set("firstname", user.Firstname)
-	d.Set("lastname", user.Lastname)
-	d.Set("distinguished_name", user.DistinguishedName)
-	d.Set("samaccountname", user.Samaccountname)
-	d.Set("user_principal_name", user.UserPrincipalName)
-	d.Set("member_of", user.MemberOf)
-	d.Set("phone", user.Phone)
-	d.Set("title", user.Title)
-	d.Set("company", user.Company)
-	d.Set("department", user.Department)
-	d.Set("comment", user.Comment)
-	d.Set("state", user.State)
-	d.Set("status", user.Status)
-	d.Set("group_id", user.GroupID)
-	d.Set("directory_id", user.DirectoryID)
-	d.Set("trusted_idp_id", user.TrustedIDPID)
-	d.Set("manager_ad_id", user.ManagerADID)
-	d.Set("manager_user_id", user.ManagerUserID)
-	d.Set("external_id", user.ExternalID)
-	d.Set("custom_attributes", user.CustomAttributes)
+	// Parse the user from the result
+	userMap, ok := result.(map[string]interface{})
+	if !ok {
+		return diag.Errorf("failed to parse user response")
+	}
+
+	// Set basic user fields
+	basicFields := []string{
+		"username", "email", "firstname", "lastname", "title",
+		"department", "company", "status", "state", "phone",
+		"group_id", "directory_id", "distinguished_name", "external_id",
+		"manager_ad_id", "manager_user_id", "samaccountname", "userprincipalname",
+		"member_of", "created_at", "updated_at", "activated_at", "last_login",
+	}
+	utils.SetResourceFields(d, userMap, basicFields)
+
+	// Handle custom attributes if they exist
+	if v, ok := userMap["custom_attributes"]; ok {
+		if attrs, ok := v.(map[string]interface{}); ok {
+			d.Set("custom_attributes", attrs)
+		}
+	}
+
+	// Handle role IDs if they exist
+	if v, ok := userMap["role_ids"]; ok {
+		if roleIDs, ok := v.([]interface{}); ok {
+			d.Set("role_ids", roleIDs)
+		}
+	}
 
 	return nil
 }
 
-func usersDelete(d *schema.ResourceData, m interface{}) error {
+// userUpdate updates a user by ID in OneLogin
+func userUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	uid, _ := strconv.Atoi(d.Id())
-	client := m.(*client.APIClient)
 
-	err := client.Services.UsersV2.Destroy(int32(uid))
+	user, err := userschema.Inflate(map[string]interface{}{
+		"id":                 d.Id(),
+		"username":           d.Get("username"),
+		"email":              d.Get("email"),
+		"firstname":          d.Get("firstname"),
+		"lastname":           d.Get("lastname"),
+		"title":              d.Get("title"),
+		"department":         d.Get("department"),
+		"company":            d.Get("company"),
+		"directory_id":       d.Get("directory_id"),
+		"distinguished_name": d.Get("distinguished_name"),
+		"external_id":        d.Get("external_id"),
+		"manager_ad_id":      d.Get("manager_ad_id"),
+		"manager_user_id":    d.Get("manager_user_id"),
+		"member_of":          d.Get("member_of"),
+		"phone":              d.Get("phone"),
+		"samaccountname":     d.Get("samaccountname"),
+		"userprincipalname":  d.Get("userprincipalname"),
+		"state":              d.Get("state"),
+		"status":             d.Get("status"),
+		"group_id":           d.Get("group_id"),
+		"role_ids":           d.Get("role_ids"),
+		"custom_attributes":  d.Get("custom_attributes"),
+	})
 	if err != nil {
-		log.Printf("[ERROR] There was a problem deleting the user!")
-		log.Println(err)
-	} else {
-		log.Printf("[DELETED] Deleted user with %d", uid)
-		d.SetId("")
+		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "User", d.Id())
 	}
 
-	return nil
+	client := m.(*onelogin.OneloginSDK)
+	tflog.Info(ctx, "[UPDATE] Updating user", map[string]interface{}{
+		"id": uid,
+	})
+
+	_, err = client.UpdateUser(uid, user)
+	if err != nil {
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryUpdate, "User", d.Id())
+	}
+
+	tflog.Info(ctx, "[UPDATED] Updated user", map[string]interface{}{
+		"id": uid,
+	})
+
+	return userRead(ctx, d, m)
+}
+
+// userDelete deletes a user by ID from OneLogin
+func userDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*onelogin.OneloginSDK)
+
+	return utils.StandardDeleteFunc(ctx, d, func(id string) (interface{}, error) {
+		uid, _ := strconv.Atoi(id)
+		return client.DeleteUser(uid)
+	}, "User")
 }

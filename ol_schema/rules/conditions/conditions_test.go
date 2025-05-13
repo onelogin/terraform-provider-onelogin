@@ -3,8 +3,7 @@ package appruleconditionsschema
 import (
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,18 +19,18 @@ func TestRulesSchema(t *testing.T) {
 func Test(t *testing.T) {
 	tests := map[string]struct {
 		ResourceData   map[string]interface{}
-		ExpectedOutput apprules.AppRuleConditions
+		ExpectedOutput models.Condition
 	}{
-		"creates and returns the address of an AppParameters struct": {
+		"creates and returns the address of an Condition struct": {
 			ResourceData: map[string]interface{}{
 				"source":   "test",
 				"operator": "=",
 				"value":    "test",
 			},
-			ExpectedOutput: apprules.AppRuleConditions{
-				Source:   oltypes.String("test"),
-				Operator: oltypes.String("="),
-				Value:    oltypes.String("test"),
+			ExpectedOutput: models.Condition{
+				Source:   "test",
+				Operator: "=",
+				Value:    "test",
 			},
 		},
 	}
@@ -44,30 +43,30 @@ func Test(t *testing.T) {
 }
 
 func TestFlatten(t *testing.T) {
-	t.Run("It flattens the AppParameters Struct", func(t *testing.T) {
-		appConditionStruct := []apprules.AppRuleConditions{
+	t.Run("It flattens the Condition Struct", func(t *testing.T) {
+		conditionStruct := []models.Condition{
 			{
-				Source:   oltypes.String("test"),
-				Operator: oltypes.String("="),
-				Value:    oltypes.String("test"),
+				Source:   "test",
+				Operator: "=",
+				Value:    "test",
 			},
 			{
-				Source:   oltypes.String("test2"),
-				Operator: oltypes.String("<"),
-				Value:    oltypes.String("test2"),
+				Source:   "test2",
+				Operator: "<",
+				Value:    "test2",
 			},
 		}
-		subj := Flatten(appConditionStruct)
+		subj := Flatten(conditionStruct)
 		expected := []map[string]interface{}{
 			{
-				"source":   oltypes.String("test"),
-				"operator": oltypes.String("="),
-				"value":    oltypes.String("test"),
+				"source":   "test",
+				"operator": "=",
+				"value":    "test",
 			},
 			{
-				"source":   oltypes.String("test2"),
-				"operator": oltypes.String("<"),
-				"value":    oltypes.String("test2"),
+				"source":   "test2",
+				"operator": "<",
+				"value":    "test2",
 			},
 		}
 		assert.Equal(t, expected, subj)

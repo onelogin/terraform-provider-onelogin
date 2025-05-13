@@ -4,11 +4,10 @@ import (
 	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/privileges"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
-// Schema returns a key/value map of the various fields that make up an App at OneLogin.
+// Schema returns a key/value map of the various fields that make up a Privilege at OneLogin.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
@@ -67,63 +66,94 @@ func Schema() map[string]*schema.Schema {
 	}
 }
 
-func Inflate(d map[string]interface{}) (privileges.Privilege, error) {
+// Inflate takes a map of interfaces and constructs a Privilege object for the OneLogin API.
+func Inflate(d map[string]interface{}) (models.Privilege, error) {
 	pd, ok := d["privilege"].(*schema.Set).List()[0].(map[string]interface{})
 	if !ok {
-		return privileges.Privilege{}, errors.New("unable to parse terraform data for privilege")
+		return models.Privilege{}, errors.New("unable to parse terraform data for privilege")
 	}
 
-	rIDs := d["role_ids"].(*schema.Set).List()
-	uIDs := d["user_ids"].(*schema.Set).List()
+	// Process role IDs and user IDs
+	var roleIDs []int
+	var userIDs []int
 
-	roleIDs := make([]int, len(rIDs))
-	userIDs := make([]int, len(uIDs))
-
-	for i, r := range rIDs {
-		roleIDs[i] = r.(int)
-	}
-
-	for i, u := range uIDs {
-		userIDs[i] = u.(int)
-	}
-	privilege := privileges.Privilege{
-		Name:        oltypes.String(d["name"].(string)),
-		Description: oltypes.String(d["description"].(string)),
-		RoleIDs:     roleIDs,
-		UserIDs:     userIDs,
-		Privilege: &privileges.PrivilegeData{
-			Version: oltypes.String(pd["version"].(string)),
-		},
-	}
-	if d["id"] != nil {
-		privilege.ID = oltypes.String(d["id"].(string))
-	}
-	ps := pd["statement"].([]interface{})
-	privilege.Privilege.Statement = make([]privileges.StatementData, len(ps))
-	for i, s := range ps {
-		st := s.(map[string]interface{})
-
-		stAct := st["action"].([]interface{})
-		stSco := st["scope"].([]interface{})
-
-		statementActions := make([]string, len(stAct))
-		statementScopes := make([]string, len(stSco))
-
-		for i, ac := range stAct {
-			statementActions[i] = ac.(string)
-		}
-		for i, sc := range stSco {
-			statementScopes[i] = sc.(string)
-		}
-		privilege.Privilege.Statement[i] = privileges.StatementData{
-			Effect: oltypes.String(st["effect"].(string)),
-			Action: statementActions,
-			Scope:  statementScopes,
+	if d["role_ids"] != nil {
+		rIDs := d["role_ids"].(*schema.Set).List()
+		roleIDs = make([]int, len(rIDs))
+		for i, r := range rIDs {
+			roleIDs[i] = r.(int)
 		}
 	}
+
+	if d["user_ids"] != nil {
+		uIDs := d["user_ids"].(*schema.Set).List()
+		userIDs = make([]int, len(uIDs))
+		for i, u := range uIDs {
+			userIDs[i] = u.(int)
+		}
+	}
+
+	// Create the basic privilege object
+	privilege := models.Privilege{
+		RoleIDs:   roleIDs,
+		UserIDs:   userIDs,
+		Privilege: &models.PrivilegeData{},
+	}
+
+	// Handle basic fields
+	if name, ok := d["name"].(string); ok {
+		privilege.Name = &name
+	}
+
+	if desc, ok := d["description"].(string); ok {
+		privilege.Description = &desc
+	}
+
+	if id, ok := d["id"].(string); ok {
+		privilege.ID = &id
+	}
+
+	// Handle version
+	if version, ok := pd["version"].(string); ok {
+		privilege.Privilege.Version = &version
+	}
+
+	// Process statements
+	if pd["statement"] != nil {
+		ps := pd["statement"].([]interface{})
+		privilege.Privilege.Statement = make([]models.StatementData, len(ps))
+
+		for i, s := range ps {
+			st := s.(map[string]interface{})
+
+			stAct := st["action"].([]interface{})
+			stSco := st["scope"].([]interface{})
+
+			statementActions := make([]string, len(stAct))
+			statementScopes := make([]string, len(stSco))
+
+			for j, ac := range stAct {
+				statementActions[j] = ac.(string)
+			}
+			for j, sc := range stSco {
+				statementScopes[j] = sc.(string)
+			}
+
+			effect := st["effect"].(string)
+
+			privilege.Privilege.Statement[i] = models.StatementData{
+				Effect: &effect,
+				Action: statementActions,
+				Scope:  statementScopes,
+			}
+		}
+	}
+
 	return privilege, nil
 }
-func FlattenPrivilegeData(p privileges.PrivilegeData) []map[string]interface{} {
+
+// FlattenPrivilegeData converts a PrivilegeData struct to a format suitable for terraform state
+func FlattenPrivilegeData(p models.PrivilegeData) []map[string]interface{} {
 	statements := make([]map[string]interface{}, len(p.Statement))
 	for i, s := range p.Statement {
 		statements[i] = map[string]interface{}{

@@ -2,8 +2,7 @@ package usermappingactionsschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	usermappings "github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 // Schema returns a key/value map of the various fields that make up the Actions of a OneLogin Rule.
@@ -24,11 +23,11 @@ func Schema() map[string]*schema.Schema {
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
-// a AppProvisioning struct, a sub-field of a OneLogin App.
-func Inflate(s map[string]interface{}) usermappings.UserMappingActions {
-	out := usermappings.UserMappingActions{}
+// a UserMappingActions struct, a sub-field of a OneLogin UserMapping.
+func Inflate(s map[string]interface{}) models.UserMappingActions {
+	out := models.UserMappingActions{}
 	if act, notNil := s["action"].(string); notNil {
-		out.Action = oltypes.String(act)
+		out.Action = &act
 	}
 	if val, notNil := s["value"].([]interface{}); notNil {
 		out.Value = make([]string, len(val))
@@ -39,8 +38,8 @@ func Inflate(s map[string]interface{}) usermappings.UserMappingActions {
 	return out
 }
 
-// Flatten takes a AppRuleActions instance and converts it to an array of maps
-func Flatten(acts []usermappings.UserMappingActions) []map[string]interface{} {
+// Flatten takes a UserMappingActions instance and converts it to an array of maps
+func Flatten(acts []models.UserMappingActions) []map[string]interface{} {
 	out := make([]map[string]interface{}, len(acts))
 	for i, action := range acts {
 		out[i] = map[string]interface{}{

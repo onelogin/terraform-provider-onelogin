@@ -6,7 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/client"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	userschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
 )
 
@@ -19,99 +20,155 @@ func dataSourceUser() *schema.Resource {
 }
 
 func dataSourceUserRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*client.APIClient)
+	client := m.(*onelogin.OneloginSDK)
 	query, _ := userschema.QueryInflate(map[string]interface{}{
 		"username": d.Get("username"),
 		"user_id":  d.Get("user_id"),
 	})
 
-	if *(query.UserIDs) == "" && *(query.Username) == "" {
+	if query.UserIDs == "" && query.Username == "" {
 		return fmt.Errorf("At least one of either username or user_id must be defined")
 	}
 
-	users, err := client.Services.UsersV2.Query(&query)
+	// In v4 SDK, we need to use the models.UserQuery struct that implements Queryable
+	// Create a pointer to a string for each field that has a value
+	var username, userIDs *string
 
+	if query.Username != "" {
+		usernameVal := query.Username
+		username = &usernameVal
+	}
+
+	if query.UserIDs != "" {
+		userIDsVal := query.UserIDs
+		userIDs = &userIDsVal
+	}
+
+	// Create the query object using the SDK models
+	sdkQuery := &models.UserQuery{
+		Username: username,
+		UserIDs:  userIDs,
+	}
+
+	result, err := client.GetUsers(sdkQuery)
 	if err != nil {
 		log.Printf("[ERROR] There was a problem reading the user!")
 		log.Println(err)
 		return err
 	}
-	if users == nil {
-		log.Printf("[WARNING] Nil users returned by the query")
+
+	// Parse the users from the result
+	respMap, ok := result.(map[string]interface{})
+	if !ok {
+		log.Printf("[WARNING] Invalid response format")
+		d.SetId("")
+		return fmt.Errorf("Invalid response format from API")
+	}
+
+	data, ok := respMap["data"].([]interface{})
+	if !ok || len(data) == 0 {
+		log.Printf("[WARNING] No users returned by the query")
 		d.SetId("")
 		return nil
 	}
-	if len(users) != 1 {
-		log.Printf("[WARNING] %d user returned by the query", len(users))
+
+	if len(data) != 1 {
+		log.Printf("[WARNING] %d users returned by the query", len(data))
 		d.SetId("")
 		return fmt.Errorf("Your query returned more than one result. Usernames and IDs should be unique")
 	}
 
-	d.SetId(fmt.Sprintf("%d", *(users[0].ID)))
-	if users[0].Username != nil {
-		d.Set("username", *(users[0].Username))
+	// Get the first user from the data
+	user, ok := data[0].(map[string]interface{})
+	if !ok {
+		log.Printf("[WARNING] Invalid user format")
+		d.SetId("")
+		return fmt.Errorf("Invalid user format in response")
 	}
-	if users[0].Email != nil {
-		d.Set("email", *(users[0].Email))
+
+	// Set the user ID
+	userID, ok := user["id"].(float64)
+	if !ok {
+		log.Printf("[WARNING] Invalid or missing user ID")
+		d.SetId("")
+		return fmt.Errorf("Invalid or missing user ID in response")
 	}
-	if users[0].Firstname != nil {
-		d.Set("firstname", *(users[0].Firstname))
+
+	d.SetId(fmt.Sprintf("%d", int(userID)))
+
+	// Set user fields
+	if v, ok := user["username"]; ok {
+		d.Set("username", v)
 	}
-	if users[0].Lastname != nil {
-		d.Set("lastname", *(users[0].Lastname))
+	if v, ok := user["email"]; ok {
+		d.Set("email", v)
 	}
-	if users[0].DistinguishedName != nil {
-		d.Set("distinguished_name", *(users[0].DistinguishedName))
+	if v, ok := user["firstname"]; ok {
+		d.Set("firstname", v)
 	}
-	if users[0].Samaccountname != nil {
-		d.Set("samaccountname", *(users[0].Samaccountname))
+	if v, ok := user["lastname"]; ok {
+		d.Set("lastname", v)
 	}
-	if users[0].UserPrincipalName != nil {
-		d.Set("user_principal_name", *(users[0].UserPrincipalName))
+	if v, ok := user["distinguished_name"]; ok {
+		d.Set("distinguished_name", v)
 	}
-	if users[0].MemberOf != nil {
-		d.Set("member_of", *(users[0].MemberOf))
+	if v, ok := user["samaccountname"]; ok {
+		d.Set("samaccountname", v)
 	}
-	if users[0].Phone != nil {
-		d.Set("phone", *(users[0].Phone))
+	if v, ok := user["userprincipalname"]; ok {
+		d.Set("user_principal_name", v)
 	}
-	if users[0].Title != nil {
-		d.Set("title", *(users[0].Title))
+	if v, ok := user["member_of"]; ok {
+		memberOf, isList := v.([]interface{})
+		if isList && len(memberOf) > 0 {
+			// If member_of is a list, use the first item
+			d.Set("member_of", memberOf[0])
+		} else {
+			d.Set("member_of", v)
+		}
 	}
-	if users[0].Company != nil {
-		d.Set("company", *(users[0].Company))
+	if v, ok := user["phone"]; ok {
+		d.Set("phone", v)
 	}
-	if users[0].Department != nil {
-		d.Set("department", *(users[0].Department))
+	if v, ok := user["title"]; ok {
+		d.Set("title", v)
 	}
-	if users[0].Comment != nil {
-		d.Set("comment", *(users[0].Comment))
+	if v, ok := user["company"]; ok {
+		d.Set("company", v)
 	}
-	if users[0].State != nil {
-		d.Set("state", *(users[0].State))
+	if v, ok := user["department"]; ok {
+		d.Set("department", v)
 	}
-	if users[0].Status != nil {
-		d.Set("status", *(users[0].Status))
+	if v, ok := user["comment"]; ok {
+		d.Set("comment", v)
 	}
-	if users[0].GroupID != nil {
-		d.Set("group_id", *(users[0].GroupID))
+	if v, ok := user["state"]; ok {
+		d.Set("state", v)
 	}
-	if users[0].DirectoryID != nil {
-		d.Set("directory_id", *(users[0].DirectoryID))
+	if v, ok := user["status"]; ok {
+		d.Set("status", v)
 	}
-	if users[0].TrustedIDPID != nil {
-		d.Set("trusted_idp_id", *(users[0].TrustedIDPID))
+	if v, ok := user["group_id"]; ok {
+		d.Set("group_id", v)
 	}
-	if users[0].ManagerADID != nil {
-		d.Set("manager_ad_id", *(users[0].ManagerADID))
+	if v, ok := user["directory_id"]; ok {
+		d.Set("directory_id", v)
 	}
-	if users[0].ManagerUserID != nil {
-		d.Set("manager_user_id", *(users[0].ManagerUserID))
+	if v, ok := user["trusted_idp_id"]; ok {
+		d.Set("trusted_idp_id", v)
 	}
-	if users[0].ExternalID != nil {
-		d.Set("external_id", *(users[0].ExternalID))
+	if v, ok := user["manager_ad_id"]; ok {
+		d.Set("manager_ad_id", v)
 	}
-	d.Set("custom_attributes", users[0].CustomAttributes)
+	if v, ok := user["manager_user_id"]; ok {
+		d.Set("manager_user_id", v)
+	}
+	if v, ok := user["external_id"]; ok {
+		d.Set("external_id", v)
+	}
+	if v, ok := user["custom_attributes"]; ok {
+		d.Set("custom_attributes", v)
+	}
 
 	return nil
 }

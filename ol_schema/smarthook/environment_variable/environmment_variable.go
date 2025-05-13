@@ -2,11 +2,10 @@ package smarthookenvironmentvariablesschema
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	smarthookenvs "github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
-// Schema returns a key/value map of the various fields that make up the Rules of a OneLogin App.
+// Schema returns a key/value map of the various fields that make up the Environment Variables for a OneLogin SmartHook.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
@@ -29,17 +28,17 @@ func Schema() map[string]*schema.Schema {
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct
-// a AppProvisioning struct, a sub-field of a OneLogin App.
-func Inflate(s map[string]interface{}) smarthookenvs.EnvVar {
-	out := smarthookenvs.EnvVar{}
+// an EnvVar struct, used by the OneLogin SmartHooks API.
+func Inflate(s map[string]interface{}) models.EnvVar {
+	out := models.EnvVar{}
 	if id, notNil := s["id"].(string); notNil {
-		out.ID = oltypes.String(id)
+		out.ID = &id
 	}
-	if hookType, notNil := s["name"].(string); notNil {
-		out.Name = oltypes.String(hookType)
+	if name, notNil := s["name"].(string); notNil {
+		out.Name = &name
 	}
-	if runtime, notNil := s["value"].(string); notNil {
-		out.Value = oltypes.String(runtime)
+	if value, notNil := s["value"].(string); notNil {
+		out.Value = &value
 	}
 	return out
 }
