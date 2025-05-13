@@ -63,7 +63,7 @@ This version includes support for Custom User Attributes using the OneLogin v4 A
 terraform {
   required_providers {
     onelogin = {
-      source  = "onelogin.com/onelogin/onelogin"
+      source  = "onelogin/onelogin"
       version = "0.7.0"
     }
   }
