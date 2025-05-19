@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
-	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	roleschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/role"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
