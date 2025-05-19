@@ -139,44 +139,19 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 // roleUpdate updates a role by ID in OneLogin
 func roleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	rid, _ := strconv.Atoi(d.Id())
-
-	// Check what fields changed
-	usersDirty := d.HasChange("users")
 	
-	// Use a minimal role object with only the fields that changed
-	role := &models.Role{}
+	// Create a role object with all current values
+	role := roleschema.Inflate(map[string]interface{}{
+		"id":     d.Id(),
+		"name":   d.Get("name"),
+		"apps":   d.Get("apps"),
+		"users":  d.Get("users"),
+		"admins": d.Get("admins"),
+	})
 	
-	// Only set the fields that are being updated
-	if usersDirty && !d.HasChanges("name", "apps", "admins") {
-		// If only users changed, only include users in the update
-		if users := d.Get("users"); users != nil {
-			usersList := users.(*schema.Set).List()
-			usersArray := make([]int32, len(usersList))
-			for i, userID := range usersList {
-				usersArray[i] = int32(userID.(int))
-			}
-			role.Users = usersArray
-			
-			// Debug logging
-			tflog.Info(ctx, "[UPDATE] Updating role with only users field", map[string]interface{}{
-				"id":    rid,
-				"users": fmt.Sprintf("%v", usersArray),
-			})
-		}
-	} else {
-		// Otherwise, include all fields
-		role = roleschema.Inflate(map[string]interface{}{
-			"id":     d.Id(),
-			"name":   d.Get("name"),
-			"apps":   d.Get("apps"),
-			"users":  d.Get("users"),
-			"admins": d.Get("admins"),
-		})
-		
-		tflog.Info(ctx, "[UPDATE] Updating role with all fields", map[string]interface{}{
-			"id": rid,
-		})
-	}
+	tflog.Info(ctx, "[UPDATE] Updating role", map[string]interface{}{
+		"id": rid,
+	})
 	
 	// Log the role object for debugging
 	roleJSON, _ := json.Marshal(role)
