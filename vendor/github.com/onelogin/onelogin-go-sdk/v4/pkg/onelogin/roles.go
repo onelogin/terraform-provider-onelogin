@@ -1,6 +1,8 @@
 package onelogin
 
 import (
+	"context"
+
 	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
@@ -10,24 +12,34 @@ var (
 )
 
 func (sdk *OneloginSDK) CreateRole(role *mod.Role) (interface{}, error) {
+	return sdk.CreateRoleWithContext(context.Background(), role)
+}
+
+// CreateRoleWithContext creates a role using the provided context
+func (sdk *OneloginSDK) CreateRoleWithContext(ctx context.Context, role *mod.Role) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Post(&p, role)
+	resp, err := sdk.Client.PostWithContext(ctx, &p, role)
 	if err != nil {
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
 }
 
-// ListRoles
+// GetRoles retrieves a list of roles
 func (sdk *OneloginSDK) GetRoles(queryParams mod.Queryable) (interface{}, error) {
+	return sdk.GetRolesWithContext(context.Background(), queryParams)
+}
+
+// GetRolesWithContext retrieves a list of roles using the provided context
+func (sdk *OneloginSDK) GetRolesWithContext(ctx context.Context, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Get(&p, queryParams)
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
 	if err != nil {
 		return nil, err
 	}
@@ -35,35 +47,50 @@ func (sdk *OneloginSDK) GetRoles(queryParams mod.Queryable) (interface{}, error)
 }
 
 func (sdk *OneloginSDK) GetRoleByID(id int, queryParams mod.Queryable) (interface{}, error) {
+	return sdk.GetRoleByIDWithContext(context.Background(), id, queryParams)
+}
+
+// GetRoleByIDWithContext retrieves a role by ID using the provided context
+func (sdk *OneloginSDK) GetRoleByIDWithContext(ctx context.Context, id int, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, id)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Get(&p, queryParams)
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
 	if err != nil {
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) UpdateRole(id int, role mod.Role, queryParams map[string]string) (interface{}, error) {
+func (sdk *OneloginSDK) UpdateRole(id int, role *mod.Role) (interface{}, error) {
+	return sdk.UpdateRoleWithContext(context.Background(), id, role)
+}
+
+// UpdateRoleWithContext updates a role using the provided context
+func (sdk *OneloginSDK) UpdateRoleWithContext(ctx context.Context, id int, role *mod.Role) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, id)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Put(&p, role)
+	resp, err := sdk.Client.PutWithContext(ctx, &p, role)
 	if err != nil {
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) DeleteRole(id int, queryParams map[string]string) (interface{}, error) {
+func (sdk *OneloginSDK) DeleteRole(id int) (interface{}, error) {
+	return sdk.DeleteRoleWithContext(context.Background(), id)
+}
+
+// DeleteRoleWithContext deletes a role using the provided context
+func (sdk *OneloginSDK) DeleteRoleWithContext(ctx context.Context, id int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, id)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Delete(&p)
+	resp, err := sdk.Client.DeleteWithContext(ctx, &p)
 	if err != nil {
 		return nil, err
 	}

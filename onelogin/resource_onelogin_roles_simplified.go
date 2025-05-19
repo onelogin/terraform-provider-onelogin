@@ -40,7 +40,7 @@ func roleCreateSimplified(ctx context.Context, d *schema.ResourceData, m interfa
 		"name": d.Get("name").(string),
 	})
 
-	result, err := client.CreateRole(role)
+	result, err := client.CreateRoleWithContext(ctx, role)
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryCreate, "Role", "")
 	}
@@ -75,7 +75,7 @@ func roleReadSimplified(ctx context.Context, d *schema.ResourceData, m interface
 		"id": rid,
 	})
 
-	result, err := client.GetRoleByID(rid, &roleschema.RoleQuery{})
+	result, err := client.GetRoleByIDWithContext(ctx, rid, &roleschema.RoleQuery{})
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role", d.Id())
 	}
@@ -151,7 +151,7 @@ func roleUpdateSimplified(ctx context.Context, d *schema.ResourceData, m interfa
 		"id": rid,
 	})
 
-	_, err := client.UpdateRole(rid, *role, map[string]string{})
+	_, err := client.UpdateRoleWithContext(ctx, rid, role)
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryUpdate, "Role", d.Id())
 	}
@@ -169,6 +169,6 @@ func roleDeleteSimplified(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return utils.StandardDeleteFunc(ctx, d, func(id string) (interface{}, error) {
 		rid, _ := strconv.Atoi(id)
-		return client.DeleteRole(rid, map[string]string{})
+		return client.DeleteRoleWithContext(ctx, rid)
 	}, "Role")
 }

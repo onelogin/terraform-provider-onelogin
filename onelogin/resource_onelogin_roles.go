@@ -2,6 +2,7 @@ package onelogin
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	roleschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/role"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
@@ -40,7 +42,7 @@ func roleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		"name": d.Get("name").(string),
 	})
 
-	result, err := client.CreateRole(role)
+	result, err := client.CreateRoleWithContext(ctx, role)
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryCreate, "Role", "")
 	}
@@ -75,7 +77,7 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		"id": rid,
 	})
 
-	result, err := client.GetRoleByID(rid, &roleschema.RoleQuery{})
+	result, err := client.GetRoleByIDWithContext(ctx, rid, &roleschema.RoleQuery{})
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role", d.Id())
 	}
@@ -138,21 +140,60 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 func roleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	rid, _ := strconv.Atoi(d.Id())
 
-	role := roleschema.Inflate(map[string]interface{}{
-		"id":     d.Id(),
-		"name":   d.Get("name"),
-		"apps":   d.Get("apps"),
-		"users":  d.Get("users"),
-		"admins": d.Get("admins"),
+	// Check what fields changed
+	usersDirty := d.HasChange("users")
+	
+	// Use a minimal role object with only the fields that changed
+	role := &models.Role{}
+	
+	// Only set the fields that are being updated
+	if usersDirty && !d.HasChanges("name", "apps", "admins") {
+		// If only users changed, only include users in the update
+		if users := d.Get("users"); users != nil {
+			usersList := users.(*schema.Set).List()
+			usersArray := make([]int32, len(usersList))
+			for i, userID := range usersList {
+				usersArray[i] = int32(userID.(int))
+			}
+			role.Users = usersArray
+			
+			// Debug logging
+			tflog.Info(ctx, "[UPDATE] Updating role with only users field", map[string]interface{}{
+				"id":    rid,
+				"users": fmt.Sprintf("%v", usersArray),
+			})
+		}
+	} else {
+		// Otherwise, include all fields
+		role = roleschema.Inflate(map[string]interface{}{
+			"id":     d.Id(),
+			"name":   d.Get("name"),
+			"apps":   d.Get("apps"),
+			"users":  d.Get("users"),
+			"admins": d.Get("admins"),
+		})
+		
+		tflog.Info(ctx, "[UPDATE] Updating role with all fields", map[string]interface{}{
+			"id": rid,
+		})
+	}
+	
+	// Log the role object for debugging
+	roleJSON, _ := json.Marshal(role)
+	tflog.Debug(ctx, "[DEBUG] Role object being sent", map[string]interface{}{
+		"role_json": string(roleJSON),
 	})
 
 	client := m.(*onelogin.OneloginSDK)
-	tflog.Info(ctx, "[UPDATE] Updating role", map[string]interface{}{
-		"id": rid,
-	})
-
-	_, err := client.UpdateRole(rid, *role, map[string]string{})
+	
+	// Update the role
+	_, err := client.UpdateRoleWithContext(ctx, rid, role)
 	if err != nil {
+		// Log more details about the error
+		tflog.Error(ctx, "[ERROR] Failed to update role", map[string]interface{}{
+			"id":    rid,
+			"error": err.Error(),
+		})
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryUpdate, "Role", d.Id())
 	}
 
@@ -169,6 +210,6 @@ func roleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 
 	return utils.StandardDeleteFunc(ctx, d, func(id string) (interface{}, error) {
 		rid, _ := strconv.Atoi(id)
-		return client.DeleteRole(rid, map[string]string{})
+		return client.DeleteRoleWithContext(ctx, rid)
 	}, "Role")
 }
