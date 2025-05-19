@@ -250,7 +250,7 @@ github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp
 github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks
 github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs
 github.com/onelogin/onelogin-go-sdk/pkg/utils
-# github.com/onelogin/onelogin-go-sdk/v4 v4.5.0
+# github.com/onelogin/onelogin-go-sdk/v4 v4.5.1
 ## explicit; go 1.18
 github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin
 github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/api
