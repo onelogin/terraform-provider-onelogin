@@ -330,7 +330,9 @@ func roleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 
 	// Print the exact JSON payload that will be sent to the API
 	requestJSON, _ := json.MarshalIndent(role, "", "  ")
-	fmt.Printf("\n\nEXACT REQUEST PAYLOAD:\n%s\n\n", string(requestJSON))
+	tflog.Debug(ctx, "[DEBUG] Exact request payload", map[string]interface{}{
+		"payload": string(requestJSON),
+	})
 
 	// Simple logging
 	tflog.Info(ctx, "[UPDATE] Sending role update to API", map[string]interface{}{
