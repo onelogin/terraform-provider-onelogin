@@ -46,31 +46,31 @@ If you encounter issues with the provider availability in the Terraform Registry
 1. Create the plugins directory (adjust OS and architecture as needed):
    ```bash
    # For macOS Intel
-   mkdir -p ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/darwin_amd64
+   mkdir -p ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/darwin_amd64
 
    # For macOS Apple Silicon (M1/M2)
-   mkdir -p ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/darwin_arm64
+   mkdir -p ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/darwin_arm64
 
    # For Linux
-   mkdir -p ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/linux_amd64
+   mkdir -p ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/linux_amd64
 
    # For Windows
-   mkdir -p %APPDATA%\terraform.d\plugins\registry.terraform.io\onelogin\onelogin\0.8.0\windows_amd64
+   mkdir -p %APPDATA%\terraform.d\plugins\registry.terraform.io\onelogin\onelogin\0.8.1\windows_amd64
    ```
 
 2. Download the provider binary from GitHub releases:
    ```bash
    # For macOS Intel
-   curl -L https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.0/terraform-provider-onelogin_0.8.0_darwin_amd64.zip -o /tmp/provider.zip
+   curl -L https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.1/terraform-provider-onelogin_0.8.1_darwin_amd64.zip -o /tmp/provider.zip
 
    # For macOS Apple Silicon
-   curl -L https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.0/terraform-provider-onelogin_0.8.0_darwin_arm64.zip -o /tmp/provider.zip
+   curl -L https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.1/terraform-provider-onelogin_0.8.1_darwin_arm64.zip -o /tmp/provider.zip
 
    # For Linux
-   curl -L https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.0/terraform-provider-onelogin_0.8.0_linux_amd64.zip -o /tmp/provider.zip
+   curl -L https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.1/terraform-provider-onelogin_0.8.1_linux_amd64.zip -o /tmp/provider.zip
 
    # For Windows (using PowerShell)
-   Invoke-WebRequest -Uri https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.0/terraform-provider-onelogin_0.8.0_windows_amd64.zip -OutFile $env:TEMP\provider.zip
+   Invoke-WebRequest -Uri https://github.com/onelogin/terraform-provider-onelogin/releases/download/v0.8.1/terraform-provider-onelogin_0.8.1_windows_amd64.zip -OutFile $env:TEMP\provider.zip
    ```
 
 3. Extract and install:
@@ -82,21 +82,21 @@ If you encounter issues with the provider availability in the Terraform Registry
    ls -la /tmp/provider
 
    # For macOS Intel (adjust filenames based on what you see in the previous step)
-   cp /tmp/provider/terraform-provider-onelogin_v0.8.0 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/darwin_amd64/
-   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/darwin_amd64/terraform-provider-onelogin_v0.8.0
+   cp /tmp/provider/terraform-provider-onelogin_v0.8.1 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/darwin_amd64/
+   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/darwin_amd64/terraform-provider-onelogin_v0.8.1
 
    # For macOS Apple Silicon (adjust filenames based on what you see)
-   cp /tmp/provider/terraform-provider-onelogin_v0.8.0 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/darwin_arm64/
-   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/darwin_arm64/terraform-provider-onelogin_v0.8.0
+   cp /tmp/provider/terraform-provider-onelogin_v0.8.1 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/darwin_arm64/
+   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/darwin_arm64/terraform-provider-onelogin_v0.8.1
 
    # For Linux (adjust filenames based on what you see)
-   cp /tmp/provider/terraform-provider-onelogin_v0.8.0 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/linux_amd64/
-   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.0/linux_amd64/terraform-provider-onelogin_v0.8.0
+   cp /tmp/provider/terraform-provider-onelogin_v0.8.1 ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/linux_amd64/
+   chmod +x ~/.terraform.d/plugins/registry.terraform.io/onelogin/onelogin/0.8.1/linux_amd64/terraform-provider-onelogin_v0.8.1
 
    # For Windows (using PowerShell) (adjust filenames based on what you see)
    Expand-Archive -Path $env:TEMP\provider.zip -DestinationPath $env:TEMP\provider
    Get-ChildItem -Path $env:TEMP\provider -Recurse
-   Copy-Item $env:TEMP\provider\terraform-provider-onelogin_v0.8.0.exe $env:APPDATA\terraform.d\plugins\registry.terraform.io\onelogin\onelogin\0.8.0\windows_amd64\
+   Copy-Item $env:TEMP\provider\terraform-provider-onelogin_v0.8.1.exe $env:APPDATA\terraform.d\plugins\registry.terraform.io\onelogin\onelogin\0.8.1\windows_amd64\
    ```
 
    > **Note:** The exact structure and filenames inside the zip may vary between releases. After extraction, check the actual contents with `ls` or `Get-ChildItem` and adjust the copy commands accordingly. The binary may be in a subdirectory or have a slightly different name.

@@ -26,6 +26,8 @@ test_dir/
 test_tool
 modified_*.go
 *.bak
+test/
+terraform.tfvars
 
 # IDE and editor files
 .idea/

@@ -4,6 +4,16 @@
 
 ## Latest Updates
 
+### v0.8.1 - SDK v4.5.0 and Role Management Improvements
+
+This version updates to OneLogin SDK v4.5.0 and improves role management:
+
+- Updated OneLogin SDK from v4.4.0 to v4.5.0
+- Enhanced role operations with context-aware methods
+- Improved handling of role updates with users, apps, and admins
+- Added debugging support for role operations
+- Optimized update operations to use minimal request payloads
+
 ### v0.8.0 - User Mappings Support
 
 This version adds support for User Mappings with the OneLogin SDK v4.4.0:
@@ -73,7 +83,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin/onelogin"
-      version = "0.8.0"
+      version = "0.8.1"
     }
   }
 }

@@ -3,8 +3,8 @@ package onelogin
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	ol "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
@@ -35,27 +35,14 @@ func Provider() *schema.Provider {
 			"url": {
 				Type:        schema.TypeString,
 				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_API_URL", nil),
-				Optional:    true,
-				Description: "OneLogin API URL. This is an alternative to using subdomain. If both are provided, subdomain takes precedence.",
-			},
-			// Both region and subdomain are deprecated and will be removed in a future version
-			"region": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "Use url instead",
-			},
-			"subdomain": {
-				Type:        schema.TypeString,
-				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_SUBDOMAIN", nil),
-				Optional:    true,
-				Deprecated:  "Use url instead",
-				Description: "OneLogin subdomain (e.g. 'company' for company.onelogin.com)",
+				Required:    true,
+				Description: "OneLogin API URL (e.g. https://api.us.onelogin.com or https://api.eu.onelogin.com)",
 			},
 			"timeout": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_TIMEOUT", 60),
-				Description: "Timeout in seconds for API operations. Defaults to 60 seconds if not specified.",
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_TIMEOUT", 180),
+				Description: "Timeout in seconds for API operations. Defaults to 180 seconds if not specified.",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -91,30 +78,38 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 	os.Setenv("ONELOGIN_CLIENT_ID", clientID)
 	os.Setenv("ONELOGIN_CLIENT_SECRET", clientSecret)
 
-	// Prioritize URL over subdomain
+	// Set a longer timeout for API operations
+	timeout := d.Get("timeout").(int)
+	os.Setenv("ONELOGIN_CLIENT_TIMEOUT", strconv.Itoa(timeout))
+
+	// Set the API URL
 	url := d.Get("url").(string)
-	subdomain := d.Get("subdomain").(string)
+	if url == "" {
+		return nil, diag.Errorf("OneLogin API URL is required. Please set the ONELOGIN_API_URL environment variable.")
+	}
 
-	if url != "" {
-		// Set API URL for SDK - now the preferred way
-		os.Setenv("ONELOGIN_API_URL", url)
+	// Set API URL for SDK
+	os.Setenv("ONELOGIN_API_URL", url)
 
-		// Extract subdomain from URL for backward compatibility with SDK
-		// URL format is typically https://company.onelogin.com
-		urlParts := strings.Split(strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://"), ".")
-		if len(urlParts) > 0 {
-			extractedSubdomain := urlParts[0]
-			os.Setenv("ONELOGIN_SUBDOMAIN", extractedSubdomain)
+	// Extract subdomain from URL for backward compatibility with SDK's internals
+	// Most SDK functions still use the subdomain internally
+	urlParts := strings.Split(strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://"), ".")
+	if len(urlParts) > 0 && urlParts[0] != "api" {
+		// Direct subdomain URL (e.g., company.onelogin.com)
+		extractedSubdomain := urlParts[0]
+		os.Setenv("ONELOGIN_SUBDOMAIN", extractedSubdomain)
+	} else if len(urlParts) > 1 && urlParts[0] == "api" {
+		// API URL format (e.g., api.us.onelogin.com or api.eu.onelogin.com)
+		region := urlParts[1]
+		if region == "us" || region == "eu" {
+			// This is a valid API URL, but we need to set a dummy subdomain
+			// as the SDK still requires ONELOGIN_SUBDOMAIN to be set
+			os.Setenv("ONELOGIN_SUBDOMAIN", "dummy")
 		} else {
-			return nil, diag.Errorf("Could not extract subdomain from URL. Please provide a valid OneLogin URL.")
+			return nil, diag.Errorf("Invalid API URL format. Expected api.us.onelogin.com or api.eu.onelogin.com")
 		}
-	} else if subdomain != "" {
-		// For backward compatibility
-		os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
-		// Also set the API URL for consistency
-		os.Setenv("ONELOGIN_API_URL", fmt.Sprintf("https://%s.onelogin.com", subdomain))
 	} else {
-		return nil, diag.Errorf("Either OneLogin API URL or subdomain is required. Please set the ONELOGIN_API_URL environment variable.")
+		return nil, diag.Errorf("Could not extract subdomain from URL. Please provide a valid OneLogin URL.")
 	}
 
 	// Initialize the SDK
