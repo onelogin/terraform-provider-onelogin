@@ -58,12 +58,32 @@ func Schema() map[string]*schema.Schema {
 func Inflate(s map[string]interface{}) *models.Role {
 	var roleID int32
 	var roleName string
+	// Initialize the role with empty arrays by default
+	// Each array will only be populated if it exists in the input map
 	out := &models.Role{}
 
-	if s["id"] != nil {
-		if id, err := strconv.Atoi(s["id"].(string)); err == nil {
-			roleID = int32(id)
-			out.ID = &roleID
+	// We don't include ID in API payloads:
+	// - For create: The API will generate an ID
+	// - For update: The ID is already in the URL path
+	//
+	// The ID is only needed for the Terraform state
+	if s["include_id_in_output"] == true && s["id"] != nil {
+		// Handle both string and int inputs
+		var id int
+		var err error
+
+		switch v := s["id"].(type) {
+		case string:
+			id, err = strconv.Atoi(v)
+			if err == nil && id > 0 {
+				roleID = int32(id)
+				out.ID = &roleID
+			}
+		case int:
+			if v > 0 {
+				roleID = int32(v)
+				out.ID = &roleID
+			}
 		}
 	}
 
@@ -72,24 +92,69 @@ func Inflate(s map[string]interface{}) *models.Role {
 		out.Name = &roleName
 	}
 
+	// Only populate apps if provided in the input map
 	if s["apps"] != nil {
-		out.Apps = make([]int32, len(s["apps"].(*schema.Set).List()))
-		for i, appID := range s["apps"].(*schema.Set).List() {
-			out.Apps[i] = int32(appID.(int))
+		// Handle both schema.Set and []int inputs
+		var appList []interface{}
+		switch apps := s["apps"].(type) {
+		case *schema.Set:
+			appList = apps.List()
+		case []int:
+			appList = make([]interface{}, len(apps))
+			for i, id := range apps {
+				appList[i] = id
+			}
+		}
+
+		if appList != nil {
+			out.Apps = make([]int32, len(appList))
+			for i, appID := range appList {
+				out.Apps[i] = int32(appID.(int))
+			}
 		}
 	}
 
+	// Only populate users if provided in the input map
 	if s["users"] != nil {
-		out.Users = make([]int32, len(s["users"].(*schema.Set).List()))
-		for i, userID := range s["users"].(*schema.Set).List() {
-			out.Users[i] = int32(userID.(int))
+		// Handle both schema.Set and []int inputs
+		var userList []interface{}
+		switch users := s["users"].(type) {
+		case *schema.Set:
+			userList = users.List()
+		case []int:
+			userList = make([]interface{}, len(users))
+			for i, id := range users {
+				userList[i] = id
+			}
+		}
+
+		if userList != nil {
+			out.Users = make([]int32, len(userList))
+			for i, userID := range userList {
+				out.Users[i] = int32(userID.(int))
+			}
 		}
 	}
 
+	// Only populate admins if provided in the input map
 	if s["admins"] != nil {
-		out.Admins = make([]int32, len(s["admins"].(*schema.Set).List()))
-		for i, adminID := range s["admins"].(*schema.Set).List() {
-			out.Admins[i] = int32(adminID.(int))
+		// Handle both schema.Set and []int inputs
+		var adminList []interface{}
+		switch admins := s["admins"].(type) {
+		case *schema.Set:
+			adminList = admins.List()
+		case []int:
+			adminList = make([]interface{}, len(admins))
+			for i, id := range admins {
+				adminList[i] = id
+			}
+		}
+
+		if adminList != nil {
+			out.Admins = make([]int32, len(adminList))
+			for i, adminID := range adminList {
+				out.Admins[i] = int32(adminID.(int))
+			}
 		}
 	}
 

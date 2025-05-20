@@ -52,4 +52,12 @@ func TestAccPreCheck(t *testing.T) {
 	if apiURL == "" && subdomain != "" {
 		t.Logf("WARNING: Using ONELOGIN_SUBDOMAIN which is deprecated. Please switch to ONELOGIN_API_URL.")
 	}
+
+	// Set a longer timeout for tests (5 minutes) if not already set
+	if os.Getenv("ONELOGIN_CLIENT_TIMEOUT") == "" {
+		t.Logf("Setting ONELOGIN_CLIENT_TIMEOUT to 300 seconds for tests")
+		os.Setenv("ONELOGIN_CLIENT_TIMEOUT", "300")
+	} else {
+		t.Logf("Using existing ONELOGIN_CLIENT_TIMEOUT: %s", os.Getenv("ONELOGIN_CLIENT_TIMEOUT"))
+	}
 }
