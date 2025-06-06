@@ -30,7 +30,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin/onelogin"
-      version = "0.8.1"
+      version = "0.8.2"
     }
   }
 }
@@ -77,7 +77,11 @@ make secure
 1. Create feature branch from `main`
 2. Create PR against `main`
 3. After approval and CI passing, merge to `main`
-4. Create a new release either:
+4. Update version numbers:
+   - Update `VERSION` in `GNUmakefile`
+   - Update version in the example provider configuration in `README.md`
+5. Commit version changes to `main`
+6. Create a new release either:
    - Through GitHub UI:
      1. Go to "Releases" on GitHub
      2. Click "Draft a new release"
@@ -89,7 +93,7 @@ make secure
      git tag vX.X.X
      git push origin vX.X.X
      ```
-5. The GitHub Action will automatically:
+7. The GitHub Action will automatically:
    - Build the provider
    - Create a GitHub release
    - Publish to the Terraform Registry
