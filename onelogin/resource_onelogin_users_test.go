@@ -31,3 +31,31 @@ func TestAccUser_crud(t *testing.T) {
 		},
 	})
 }
+
+func TestAccUser_trustedIdp(t *testing.T) {
+	withIdp := GetFixture("onelogin_user_with_trusted_idp_example.tf", t)
+	withoutIdp := GetFixture("onelogin_user_without_trusted_idp_example.tf", t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { TestAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: withIdp,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "username", "trusted.idp.test"),
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "email", "trusted.idp.test@onelogin.com"),
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "trusted_idp_id", "123456"),
+				),
+			},
+			{
+				Config: withoutIdp,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "username", "trusted.idp.test"),
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "email", "trusted.idp.test@onelogin.com"),
+					resource.TestCheckNoResourceAttr("onelogin_users.trusted_idp_test", "trusted_idp_id"),
+				),
+			},
+		},
+	})
+}
