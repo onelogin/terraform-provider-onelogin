@@ -49,6 +49,7 @@ func userCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		"status":             d.Get("status"),
 		"group_id":           d.Get("group_id"),
 		"role_ids":           d.Get("role_ids"),
+		"trusted_idp_id":     d.Get("trusted_idp_id"),
 		"custom_attributes":  d.Get("custom_attributes"),
 	})
 	if err != nil {
@@ -122,6 +123,7 @@ func userRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		"group_id", "directory_id", "distinguished_name", "external_id",
 		"manager_ad_id", "manager_user_id", "samaccountname", "userprincipalname",
 		"member_of", "created_at", "updated_at", "activated_at", "last_login",
+		"trusted_idp_id",
 	}
 	utils.SetResourceFields(d, userMap, basicFields)
 
@@ -168,6 +170,7 @@ func userUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		"status":             d.Get("status"),
 		"group_id":           d.Get("group_id"),
 		"role_ids":           d.Get("role_ids"),
+		"trusted_idp_id":     d.Get("trusted_idp_id"),
 		"custom_attributes":  d.Get("custom_attributes"),
 	})
 	if err != nil {
