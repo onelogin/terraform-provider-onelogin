@@ -41,7 +41,7 @@ func Provider() *schema.Provider {
 			"timeout": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_CLIENT_TIMEOUT", 180),
+				DefaultFunc: schema.EnvDefaultFunc("ONELOGIN_TIMEOUT", 180),
 				Description: "Timeout in seconds for API operations. Defaults to 180 seconds if not specified.",
 			},
 		},
@@ -80,6 +80,8 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 
 	// Set a longer timeout for API operations
 	timeout := d.Get("timeout").(int)
+	os.Setenv("ONELOGIN_TIMEOUT", strconv.Itoa(timeout))
+	// Keep setting the old env var for backward compatibility
 	os.Setenv("ONELOGIN_CLIENT_TIMEOUT", strconv.Itoa(timeout))
 
 	// Set the API URL
