@@ -21,6 +21,10 @@ func CheckHTTPResponse(resp *http.Response) (any, error) {
 
 	// Check if the request was successful
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusAccepted {
+		// If the status code is 403 (Forbidden), it likely means the API credentials are read-only
+		if resp.StatusCode == http.StatusForbidden {
+			return nil, fmt.Errorf("request failed with status: %d - API credentials may have read-only access", resp.StatusCode)
+		}
 		return nil, fmt.Errorf("request failed with status: %d", resp.StatusCode)
 	}
 
@@ -71,6 +75,10 @@ func CheckHTTPResponseAndUnmarshal(resp *http.Response, target any) error {
 
 	// Check if the request was successful
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusAccepted {
+		// If the status code is 403 (Forbidden), it likely means the API credentials are read-only
+		if resp.StatusCode == http.StatusForbidden {
+			return fmt.Errorf("request failed with status: %d - API credentials may have read-only access", resp.StatusCode)
+		}
 		return fmt.Errorf("request failed with status: %d", resp.StatusCode)
 	}
 
