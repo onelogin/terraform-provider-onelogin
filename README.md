@@ -2,59 +2,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/onelogin/terraform-provider-onelogin)](https://goreportcard.com/report/github.com/onelogin/terraform-provider-onelogin)
 <a href='https://github.com/dcaponi/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-100%25-brightgreen.svg?longCache=true&style=flat)</a>
 
-## Latest Updates
-
-### v0.8.1 - SDK v4.5.0 and Role Management Improvements
-
-This version updates to OneLogin SDK v4.5.0 and improves role management:
-
-- Updated OneLogin SDK from v4.4.0 to v4.5.0
-- Enhanced role operations with context-aware methods
-- Improved handling of role updates with users, apps, and admins
-- Added debugging support for role operations
-- Optimized update operations to use minimal request payloads
-
-### v0.8.0 - User Mappings Support
-
-This version adds support for User Mappings with the OneLogin SDK v4.4.0:
-
-- Added User Mappings resource with full CRUD operations
-- Updated OneLogin SDK to v4.4.0
-- Improved code organization and naming consistency
-- Added examples for User Mappings configuration
-
-### v0.7.0 - SDK v4 Refactoring
-
-This version includes major internal refactoring to fully support OneLogin SDK v4:
-
-- Removed legacy implementation code and standardized resource implementations
-- Fixed SDK v4 compatibility issues across all resources
-- Improved error handling with proper context
-- Temporarily disabled User Mappings resource (will be re-enabled when SDK v4 adds support)
-- Enhanced code maintainability and consistency
-
-### v0.6.0 - Version Alignment
-
-This version aligns the version number with the GitHub releases:
-
-- Version number synchronized with GitHub releases (current v0.5.4)
-
-This version fixes the custom attribute support in the OneLogin v4 API:
-
-- Fixed custom attribute creation by wrapping payload with `user_field` object
-- **Now supports** creating, reading, updating, and deleting custom attribute definitions
-- Improved user management with custom attributes
-- Updated provider to use subdomain instead of region for API connections
-- See examples in `examples/onelogin_user_custom_attributes_example.tf`
-
-### v0.1.10 - Custom User Attributes Support
-
-This version includes support for Custom User Attributes using the OneLogin v4 API:
-
-- Added new resource `onelogin_user_custom_attributes` for setting values of existing custom user attributes
-- Updated to OneLogin Go SDK v4.1.0
-- Improved user management with custom attributes
-
 ## Prerequisites
 1. Install Go 1.18 or later
 2. Install Terraform v0.13.x or later
