@@ -61,23 +61,23 @@ func dataSourceOneLoginGroupsRead(ctx context.Context, d *schema.ResourceData, m
 	for _, groupData := range groupsData {
 		if groupMap, ok := groupData.(map[string]interface{}); ok {
 			var group models.Group
-			
+
 			// Extract ID
 			if id, ok := groupMap["id"].(float64); ok {
 				group.ID = int(id)
 			}
-			
+
 			// Extract Name
 			if name, ok := groupMap["name"].(string); ok {
 				group.Name = name
 			}
-			
+
 			// Extract Reference (if present)
 			if ref, ok := groupMap["reference"].(string); ok {
 				refPtr := ref
 				group.Reference = &refPtr
 			}
-			
+
 			groups = append(groups, group)
 		}
 	}

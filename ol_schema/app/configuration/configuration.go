@@ -152,7 +152,7 @@ func Flatten(config map[string]interface{}) map[string]interface{} {
 	if len(config) == 0 {
 		return map[string]interface{}{}
 	}
-	
+
 	tfOut := map[string]interface{}{}
 
 	// Determine if this is OIDC or SAML based on fields

@@ -70,11 +70,11 @@ func TestSAMLAppReadConfigurationHandlingMock(t *testing.T) {
 	aid, _ := strconv.Atoi(d.Id())
 	appData, err := mockSDK.GetAppByID(aid, nil)
 	assert.NoError(t, err, "GetAppByID should not return an error")
-	
+
 	// Extract configuration from app data
 	appMap, ok := appData.(map[string]interface{})
 	assert.True(t, ok, "App data should be a map")
-	
+
 	if v, ok := appMap["configuration"]; ok {
 		if configData, ok := v.(map[string]interface{}); ok {
 			flattenedConfig := appconfigurationschema.Flatten(configData)

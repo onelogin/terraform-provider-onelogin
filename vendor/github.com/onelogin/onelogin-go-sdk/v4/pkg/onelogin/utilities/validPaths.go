@@ -114,4 +114,8 @@ var validPaths = []string{
 	"^/api/2/branding/brands/[0-9]+/templates/[a-zA-Z0-9_-]+/[a-zA-Z]+$",
 	"^/api/2/branding/brands/master/templates/[a-zA-Z0-9_-]+$",
 	"^/api/2/branding/brands/master/templates/[a-zA-Z0-9_-]+/[a-zA-Z]+$",
+	"^/api/2/self_registration_profiles$",
+	"^/api/2/self_registration_profiles/[0-9]+$",
+	"^/api/2/self_registration_profiles/[0-9]+/self_registration_profile_fields$",
+	"^/api/2/self_registration_profiles/[0-9]+/self_registration_profile_fields/[0-9]+$",
 }
