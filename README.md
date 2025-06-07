@@ -30,7 +30,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin/onelogin"
-      version = "0.8.2"
+      version = "0.8.3"
     }
   }
 }
@@ -77,23 +77,29 @@ make secure
 1. Create feature branch from `main`
 2. Create PR against `main`
 3. After approval and CI passing, merge to `main`
-4. Update version numbers:
+4. Create a new branch for version bump:
+   ```bash
+   git checkout main
+   git pull
+   git checkout -b bump-version-x.x.x
+   ```
+5. Update version numbers:
    - Update `VERSION` in `GNUmakefile`
    - Update version in the example provider configuration in `README.md`
-5. Commit version changes to `main`
-6. Create a new release either:
-   - Through GitHub UI:
-     1. Go to "Releases" on GitHub
-     2. Click "Draft a new release"
-     3. Create a new tag (e.g., v0.5.2)
-     4. Fill in release details
-     5. Click "Publish release"
-   - Or via command line:
-     ```bash
-     git tag vX.X.X
-     git push origin vX.X.X
-     ```
-7. The GitHub Action will automatically:
+6. Commit version changes and create a PR:
+   ```bash
+   git commit -a -m "Bump version to x.x.x"
+   git push -u origin bump-version-x.x.x
+   # Create PR via GitHub UI
+   ```
+7. After the version bump PR is merged, create a new tag:
+   ```bash
+   git checkout main
+   git pull
+   git tag vX.X.X
+   git push origin vX.X.X
+   ```
+8. The GitHub Action will automatically:
    - Build the provider
    - Create a GitHub release
    - Publish to the Terraform Registry
