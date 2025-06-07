@@ -30,7 +30,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin/onelogin"
-      version = "0.8.3"
+      version = "0.8.4"
     }
   }
 }
