@@ -148,6 +148,11 @@ func FlattenSAML(config models.ConfigurationSAML) map[string]interface{} {
 
 // Flatten takes a generic configuration map and returns a map of interface{}
 func Flatten(config map[string]interface{}) map[string]interface{} {
+	// If config is empty, return an empty map to ensure consistency
+	if len(config) == 0 {
+		return map[string]interface{}{}
+	}
+	
 	tfOut := map[string]interface{}{}
 
 	// Determine if this is OIDC or SAML based on fields
@@ -192,5 +197,6 @@ func Flatten(config map[string]interface{}) map[string]interface{} {
 		}
 	}
 
+	// Ensure we always return a non-nil map
 	return tfOut
 }
