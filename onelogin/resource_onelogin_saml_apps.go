@@ -145,9 +145,30 @@ func samlAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	// Handle configuration if it exists
 	if v, ok := appMap["configuration"]; ok {
+		tflog.Debug(ctx, "Processing configuration data", map[string]interface{}{
+			"raw_configuration": v,
+		})
 		if configData, ok := v.(map[string]interface{}); ok {
-			d.Set("configuration", appconfigurationschema.Flatten(configData))
+			tflog.Debug(ctx, "Configuration is a map", map[string]interface{}{
+				"config_data": configData,
+			})
+			flattenedConfig := appconfigurationschema.Flatten(configData)
+			tflog.Debug(ctx, "Flattened configuration", map[string]interface{}{
+				"flattened_config": flattenedConfig,
+			})
+			// Always set the configuration field, even if empty
+			d.Set("configuration", flattenedConfig)
+		} else {
+			tflog.Debug(ctx, "Configuration is not a map", map[string]interface{}{
+				"type": fmt.Sprintf("%T", v),
+			})
+			// If configuration exists but isn't a map, set an empty map
+			d.Set("configuration", map[string]interface{}{})
 		}
+	} else {
+		tflog.Debug(ctx, "No configuration found in app data")
+		// If configuration doesn't exist, set an empty map
+		d.Set("configuration", map[string]interface{}{})
 	}
 
 	// Handle SSO if it exists
