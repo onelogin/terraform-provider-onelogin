@@ -66,6 +66,7 @@ func Provider() *schema.Provider {
 			"onelogin_privileges":                      Privileges(),
 			"onelogin_user_custom_attributes":          UserCustomAttributes(),
 			"onelogin_groups":                          resourceOneLoginGroups(),
+			"onelogin_self_registration_profiles":      SelfRegistrationProfiles(),
 		},
 		ConfigureContextFunc: configProvider,
 	}
