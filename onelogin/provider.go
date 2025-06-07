@@ -46,8 +46,10 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"onelogin_user":  dataSourceUser(),
-			"onelogin_users": dataSourceUsers(),
+			"onelogin_user":   dataSourceUser(),
+			"onelogin_users":  dataSourceUsers(),
+			"onelogin_group":  dataSourceOneLoginGroup(),
+			"onelogin_groups": dataSourceOneLoginGroups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"onelogin_app_role_attachments":            AppRoleAttachment(),
@@ -63,6 +65,7 @@ func Provider() *schema.Provider {
 			"onelogin_smarthook_environment_variables": SmarthookEnvironmentVariables(),
 			"onelogin_privileges":                      Privileges(),
 			"onelogin_user_custom_attributes":          UserCustomAttributes(),
+			"onelogin_groups":                          resourceOneLoginGroups(),
 		},
 		ConfigureContextFunc: configProvider,
 	}
