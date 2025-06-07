@@ -11,8 +11,8 @@ func TestAccSelfRegistrationProfile_crud(t *testing.T) {
 	update := GetFixture("onelogin_self_registration_profile_updated_example.tf", t)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { TestAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: base,
