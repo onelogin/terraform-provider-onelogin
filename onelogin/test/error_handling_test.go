@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCheckHTTPResponseWithForbiddenStatus(t *testing.T) {
@@ -24,7 +24,7 @@ func TestCheckHTTPResponseWithForbiddenStatus(t *testing.T) {
 
 	// Call the CheckHTTPResponse function
 	_, err = utilities.CheckHTTPResponse(resp)
-	
+
 	// Verify that the error message contains information about the status code
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "403")
@@ -46,7 +46,7 @@ func TestCheckHTTPResponseAndUnmarshalWithForbiddenStatus(t *testing.T) {
 	// Call the CheckHTTPResponseAndUnmarshal function
 	var result map[string]interface{}
 	err = utilities.CheckHTTPResponseAndUnmarshal(resp, &result)
-	
+
 	// Verify that the error message contains information about the status code
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "403")

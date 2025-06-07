@@ -34,15 +34,15 @@ func selfRegistrationProfileCreate(ctx context.Context, d *schema.ResourceData, 
 	client := m.(*onelogin.OneloginSDK)
 
 	profile := models.SelfRegistrationProfile{
-		Name:                 d.Get("name").(string),
-		URL:                  d.Get("url").(string),
-		Enabled:              d.Get("enabled").(bool),
-		Moderated:            d.Get("moderated").(bool),
-		Helptext:             d.Get("helptext").(string),
-		ThankyouMessage:      d.Get("thankyou_message").(string),
-		DomainBlacklist:      d.Get("domain_blacklist").(string),
-		DomainWhitelist:      d.Get("domain_whitelist").(string),
-		DomainListStrategy:   int32(d.Get("domain_list_strategy").(int)),
+		Name:                  d.Get("name").(string),
+		URL:                   d.Get("url").(string),
+		Enabled:               d.Get("enabled").(bool),
+		Moderated:             d.Get("moderated").(bool),
+		Helptext:              d.Get("helptext").(string),
+		ThankyouMessage:       d.Get("thankyou_message").(string),
+		DomainBlacklist:       d.Get("domain_blacklist").(string),
+		DomainWhitelist:       d.Get("domain_whitelist").(string),
+		DomainListStrategy:    int32(d.Get("domain_list_strategy").(int)),
 		EmailVerificationType: d.Get("email_verification_type").(string),
 	}
 
@@ -161,9 +161,9 @@ func selfRegistrationProfileRead(ctx context.Context, d *schema.ResourceData, m 
 		for _, field := range fields {
 			fieldMap := field.(map[string]interface{})
 			fieldSet.Add(map[string]interface{}{
-				"id":                 int(fieldMap["id"].(float64)),
+				"id":                  int(fieldMap["id"].(float64)),
 				"custom_attribute_id": int(fieldMap["custom_attribute_id"].(float64)),
-				"name":               fieldMap["name"],
+				"name":                fieldMap["name"],
 			})
 		}
 
@@ -182,15 +182,15 @@ func selfRegistrationProfileUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	profile := models.SelfRegistrationProfile{
-		Name:                 d.Get("name").(string),
-		URL:                  d.Get("url").(string),
-		Enabled:              d.Get("enabled").(bool),
-		Moderated:            d.Get("moderated").(bool),
-		Helptext:             d.Get("helptext").(string),
-		ThankyouMessage:      d.Get("thankyou_message").(string),
-		DomainBlacklist:      d.Get("domain_blacklist").(string),
-		DomainWhitelist:      d.Get("domain_whitelist").(string),
-		DomainListStrategy:   int32(d.Get("domain_list_strategy").(int)),
+		Name:                  d.Get("name").(string),
+		URL:                   d.Get("url").(string),
+		Enabled:               d.Get("enabled").(bool),
+		Moderated:             d.Get("moderated").(bool),
+		Helptext:              d.Get("helptext").(string),
+		ThankyouMessage:       d.Get("thankyou_message").(string),
+		DomainBlacklist:       d.Get("domain_blacklist").(string),
+		DomainWhitelist:       d.Get("domain_whitelist").(string),
+		DomainListStrategy:    int32(d.Get("domain_list_strategy").(int)),
 		EmailVerificationType: d.Get("email_verification_type").(string),
 	}
 

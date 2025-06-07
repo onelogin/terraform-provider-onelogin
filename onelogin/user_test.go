@@ -110,7 +110,7 @@ func TestUserUpdate(t *testing.T) {
 
 	// Now simulate removing the trusted_idp_id
 	d.Set("trusted_idp_id", 0)
-	
+
 	// Verify the field was updated in the ResourceData
 	assert.Equal(t, 0, d.Get("trusted_idp_id"), "trusted_idp_id should be updated to 0")
 }
