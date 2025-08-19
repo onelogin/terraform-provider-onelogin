@@ -1,4 +1,12 @@
-# onelogin_user_custom_attributes Resource
+---
+layout: "onelogin"
+page_title: "OneLogin: onelogin_user_custom_attributes"
+sidebar_current: "docs-onelogin-resource-user_custom_attributes"
+description: |-
+  Manage custom user attributes in OneLogin.
+---
+
+# onelogin_user_custom_attributes
 
 This resource allows you to manage custom user attributes in OneLogin. You can:
 

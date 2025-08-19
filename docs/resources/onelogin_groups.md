@@ -1,4 +1,12 @@
-# onelogin_groups Resource
+---
+layout: "onelogin"
+page_title: "OneLogin: onelogin_groups"
+sidebar_current: "docs-onelogin-resource-groups"
+description: |-
+  Provides a OneLogin group resource.
+---
+
+# onelogin_groups
 
 Provides a OneLogin group resource.
 

@@ -1,12 +1,12 @@
 ---
 layout: "onelogin"
-page_title: "OneLogin: onelogin_auth_server"
-sidebar_current: "docs-onelogin-resource-auth_server"
+page_title: "OneLogin: onelogin_auth_servers"
+sidebar_current: "docs-onelogin-resource-auth_servers"
 description: |-
   Creates an Authentication Server Resource.
 ---
 
-# onelogin_auth_server
+# onelogin_auth_servers
 
 Creates an Authentication Server Resource.
 
