@@ -1,7 +1,7 @@
 ---
 layout: "onelogin"
-page_title: "OneLogin: onelogin_user_mapping"
-sidebar_current: "docs-onelogin-resource-user_mapping"
+page_title: "OneLogin: onelogin_user_mappings"
+sidebar_current: "docs-onelogin-resource-user_mappings"
 description: |-
   Manage User Mappings resources.
 ---

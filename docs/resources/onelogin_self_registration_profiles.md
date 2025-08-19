@@ -1,4 +1,12 @@
-# onelogin_self_registration_profiles Resource
+---
+layout: "onelogin"
+page_title: "OneLogin: onelogin_self_registration_profiles"
+sidebar_current: "docs-onelogin-resource-self_registration_profiles"
+description: |-
+  Create and configure Self-Registration Profiles in OneLogin.
+---
+
+# onelogin_self_registration_profiles
 
 This resource allows you to create and configure Self-Registration Profiles in OneLogin.
 
