@@ -33,7 +33,7 @@ func TestSchema(t *testing.T) {
 		assert.NotNil(t, provSchema["manager_user_id"])
 		assert.NotNil(t, provSchema["external_id"])
 		assert.NotNil(t, provSchema["password"])
-		
+
 		// Verify password field is marked as sensitive
 		assert.True(t, provSchema["password"].Sensitive)
 	})
