@@ -1,0 +1,42 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Type of version bump (major, minor, patch)"
+        required: true
+        type: choice
+        options:
+        - major
+        - minor
+        - patch
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Bump version in files
+        id: bump
+        run: |
+          python .github/scripts/bump_version.py ${{ github.event.inputs.bump_type }}
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: bump-version-${{ steps.bump.outputs.new_version }}
+          title: "Bump version to ${{ steps.bump.outputs.new_version }}"
+          body: |
+            Automated version bump (${{ github.event.inputs.bump_type }}) to ${{ steps.bump.outputs.new_version }}
+          commit-message: "Bump version to ${{ steps.bump.outputs.new_version }}"
+          add-paths: |
+            GNUmakefile
+            README.md
