@@ -74,35 +74,26 @@ make secure
 ```
 
 ## Release Process
-1. Create feature branch from `main`
-2. Create PR against `main`
-3. After approval and CI passing, merge to `main`
-4. Create a new branch for version bump:
-   ```bash
-   git checkout main
-   git pull
-   git checkout -b bump-version-x.x.x
-   ```
-5. Update version numbers:
-   - Update `VERSION` in `GNUmakefile`
-   - Update version in the example provider configuration in `README.md`
-6. Commit version changes and create a PR:
-   ```bash
-   git commit -a -m "Bump version to x.x.x"
-   git push -u origin bump-version-x.x.x
-   # Create PR via GitHub UI
-   ```
-7. After the version bump PR is merged, create a new tag:
-   ```bash
-   git checkout main
-   git pull
-   git tag vX.X.X
-   git push origin vX.X.X
-   ```
-8. The GitHub Action will automatically:
-   - Build the provider
-   - Create a GitHub release
-   - Publish to the Terraform Registry
+1. **Run the Version Bump GitHub Action:**
+   - Go to the [Actions tab](../../actions) in GitHub
+   - Select "Version Bump" workflow
+   - Click "Run workflow"
+   - Choose the bump type (major, minor, or patch)
+   - The action will automatically:
+     - Update `VERSION` in `GNUmakefile`
+     - Update version in the example provider configuration in `README.md`
+     - Create a PR with the version changes
+
+2. **After the version bump PR is merged, create a GitHub Release:**
+   - Go to the [Releases page](../../releases) in GitHub
+   - Click "Draft a new release"
+   - Click "Choose a tag" and create a new tag (e.g., `v0.5.2`)
+   - Set the release title and description
+   - Click "Publish release"
+   - The Release workflow will automatically trigger and:
+     - Build the provider
+     - Attach binaries to the GitHub release
+     - Publish to the Terraform Registry
 
 Note: Tags should follow semantic versioning (e.g., v0.5.2)
 
