@@ -147,6 +147,41 @@ func userRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 // userUpdate updates a user by ID in OneLogin
 func userUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	uid, _ := strconv.Atoi(d.Id())
+	client := m.(*onelogin.OneloginSDK)
+
+	// Read current user state from API to get existing custom attributes
+	// This ensures we preserve custom attributes managed by other resources
+	currentUser, err := client.GetUserByID(uid, &userschema.UserQueryable{})
+	if err != nil {
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "User", d.Id())
+	}
+
+	// Prepare merged custom attributes
+	var mergedCustomAttributes map[string]interface{}
+
+	// Start with existing custom attributes from the API
+	if currentUser != nil {
+		if userMap, ok := currentUser.(map[string]interface{}); ok {
+			if existingAttrs, ok := userMap["custom_attributes"].(map[string]interface{}); ok {
+				mergedCustomAttributes = make(map[string]interface{})
+				for k, v := range existingAttrs {
+					mergedCustomAttributes[k] = v
+				}
+			}
+		}
+	}
+
+	// If this resource manages custom_attributes, merge them in
+	if resourceCustomAttrs := d.Get("custom_attributes"); resourceCustomAttrs != nil {
+		if attrs, ok := resourceCustomAttrs.(map[string]interface{}); ok && len(attrs) > 0 {
+			if mergedCustomAttributes == nil {
+				mergedCustomAttributes = make(map[string]interface{})
+			}
+			for k, v := range attrs {
+				mergedCustomAttributes[k] = v
+			}
+		}
+	}
 
 	user, err := userschema.Inflate(map[string]interface{}{
 		"id":                 d.Id(),
@@ -171,13 +206,12 @@ func userUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		"group_id":           d.Get("group_id"),
 		"role_ids":           d.Get("role_ids"),
 		"trusted_idp_id":     d.Get("trusted_idp_id"),
-		"custom_attributes":  d.Get("custom_attributes"),
+		"custom_attributes":  mergedCustomAttributes,
 	})
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "User", d.Id())
 	}
 
-	client := m.(*onelogin.OneloginSDK)
 	tflog.Info(ctx, "[UPDATE] Updating user", map[string]interface{}{
 		"id": uid,
 	})
