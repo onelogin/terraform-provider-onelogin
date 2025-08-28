@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	userschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -119,6 +120,121 @@ func TestUserUpdate(t *testing.T) {
 
 	// Verify the field was updated in the ResourceData
 	assert.Equal(t, 0, d.Get("trusted_idp_id"), "trusted_idp_id should be updated to 0")
+}
+
+func TestUserCompanyDepartmentClearing(t *testing.T) {
+	// Create a mock ResourceData with company and department initially set
+	r := Users().Schema
+	d := schema.TestResourceDataRaw(t, r, map[string]interface{}{
+		"id":         "12345",
+		"username":   "test.user",
+		"email":      "test.user@example.com",
+		"company":    "Test Company",
+		"department": "Test Department",
+	})
+	d.SetId("12345")
+
+	// Verify initial values are set
+	assert.Equal(t, "Test Company", d.Get("company"), "company should be set initially")
+	assert.Equal(t, "Test Department", d.Get("department"), "department should be set initially")
+
+	// Simulate removing company and department from Terraform config
+	// When fields are removed from config, d.Get() returns empty strings, not nil
+	d.Set("company", "")
+	d.Set("department", "")
+
+	// Verify they are now empty strings (this is what d.Get() returns for removed fields)
+	assert.Equal(t, "", d.Get("company"), "company should be empty string when removed from config")
+	assert.Equal(t, "", d.Get("department"), "department should be empty string when removed from config")
+
+	// Test that the userUpdate function would pass these empty strings to the API
+	// This is the root of the issue - empty strings should clear the fields in OneLogin
+
+	// Test the fixed Inflate behavior - empty strings should now be included in the struct
+	userData := map[string]interface{}{
+		"username":   d.Get("username"),
+		"email":      d.Get("email"),
+		"company":    d.Get("company"),    // This is "" (empty string)
+		"department": d.Get("department"), // This is "" (empty string)
+	}
+
+	user, err := userschema.Inflate(userData)
+	assert.NoError(t, err, "Inflate should not error with empty company/department")
+
+	// With the fix, company and department should be set to empty strings in the struct
+	assert.Equal(t, "", user.Company, "Company should be set to empty string (to clear it in API)")
+	assert.Equal(t, "", user.Department, "Department should be set to empty string (to clear it in API)")
+}
+
+func TestUserInflateCompanyDepartmentEdgeCases(t *testing.T) {
+	tests := []struct {
+		name            string
+		input           map[string]interface{}
+		expectedCompany string
+		expectedDept    string
+		shouldSetCompany bool
+		shouldSetDept   bool
+	}{
+		{
+			name: "both fields have values",
+			input: map[string]interface{}{
+				"username":   "test",
+				"email":      "test@example.com",
+				"company":    "Test Company",
+				"department": "Test Department",
+			},
+			expectedCompany:  "Test Company",
+			expectedDept:     "Test Department",
+			shouldSetCompany: true,
+			shouldSetDept:    true,
+		},
+		{
+			name: "both fields are empty strings (fix should include them)",
+			input: map[string]interface{}{
+				"username":   "test",
+				"email":      "test@example.com",
+				"company":    "",
+				"department": "",
+			},
+			expectedCompany:  "",
+			expectedDept:     "",
+			shouldSetCompany: true,
+			shouldSetDept:    true,
+		},
+		{
+			name: "fields missing from input (should result in zero values)",
+			input: map[string]interface{}{
+				"username": "test",
+				"email":    "test@example.com",
+			},
+			expectedCompany:  "",
+			expectedDept:     "",
+			shouldSetCompany: false,
+			shouldSetDept:    false,
+		},
+		{
+			name: "mixed case - one empty, one with value",
+			input: map[string]interface{}{
+				"username":   "test",
+				"email":      "test@example.com",
+				"company":    "",
+				"department": "Engineering",
+			},
+			expectedCompany:  "",
+			expectedDept:     "Engineering",
+			shouldSetCompany: true,
+			shouldSetDept:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user, err := userschema.Inflate(tt.input)
+			assert.NoError(t, err, "Inflate should not error")
+			assert.Equal(t, tt.expectedCompany, user.Company, "Company field should match expected")
+			assert.Equal(t, tt.expectedDept, user.Department, "Department field should match expected")
+		})
+	}
 }
 
 func TestIsNeverLoggedInDate(t *testing.T) {

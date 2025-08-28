@@ -227,11 +227,12 @@ func Inflate(s map[string]interface{}) (models.User, error) {
 		out.Title = title
 	}
 
-	if company, notNil := s["company"].(string); notNil {
+	// Always set company and department fields, even if empty, to allow clearing them
+	if company, exists := s["company"].(string); exists {
 		out.Company = company
 	}
 
-	if department, notNil := s["department"].(string); notNil {
+	if department, exists := s["department"].(string); exists {
 		out.Department = department
 	}
 
