@@ -24,13 +24,45 @@ func TestInflateConfiguration(t *testing.T) {
 				"token_endpoint_auth_method":       "2",
 				"access_token_expiration_minutes":  "2",
 			},
-			ExpectedOutput: models.ConfigurationOpenId{
+			ExpectedOutput: CustomConfigurationOpenId{
 				RedirectURI:                   "test",
-				RefreshTokenExpirationMinutes: 2,
+				RefreshTokenExpirationMinutes: &[]int{2}[0],
 				LoginURL:                      "test",
 				OidcApplicationType:           2,
 				TokenEndpointAuthMethod:       2,
-				AccessTokenExpirationMinutes:  2,
+				AccessTokenExpirationMinutes:  &[]int{2}[0],
+			},
+		},
+		"handles OIDC app config with only redirect_uri (no timeout fields)": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":              "https://example.com/callback",
+				"oidc_application_type":     "0",
+				"token_endpoint_auth_method": "1",
+			},
+			ExpectedOutput: CustomConfigurationOpenId{
+				RedirectURI:             "https://example.com/callback",
+				OidcApplicationType:     0,
+				TokenEndpointAuthMethod: 1,
+				// timeout fields should be nil (not set)
+				RefreshTokenExpirationMinutes: nil,
+				AccessTokenExpirationMinutes:  nil,
+			},
+		},
+		"handles OIDC app config with empty string timeout fields": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":                     "https://example.com/callback",
+				"oidc_application_type":            "0",
+				"token_endpoint_auth_method":       "1",
+				"refresh_token_expiration_minutes": "",
+				"access_token_expiration_minutes":  "",
+			},
+			ExpectedOutput: CustomConfigurationOpenId{
+				RedirectURI:             "https://example.com/callback",
+				OidcApplicationType:     0,
+				TokenEndpointAuthMethod: 1,
+				// timeout fields should be nil when empty strings
+				RefreshTokenExpirationMinutes: nil,
+				AccessTokenExpirationMinutes:  nil,
 			},
 		},
 		"returns an error if invalid refresh_token_expiration_minutes given": {
@@ -114,7 +146,31 @@ func TestInflateConfiguration(t *testing.T) {
 						assert.Equal(t, oidcConfig.TokenEndpointAuthMethod, oidcResult.TokenEndpointAuthMethod)
 						assert.Equal(t, oidcConfig.AccessTokenExpirationMinutes, oidcResult.AccessTokenExpirationMinutes)
 					} else {
-						t.Errorf("Expected ConfigurationOpenId but got different type")
+						t.Errorf("Expected ConfigurationOpenId but got different type: %T", subj)
+					}
+				} else if customOidcConfig, ok := test.ExpectedOutput.(CustomConfigurationOpenId); ok {
+					if customOidcResult, ok := subj.(CustomConfigurationOpenId); ok {
+						assert.Equal(t, customOidcConfig.RedirectURI, customOidcResult.RedirectURI)
+						assert.Equal(t, customOidcConfig.LoginURL, customOidcResult.LoginURL)
+						assert.Equal(t, customOidcConfig.OidcApplicationType, customOidcResult.OidcApplicationType)
+						assert.Equal(t, customOidcConfig.TokenEndpointAuthMethod, customOidcResult.TokenEndpointAuthMethod)
+						
+						// Handle pointer comparisons for timeout fields
+						if customOidcConfig.RefreshTokenExpirationMinutes == nil {
+							assert.Nil(t, customOidcResult.RefreshTokenExpirationMinutes)
+						} else {
+							assert.NotNil(t, customOidcResult.RefreshTokenExpirationMinutes)
+							assert.Equal(t, *customOidcConfig.RefreshTokenExpirationMinutes, *customOidcResult.RefreshTokenExpirationMinutes)
+						}
+						
+						if customOidcConfig.AccessTokenExpirationMinutes == nil {
+							assert.Nil(t, customOidcResult.AccessTokenExpirationMinutes)
+						} else {
+							assert.NotNil(t, customOidcResult.AccessTokenExpirationMinutes)
+							assert.Equal(t, *customOidcConfig.AccessTokenExpirationMinutes, *customOidcResult.AccessTokenExpirationMinutes)
+						}
+					} else {
+						t.Errorf("Expected CustomConfigurationOpenId but got different type: %T", subj)
 					}
 				} else if samlConfig, ok := test.ExpectedOutput.(models.ConfigurationSAML); ok {
 					if samlResult, ok := subj.(models.ConfigurationSAML); ok {
