@@ -143,12 +143,19 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		}
 		if v, ok := user["last_login"]; ok {
 			// Handle last_login which might be a string or time value
+			var lastLoginStr string
 			switch lastLogin := v.(type) {
 			case string:
-				u["last_login"] = lastLogin
+				lastLoginStr = lastLogin
 			case time.Time:
-				u["last_login"] = lastLogin.Format(time.RFC3339)
+				lastLoginStr = lastLogin.Format(time.RFC3339)
 			}
+
+			// Only set last_login if it's not a "never logged in" placeholder date
+			if lastLoginStr != "" && !isNeverLoggedInDate(lastLoginStr) {
+				u["last_login"] = lastLoginStr
+			}
+			// If it is a placeholder date, don't set it (leave it empty/null)
 		}
 
 		userList = append(userList, u)

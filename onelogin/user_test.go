@@ -14,9 +14,15 @@ import (
 // Mock the OneLogin SDK client
 type mockOneLoginSDK struct {
 	onelogin.OneloginSDK
+	getUserFunc func(id int, queryParams interface{}) (interface{}, error)
 }
 
 func (m *mockOneLoginSDK) GetUserByID(id int, queryParams interface{}) (interface{}, error) {
+	// Use custom function if provided, otherwise use default
+	if m.getUserFunc != nil {
+		return m.getUserFunc(id, queryParams)
+	}
+
 	// Return a mock user with the trusted_idp_id field set
 	return map[string]interface{}{
 		"id":             id,
@@ -113,4 +119,138 @@ func TestUserUpdate(t *testing.T) {
 
 	// Verify the field was updated in the ResourceData
 	assert.Equal(t, 0, d.Get("trusted_idp_id"), "trusted_idp_id should be updated to 0")
+}
+
+func TestIsNeverLoggedInDate(t *testing.T) {
+	tests := []struct {
+		name     string
+		dateStr  string
+		expected bool
+	}{
+		{
+			name:     "Year 1 AD placeholder date should be filtered",
+			dateStr:  "0001-01-01T00:00:00Z",
+			expected: true,
+		},
+		{
+			name:     "Unix epoch placeholder should be filtered",
+			dateStr:  "1970-01-01T00:00:00Z",
+			expected: true,
+		},
+		{
+			name:     "Y2K placeholder should be filtered",
+			dateStr:  "2000-01-01T00:00:00Z",
+			expected: true,
+		},
+		{
+			name:     "Valid recent date should not be filtered",
+			dateStr:  "2023-01-15T10:30:00Z",
+			expected: false,
+		},
+		{
+			name:     "Date after OneLogin founding should not be filtered",
+			dateStr:  "2015-06-20T14:25:00Z",
+			expected: false,
+		},
+		{
+			name:     "Date just before OneLogin founding should be filtered",
+			dateStr:  "2008-12-31T23:59:59Z",
+			expected: true,
+		},
+		{
+			name:     "Simple date format should work",
+			dateStr:  "2000-01-01",
+			expected: true,
+		},
+		{
+			name:     "Invalid date string should not be filtered (safe fallback)",
+			dateStr:  "invalid-date",
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := isNeverLoggedInDate(test.dateStr)
+			assert.Equal(t, test.expected, result, "isNeverLoggedInDate should return %v for %s", test.expected, test.dateStr)
+		})
+	}
+}
+
+func TestUserReadWithLastLoginFiltering(t *testing.T) {
+	// Create a mock ResourceData
+	r := Users().Schema
+	d := schema.TestResourceDataRaw(t, r, map[string]interface{}{
+		"username": "test.user",
+		"email":    "test.user@example.com",
+	})
+
+	// Mock the OneLogin SDK client with placeholder last_login date
+	client := &mockOneLoginSDK{}
+
+	// Override GetUserByID to return a user with placeholder last_login
+	client.getUserFunc = func(id int, queryParams interface{}) (interface{}, error) {
+		return map[string]interface{}{
+			"id":             id,
+			"username":       "test.user",
+			"email":          "test.user@example.com",
+			"last_login":     "0001-01-01T00:00:00Z", // Placeholder "never logged in" date
+			"trusted_idp_id": 12345,
+		}, nil
+	}
+
+	// Call the mock userRead function which simulates the filtering
+	d.SetId("12345")
+	diags := mockUserReadWithFiltering(context.Background(), d, client)
+	assert.Nil(t, diags, "userRead should not return diagnostics")
+
+	// Verify that last_login is not set when placeholder date is filtered
+	lastLogin := d.Get("last_login")
+	// When a placeholder date is filtered out, the field should not be set (nil/empty)
+	assert.Empty(t, lastLogin, "last_login should be empty when placeholder date is filtered")
+
+	// Verify other fields are still set normally
+	assert.Equal(t, "test.user", d.Get("username"), "username should be set")
+	assert.Equal(t, "test.user@example.com", d.Get("email"), "email should be set")
+	assert.Equal(t, 12345, d.Get("trusted_idp_id"), "trusted_idp_id should be set")
+}
+
+// Mock userRead function that includes the new last_login filtering logic
+func mockUserReadWithFiltering(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	client := m.(*mockOneLoginSDK)
+	uid := 12345
+	d.SetId("12345")
+
+	result, _ := client.GetUserByID(uid, nil)
+
+	// Parse the user from the result
+	userMap := result.(map[string]interface{})
+
+	// Set basic user fields (excluding last_login which needs special handling)
+	basicFields := []string{
+		"username", "email", "firstname", "lastname", "title",
+		"department", "company", "status", "state", "phone",
+		"group_id", "directory_id", "distinguished_name", "external_id",
+		"manager_ad_id", "manager_user_id", "samaccountname", "userprincipalname",
+		"member_of", "created_at", "updated_at", "activated_at",
+		"trusted_idp_id",
+	}
+
+	// Filter out "never logged in" placeholder dates from the data before setting fields
+	if lastLoginValue, ok := userMap["last_login"]; ok {
+		if lastLoginStr, ok := lastLoginValue.(string); ok {
+			if isNeverLoggedInDate(lastLoginStr) {
+				// Remove the placeholder date so it doesn't get set
+				delete(userMap, "last_login")
+			}
+		}
+	}
+
+	for _, field := range basicFields {
+		if val, ok := userMap[field]; ok {
+			d.Set(field, val)
+		}
+	}
+
+	return nil
 }

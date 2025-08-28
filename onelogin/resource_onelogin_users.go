@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -13,6 +14,42 @@ import (
 	userschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/user"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
+
+// isNeverLoggedInDate checks if a date represents a "never logged in" placeholder
+// OneLogin API returns placeholder dates (like 0001-01-01) for users who have never logged in
+func isNeverLoggedInDate(dateStr string) bool {
+	// Parse the date string
+	parsedTime, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		// Try parsing other common formats if RFC3339 fails
+		formats := []string{
+			"2006-01-02T15:04:05Z",
+			"2006-01-02 15:04:05",
+			"2006-01-02",
+		}
+		found := false
+		for _, format := range formats {
+			if t, parseErr := time.Parse(format, dateStr); parseErr == nil {
+				parsedTime = t
+				found = true
+				break
+			}
+		}
+		// If all parsing attempts fail, treat as valid date to be safe
+		if !found {
+			return false
+		}
+	}
+
+	// OneLogin was founded in 2009, so any date before 2009 is likely a placeholder
+	// This includes common placeholder dates like:
+	// - 0001-01-01 (Year 1 AD - seen in tests)
+	// - 1900-01-01
+	// - 1970-01-01 (Unix epoch)
+	// - 2000-01-01 (Y2K)
+	oneloginFoundedYear := 2009
+	return parsedTime.Year() < oneloginFoundedYear
+}
 
 // Users returns a user resource with CRUD methods and the appropriate schemas
 func Users() *schema.Resource {
@@ -126,6 +163,17 @@ func userRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		"member_of", "created_at", "updated_at", "activated_at", "last_login",
 		"trusted_idp_id",
 	}
+
+	// Filter out "never logged in" placeholder dates from the data before setting fields
+	if lastLoginValue, ok := userMap["last_login"]; ok {
+		if lastLoginStr, ok := lastLoginValue.(string); ok {
+			if isNeverLoggedInDate(lastLoginStr) {
+				// Remove the placeholder date so it doesn't get set
+				delete(userMap, "last_login")
+			}
+		}
+	}
+
 	utils.SetResourceFields(d, userMap, basicFields)
 
 	// Handle custom attributes if they exist
