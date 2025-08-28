@@ -35,8 +35,8 @@ func TestInflateConfiguration(t *testing.T) {
 		},
 		"handles OIDC app config with only redirect_uri (no timeout fields)": {
 			ResourceData: map[string]interface{}{
-				"redirect_uri":              "https://example.com/callback",
-				"oidc_application_type":     "0",
+				"redirect_uri":               "https://example.com/callback",
+				"oidc_application_type":      "0",
 				"token_endpoint_auth_method": "1",
 			},
 			ExpectedOutput: CustomConfigurationOpenId{
@@ -154,7 +154,7 @@ func TestInflateConfiguration(t *testing.T) {
 						assert.Equal(t, customOidcConfig.LoginURL, customOidcResult.LoginURL)
 						assert.Equal(t, customOidcConfig.OidcApplicationType, customOidcResult.OidcApplicationType)
 						assert.Equal(t, customOidcConfig.TokenEndpointAuthMethod, customOidcResult.TokenEndpointAuthMethod)
-						
+
 						// Handle pointer comparisons for timeout fields
 						if customOidcConfig.RefreshTokenExpirationMinutes == nil {
 							assert.Nil(t, customOidcResult.RefreshTokenExpirationMinutes)
@@ -162,7 +162,7 @@ func TestInflateConfiguration(t *testing.T) {
 							assert.NotNil(t, customOidcResult.RefreshTokenExpirationMinutes)
 							assert.Equal(t, *customOidcConfig.RefreshTokenExpirationMinutes, *customOidcResult.RefreshTokenExpirationMinutes)
 						}
-						
+
 						if customOidcConfig.AccessTokenExpirationMinutes == nil {
 							assert.Nil(t, customOidcResult.AccessTokenExpirationMinutes)
 						} else {

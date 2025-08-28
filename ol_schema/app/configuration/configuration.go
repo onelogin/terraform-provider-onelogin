@@ -11,12 +11,12 @@ import (
 // omitting timeout fields when they are not explicitly set, to avoid overriding
 // API defaults with 0 values during updates.
 type CustomConfigurationOpenId struct {
-	RedirectURI                    string  `json:"redirect_uri,omitempty"`
-	LoginURL                       string  `json:"login_url,omitempty"`
-	OidcApplicationType            int     `json:"oidc_application_type,omitempty"`
-	TokenEndpointAuthMethod        int     `json:"token_endpoint_auth_method,omitempty"`
-	AccessTokenExpirationMinutes   *int    `json:"access_token_expiration_minutes,omitempty"`
-	RefreshTokenExpirationMinutes  *int    `json:"refresh_token_expiration_minutes,omitempty"`
+	RedirectURI                   string `json:"redirect_uri,omitempty"`
+	LoginURL                      string `json:"login_url,omitempty"`
+	OidcApplicationType           int    `json:"oidc_application_type,omitempty"`
+	TokenEndpointAuthMethod       int    `json:"token_endpoint_auth_method,omitempty"`
+	AccessTokenExpirationMinutes  *int   `json:"access_token_expiration_minutes,omitempty"`
+	RefreshTokenExpirationMinutes *int   `json:"refresh_token_expiration_minutes,omitempty"`
 }
 
 func validSignatureAlgorithm(val interface{}, key string) (warns []string, errs []error) {

@@ -168,12 +168,12 @@ func TestUserCompanyDepartmentClearing(t *testing.T) {
 
 func TestUserInflateCompanyDepartmentEdgeCases(t *testing.T) {
 	tests := []struct {
-		name            string
-		input           map[string]interface{}
-		expectedCompany string
-		expectedDept    string
+		name             string
+		input            map[string]interface{}
+		expectedCompany  string
+		expectedDept     string
 		shouldSetCompany bool
-		shouldSetDept   bool
+		shouldSetDept    bool
 	}{
 		{
 			name: "both fields have values",
