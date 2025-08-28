@@ -32,6 +32,10 @@ func TestSchema(t *testing.T) {
 		assert.NotNil(t, provSchema["manager_ad_id"])
 		assert.NotNil(t, provSchema["manager_user_id"])
 		assert.NotNil(t, provSchema["external_id"])
+		assert.NotNil(t, provSchema["password"])
+		
+		// Verify password field is marked as sensitive
+		assert.True(t, provSchema["password"].Sensitive)
 	})
 }
 
@@ -64,6 +68,7 @@ func TestInflate(t *testing.T) {
 				"manager_ad_id":      1,
 				"manager_user_id":    1,
 				"external_id":        "1",
+				"password":           "test-password",
 			},
 			ExpectedOutput: models.User{
 				ID:                   1,
@@ -88,6 +93,7 @@ func TestInflate(t *testing.T) {
 				ManagerADID:          1,
 				ManagerUserID:        1,
 				ExternalID:           "1",
+				Password:             "test-password",
 				CreatedAt:            time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
 				UpdatedAt:            time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
 				ActivatedAt:          time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -125,6 +131,7 @@ func TestInflate(t *testing.T) {
 			assert.Equal(t, test.ExpectedOutput.Company, subj.Company)
 			assert.Equal(t, test.ExpectedOutput.Department, subj.Department)
 			assert.Equal(t, test.ExpectedOutput.Comment, subj.Comment)
+			assert.Equal(t, test.ExpectedOutput.Password, subj.Password)
 			assert.Equal(t, test.ExpectedOutput.State, subj.State)
 			assert.Equal(t, test.ExpectedOutput.Status, subj.Status)
 			assert.Equal(t, test.ExpectedOutput.GroupID, subj.GroupID)

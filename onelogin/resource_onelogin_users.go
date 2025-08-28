@@ -51,6 +51,7 @@ func userCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		"role_ids":           d.Get("role_ids"),
 		"trusted_idp_id":     d.Get("trusted_idp_id"),
 		"custom_attributes":  d.Get("custom_attributes"),
+		"password":           d.Get("password"),
 	})
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "User", "")
@@ -207,6 +208,7 @@ func userUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		"role_ids":           d.Get("role_ids"),
 		"trusted_idp_id":     d.Get("trusted_idp_id"),
 		"custom_attributes":  mergedCustomAttributes,
+		"password":           d.Get("password"),
 	})
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "User", d.Id())

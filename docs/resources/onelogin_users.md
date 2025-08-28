@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `external_id` - The user's external_id
 
+* `password` - (Optional, Sensitive) The user's password. This field is sensitive and will not be displayed in logs or output.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:

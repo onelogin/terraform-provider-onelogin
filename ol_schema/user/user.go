@@ -125,6 +125,12 @@ func Schema() map[string]*schema.Schema {
 			Computed: true,
 			Optional: true,
 		},
+		"password": &schema.Schema{
+			Type:        schema.TypeString,
+			Optional:    true,
+			Sensitive:   true,
+			Description: "The user's password. This field is sensitive and will not be displayed in logs or output.",
+		},
 		"custom_attributes": &schema.Schema{
 			Type:        schema.TypeMap,
 			Optional:    true,
@@ -231,6 +237,10 @@ func Inflate(s map[string]interface{}) (models.User, error) {
 
 	if comment, notNil := s["comment"].(string); notNil {
 		out.Comment = comment
+	}
+
+	if password, notNil := s["password"].(string); notNil {
+		out.Password = password
 	}
 
 	if custom_attributes, notNil := s["custom_attributes"].(map[string]interface{}); notNil {
