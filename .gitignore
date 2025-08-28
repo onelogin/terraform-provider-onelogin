@@ -34,3 +34,4 @@ terraform.tfvars
 .vscode/
 *.swp
 *.swo
+__pycache__/
