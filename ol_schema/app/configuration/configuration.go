@@ -7,6 +7,18 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
+// CustomConfigurationOpenId is a wrapper around ConfigurationOpenId that allows
+// omitting timeout fields when they are not explicitly set, to avoid overriding
+// API defaults with 0 values during updates.
+type CustomConfigurationOpenId struct {
+	RedirectURI                   string `json:"redirect_uri,omitempty"`
+	LoginURL                      string `json:"login_url,omitempty"`
+	OidcApplicationType           int    `json:"oidc_application_type,omitempty"`
+	TokenEndpointAuthMethod       int    `json:"token_endpoint_auth_method,omitempty"`
+	AccessTokenExpirationMinutes  *int   `json:"access_token_expiration_minutes,omitempty"`
+	RefreshTokenExpirationMinutes *int   `json:"refresh_token_expiration_minutes,omitempty"`
+}
+
 func validSignatureAlgorithm(val interface{}, key string) (warns []string, errs []error) {
 	return utils.OneOf(key, val.(string), []string{"SHA-1", "SHA-256", "SHA-348", "SHA-512"})
 }
@@ -24,12 +36,36 @@ func getInt(v interface{}) (int, error) {
 		err error
 	)
 	if st, notNil := v.(string); notNil {
+		// Handle empty string as unset (return 0 without error)
+		if st == "" {
+			return 0, nil
+		}
 		if n, err = strconv.Atoi(st); err != nil {
 			return 0, err
 		}
 		return n, nil
 	}
 	return 0, nil
+}
+
+// intPtr creates a pointer to an int value for cleaner syntax when creating pointers
+func intPtr(val int) *int {
+	return &val
+}
+
+// handleTimeoutField processes a timeout field value and returns a pointer if the value is valid
+func handleTimeoutField(s map[string]interface{}, fieldName string) (*int, error) {
+	if val, exists := s[fieldName]; exists {
+		if strVal, ok := val.(string); ok && strVal != "" {
+			if timeoutVal, err := getInt(val); err != nil {
+				return nil, err
+			} else {
+				return intPtr(timeoutVal), nil
+			}
+		}
+		// If empty string or not provided, return nil (will be omitted from JSON)
+	}
+	return nil, nil
 }
 
 // Inflate takes a map of interfaces and uses the fields to construct
@@ -46,27 +82,31 @@ func Inflate(s map[string]interface{}) (interface{}, error) {
 	}
 
 	if configType == "openid" {
-		outOidc := models.ConfigurationOpenId{}
+		customOidc := CustomConfigurationOpenId{}
 
 		// Set OIDC fields
-		outOidc.RedirectURI = getString(s["redirect_uri"])
-		outOidc.LoginURL = getString(s["login_url"])
+		customOidc.RedirectURI = getString(s["redirect_uri"])
+		customOidc.LoginURL = getString(s["login_url"])
 
-		// Convert string to int for these fields
-		if outOidc.RefreshTokenExpirationMinutes, err = getInt(s["refresh_token_expiration_minutes"]); err != nil {
-			return nil, err
-		}
-		if outOidc.OidcApplicationType, err = getInt(s["oidc_application_type"]); err != nil {
-			return nil, err
-		}
-		if outOidc.TokenEndpointAuthMethod, err = getInt(s["token_endpoint_auth_method"]); err != nil {
-			return nil, err
-		}
-		if outOidc.AccessTokenExpirationMinutes, err = getInt(s["access_token_expiration_minutes"]); err != nil {
+		// Handle timeout fields specially - only set them if explicitly provided and non-empty
+		// This prevents overriding existing API values with 0 when fields are not specified
+		if customOidc.RefreshTokenExpirationMinutes, err = handleTimeoutField(s, "refresh_token_expiration_minutes"); err != nil {
 			return nil, err
 		}
 
-		return outOidc, nil
+		if customOidc.AccessTokenExpirationMinutes, err = handleTimeoutField(s, "access_token_expiration_minutes"); err != nil {
+			return nil, err
+		}
+
+		// Convert string to int for these required fields
+		if customOidc.OidcApplicationType, err = getInt(s["oidc_application_type"]); err != nil {
+			return nil, err
+		}
+		if customOidc.TokenEndpointAuthMethod, err = getInt(s["token_endpoint_auth_method"]); err != nil {
+			return nil, err
+		}
+
+		return customOidc, nil
 	} else if configType == "saml" {
 		outSaml := models.ConfigurationSAML{}
 
