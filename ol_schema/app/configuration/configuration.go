@@ -1,6 +1,7 @@
 package appconfigurationschema
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
@@ -108,22 +109,29 @@ func Inflate(s map[string]interface{}) (interface{}, error) {
 
 		return customOidc, nil
 	} else if configType == "saml" {
-		outSaml := models.ConfigurationSAML{}
+		// Instead of using the limited ConfigurationSAML struct, create a generic map
+		// that passes through all SAML configuration fields provided by the user.
+		// The OneLogin API supports many more SAML fields than the SDK struct defines.
+		outSaml := make(map[string]interface{})
 
-		// Set SAML fields
-		outSaml.SignatureAlgorithm = getString(s["signature_algorithm"])
-
-		// Handle provider_arn which can be string or interface{}
-		if s["provider_arn"] != nil {
-			outSaml.ProviderArn = s["provider_arn"]
+		// Copy all provided fields to the output map
+		for key, value := range s {
+			if value != nil && value != "" {
+				// Handle special field type conversions
+				switch key {
+				case "certificate_id":
+					// Convert certificate_id to int as expected by API
+					if certId, err := getInt(value); err != nil {
+						return nil, err
+					} else if certId != 0 {
+						outSaml[key] = certId
+					}
+				default:
+					// Pass through all other fields as-is
+					outSaml[key] = value
+				}
+			}
 		}
-
-		// Convert string to int for certificate_id
-		certId, err := getInt(s["certificate_id"])
-		if err != nil {
-			return nil, err
-		}
-		outSaml.CertificateID = certId
 
 		return outSaml, nil
 	}
@@ -223,17 +231,34 @@ func Flatten(config map[string]interface{}) map[string]interface{} {
 			tfOut["access_token_expiration_minutes"] = strconv.FormatInt(int64(val), 10)
 		}
 	} else if _, ok := config["signature_algorithm"]; ok {
-		// Handle SAML fields
-		if val, ok := config["signature_algorithm"].(string); ok && val != "" {
-			tfOut["signature_algorithm"] = val
-		}
-
-		if val, ok := config["provider_arn"]; ok && val != nil {
-			tfOut["provider_arn"] = val
-		}
-
-		if val, ok := config["certificate_id"].(float64); ok && val != 0 {
-			tfOut["certificate_id"] = int(val)
+		// Handle SAML fields - pass through all fields from the API response
+		// The OneLogin API supports many more SAML fields than just the basic ones
+		for key, value := range config {
+			if value != nil {
+				switch key {
+				case "certificate_id":
+					// Handle certificate_id which comes back as float64 from JSON
+					if val, ok := value.(float64); ok && val != 0 {
+						tfOut[key] = strconv.FormatInt(int64(val), 10)
+					}
+				default:
+					// Pass through all other fields, converting to string if needed for Terraform
+					if strVal, ok := value.(string); ok && strVal != "" {
+						tfOut[key] = strVal
+					} else if numVal, ok := value.(float64); ok && numVal != 0 {
+						tfOut[key] = strconv.FormatInt(int64(numVal), 10)
+					} else if boolVal, ok := value.(bool); ok {
+						if boolVal {
+							tfOut[key] = "1"
+						} else {
+							tfOut[key] = "0"
+						}
+					} else if value != nil {
+						// For other types (like interface{}), convert to string
+						tfOut[key] = fmt.Sprintf("%v", value)
+					}
+				}
+			}
 		}
 	}
 
