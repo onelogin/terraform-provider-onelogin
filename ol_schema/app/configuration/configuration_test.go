@@ -115,9 +115,10 @@ func TestInflateConfiguration(t *testing.T) {
 				"signature_algorithm": "test",
 				"idp_list":            "test",
 			},
-			ExpectedOutput: models.ConfigurationSAML{
-				ProviderArn:        "test",
-				SignatureAlgorithm: "test",
+			ExpectedOutput: map[string]interface{}{
+				"provider_arn":        "test",
+				"signature_algorithm": "test",
+				"idp_list":            "test",
 			},
 		},
 		"creates and returns the address of an AppConfiguration struct for a SAML app with exra fields": {
@@ -127,9 +128,55 @@ func TestInflateConfiguration(t *testing.T) {
 				"idp_list":            "test",
 				"encrypt_assertion":   "1",
 			},
-			ExpectedOutput: models.ConfigurationSAML{
-				ProviderArn:        "test",
-				SignatureAlgorithm: "test",
+			ExpectedOutput: map[string]interface{}{
+				"provider_arn":        "test",
+				"signature_algorithm": "test",
+				"idp_list":            "test",
+				"encrypt_assertion":   "1",
+			},
+		},
+		"handles comprehensive SAML configuration with all supported fields": {
+			ResourceData: map[string]interface{}{
+				"signature_algorithm":           "SHA-256",
+				"recipient":                     "https://example.com/auth/?acs",
+				"consumer_url":                  "https://example.com/auth/?acs",
+				"relaystate":                    "https://example.com/",
+				"certificate_id":                "123",
+				"logout_url":                    "https://example.com/auth/?sls",
+				"validator":                     ".*",
+				"audience":                      "https://example.com/auth/metadata/",
+				"saml_notonorafter":             "3",
+				"generate_attribute_value_tags": "0",
+				"saml_initiater_id":             "0",
+				"saml_notbefore":                "3",
+				"saml_issuer_type":              "0",
+				"saml_sign_element":             "0",
+				"encrypt_assertion":             "1",
+				"login":                         "https://example.com/",
+				"saml_sessionnotonorafter":      "1440",
+				"saml_encryption_method_id":     "0",
+				"saml_nameid_format_id":         "0",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"signature_algorithm":           "SHA-256",
+				"recipient":                     "https://example.com/auth/?acs",
+				"consumer_url":                  "https://example.com/auth/?acs",
+				"relaystate":                    "https://example.com/",
+				"certificate_id":                123,
+				"logout_url":                    "https://example.com/auth/?sls",
+				"validator":                     ".*",
+				"audience":                      "https://example.com/auth/metadata/",
+				"saml_notonorafter":             "3",
+				"generate_attribute_value_tags": "0",
+				"saml_initiater_id":             "0",
+				"saml_notbefore":                "3",
+				"saml_issuer_type":              "0",
+				"saml_sign_element":             "0",
+				"encrypt_assertion":             "1",
+				"login":                         "https://example.com/",
+				"saml_sessionnotonorafter":      "1440",
+				"saml_encryption_method_id":     "0",
+				"saml_nameid_format_id":         "0",
 			},
 		},
 	}
@@ -172,12 +219,11 @@ func TestInflateConfiguration(t *testing.T) {
 					} else {
 						t.Errorf("Expected CustomConfigurationOpenId but got different type: %T", subj)
 					}
-				} else if samlConfig, ok := test.ExpectedOutput.(models.ConfigurationSAML); ok {
-					if samlResult, ok := subj.(models.ConfigurationSAML); ok {
-						assert.Equal(t, samlConfig.ProviderArn, samlResult.ProviderArn)
-						assert.Equal(t, samlConfig.SignatureAlgorithm, samlResult.SignatureAlgorithm)
+				} else if samlConfigMap, ok := test.ExpectedOutput.(map[string]interface{}); ok {
+					if samlResultMap, ok := subj.(map[string]interface{}); ok {
+						assert.Equal(t, samlConfigMap, samlResultMap)
 					} else {
-						t.Errorf("Expected ConfigurationSAML but got different type")
+						t.Errorf("Expected map[string]interface{} for SAML but got different type: %T", subj)
 					}
 				}
 			}
@@ -215,6 +261,80 @@ func TestFlattenConfiguration(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			subj := FlattenOIDC(test.InputData)
+			assert.Equal(t, test.ExpectedOutput, subj)
+		})
+	}
+}
+
+func TestFlattenGenericConfiguration(t *testing.T) {
+	tests := map[string]struct {
+		InputData      map[string]interface{}
+		ExpectedOutput map[string]interface{}
+	}{
+		"flattens comprehensive SAML configuration from API response": {
+			InputData: map[string]interface{}{
+				"signature_algorithm": "SHA-256",
+				"recipient":           "https://example.com/auth/?acs",
+				"consumer_url":        "https://example.com/auth/?acs",
+				"relaystate":          "https://example.com/",
+				"certificate_id":      float64(123), // JSON unmarshaling makes numbers float64
+				"logout_url":          "https://example.com/auth/?sls",
+				"validator":           ".*",
+				"audience":            "https://example.com/auth/metadata/",
+				"encrypt_assertion":   "1",
+				"saml_notonorafter":   "3",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"signature_algorithm": "SHA-256",
+				"recipient":           "https://example.com/auth/?acs",
+				"consumer_url":        "https://example.com/auth/?acs",
+				"relaystate":          "https://example.com/",
+				"certificate_id":      "123",
+				"logout_url":          "https://example.com/auth/?sls",
+				"validator":           ".*",
+				"audience":            "https://example.com/auth/metadata/",
+				"encrypt_assertion":   "1",
+				"saml_notonorafter":   "3",
+			},
+		},
+		"preserves zero values in SAML configuration": {
+			InputData: map[string]interface{}{
+				"signature_algorithm":    "SHA-1",
+				"saml_issuer_type":       float64(0), // Zero is a valid value for SAML issuer type
+				"saml_nameid_format_id":  float64(0), // Zero is a valid value for NameID format
+				"saml_encryption_method": float64(0), // Zero is a valid encryption method
+				"encrypt_assertion":      false,      // false boolean should be preserved as "0"
+				"sign_element":           true,       // true boolean should be preserved as "1"
+				"consumer_url":           "https://example.com/acs",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"signature_algorithm":    "SHA-1",
+				"saml_issuer_type":       "0", // Zero values preserved
+				"saml_nameid_format_id":  "0", // Zero values preserved
+				"saml_encryption_method": "0", // Zero values preserved
+				"encrypt_assertion":      "0", // false preserved as "0"
+				"sign_element":           "1", // true preserved as "1"
+				"consumer_url":           "https://example.com/acs",
+			},
+		},
+		"excludes zero certificate_id as it indicates no certificate selected": {
+			InputData: map[string]interface{}{
+				"signature_algorithm": "SHA-256",
+				"certificate_id":      float64(0), // Zero certificate_id should be excluded
+				"consumer_url":        "https://example.com/acs",
+				"recipient":           "https://example.com/acs",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"signature_algorithm": "SHA-256",
+				// certificate_id should be excluded when zero
+				"consumer_url": "https://example.com/acs",
+				"recipient":    "https://example.com/acs",
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			subj := Flatten(test.InputData)
 			assert.Equal(t, test.ExpectedOutput, subj)
 		})
 	}
