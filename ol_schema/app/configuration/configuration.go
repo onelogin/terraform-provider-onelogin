@@ -48,6 +48,26 @@ func getInt(v interface{}) (int, error) {
 	return 0, nil
 }
 
+// intPtr creates a pointer to an int value for cleaner syntax when creating pointers
+func intPtr(val int) *int {
+	return &val
+}
+
+// handleTimeoutField processes a timeout field value and returns a pointer if the value is valid
+func handleTimeoutField(s map[string]interface{}, fieldName string) (*int, error) {
+	if val, exists := s[fieldName]; exists {
+		if strVal, ok := val.(string); ok && strVal != "" {
+			if timeoutVal, err := getInt(val); err != nil {
+				return nil, err
+			} else {
+				return intPtr(timeoutVal), nil
+			}
+		}
+		// If empty string or not provided, return nil (will be omitted from JSON)
+	}
+	return nil, nil
+}
+
 // Inflate takes a map of interfaces and uses the fields to construct
 // either a ConfigurationOpenId or ConfigurationSAML instance.
 func Inflate(s map[string]interface{}) (interface{}, error) {
@@ -70,26 +90,12 @@ func Inflate(s map[string]interface{}) (interface{}, error) {
 
 		// Handle timeout fields specially - only set them if explicitly provided and non-empty
 		// This prevents overriding existing API values with 0 when fields are not specified
-		if val, exists := s["refresh_token_expiration_minutes"]; exists {
-			if strVal, ok := val.(string); ok && strVal != "" {
-				if refreshToken, err := getInt(val); err != nil {
-					return nil, err
-				} else {
-					customOidc.RefreshTokenExpirationMinutes = &refreshToken
-				}
-			}
-			// If empty string or not provided, leave as nil (will be omitted from JSON)
+		if customOidc.RefreshTokenExpirationMinutes, err = handleTimeoutField(s, "refresh_token_expiration_minutes"); err != nil {
+			return nil, err
 		}
 
-		if val, exists := s["access_token_expiration_minutes"]; exists {
-			if strVal, ok := val.(string); ok && strVal != "" {
-				if accessToken, err := getInt(val); err != nil {
-					return nil, err
-				} else {
-					customOidc.AccessTokenExpirationMinutes = &accessToken
-				}
-			}
-			// If empty string or not provided, leave as nil (will be omitted from JSON)
+		if customOidc.AccessTokenExpirationMinutes, err = handleTimeoutField(s, "access_token_expiration_minutes"); err != nil {
+			return nil, err
 		}
 
 		// Convert string to int for these required fields

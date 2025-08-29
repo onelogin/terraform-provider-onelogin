@@ -26,11 +26,11 @@ func TestInflateConfiguration(t *testing.T) {
 			},
 			ExpectedOutput: CustomConfigurationOpenId{
 				RedirectURI:                   "test",
-				RefreshTokenExpirationMinutes: &[]int{2}[0],
+				RefreshTokenExpirationMinutes: intPtr(2),
 				LoginURL:                      "test",
 				OidcApplicationType:           2,
 				TokenEndpointAuthMethod:       2,
-				AccessTokenExpirationMinutes:  &[]int{2}[0],
+				AccessTokenExpirationMinutes:  intPtr(2),
 			},
 		},
 		"handles OIDC app config with only redirect_uri (no timeout fields)": {
