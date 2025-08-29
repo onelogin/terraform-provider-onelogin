@@ -245,9 +245,11 @@ func Flatten(config map[string]interface{}) map[string]interface{} {
 					// Pass through all other fields, converting to string if needed for Terraform
 					if strVal, ok := value.(string); ok && strVal != "" {
 						tfOut[key] = strVal
-					} else if numVal, ok := value.(float64); ok && numVal != 0 {
+					} else if numVal, ok := value.(float64); ok {
+						// Always include numeric values, including zero, as they may be valid SAML configuration
 						tfOut[key] = strconv.FormatInt(int64(numVal), 10)
 					} else if boolVal, ok := value.(bool); ok {
+						// Always include boolean values, consistent with numeric handling
 						if boolVal {
 							tfOut[key] = "1"
 						} else {

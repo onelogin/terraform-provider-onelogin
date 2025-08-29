@@ -297,6 +297,40 @@ func TestFlattenGenericConfiguration(t *testing.T) {
 				"saml_notonorafter":   "3",
 			},
 		},
+		"preserves zero values in SAML configuration": {
+			InputData: map[string]interface{}{
+				"signature_algorithm":    "SHA-1",
+				"saml_issuer_type":       float64(0), // Zero is a valid value for SAML issuer type
+				"saml_nameid_format_id":  float64(0), // Zero is a valid value for NameID format
+				"saml_encryption_method": float64(0), // Zero is a valid encryption method
+				"encrypt_assertion":      false,      // false boolean should be preserved as "0"
+				"sign_element":           true,       // true boolean should be preserved as "1"
+				"consumer_url":           "https://example.com/acs",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"signature_algorithm":    "SHA-1",
+				"saml_issuer_type":       "0", // Zero values preserved
+				"saml_nameid_format_id":  "0", // Zero values preserved
+				"saml_encryption_method": "0", // Zero values preserved
+				"encrypt_assertion":      "0", // false preserved as "0"
+				"sign_element":           "1", // true preserved as "1"
+				"consumer_url":           "https://example.com/acs",
+			},
+		},
+		"excludes zero certificate_id as it indicates no certificate selected": {
+			InputData: map[string]interface{}{
+				"signature_algorithm": "SHA-256",
+				"certificate_id":      float64(0), // Zero certificate_id should be excluded
+				"consumer_url":        "https://example.com/acs",
+				"recipient":           "https://example.com/acs",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"signature_algorithm": "SHA-256",
+				// certificate_id should be excluded when zero
+				"consumer_url": "https://example.com/acs",
+				"recipient":    "https://example.com/acs",
+			},
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
