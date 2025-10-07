@@ -1,30 +1,16 @@
-# Onelogin Terraform Provider
+# OneLogin Terraform Provider
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/onelogin/terraform-provider-onelogin)](https://goreportcard.com/report/github.com/onelogin/terraform-provider-onelogin)
 <a href='https://github.com/dcaponi/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-100%25-brightgreen.svg?longCache=true&style=flat)</a>
 
-## Prerequisites
-1. Install Go 1.18 or later
-2. Install Terraform v0.13.x or later
-3. Install gosec (for security scanning):
-   ```bash
-   curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
-   ```
+Manage your OneLogin resources with Terraform! This official provider allows you to configure users, groups, roles, applications, and more using infrastructure as code.
 
-## Development Setup
+## Installation
 
-1. Clone this repository
-2. Set up your OneLogin API credentials:
-   ```bash
-   export ONELOGIN_CLIENT_ID=<your client id>
-   export ONELOGIN_CLIENT_SECRET=<your client secret>
-   export ONELOGIN_API_URL=<your OneLogin API URL, e.g., https://company.onelogin.com>
-   ```
-3. Build and install the provider locally:
-   ```bash
-   make sideload
-   ```
+The OneLogin provider is available on the [Terraform Registry](https://registry.terraform.io/providers/onelogin/onelogin/latest). Terraform will automatically download it when you run `terraform init`.
 
-### Example Provider Configuration
+Add the provider to your Terraform configuration:
+
 ```hcl
 terraform {
   required_providers {
@@ -40,115 +26,109 @@ provider "onelogin" {
 }
 ```
 
-## Development Workflow
+## Authentication
 
-### Adding a New Resource
-1. Add the service to the [OneLogin SDK](https://github.com/onelogin/onelogin-go-sdk) (see `AppsService` for example)
-2. Define the resource in `onelogin/provider.go`
-3. Create resource files:
-   - `onelogin/resource_onelogin_<resource>.go`
-   - `onelogin/resource_onelogin<resource>_test.go`
-4. Add schema definitions in `ol_schemas/<resource>/<sub-resource>`
-5. Add examples in `examples/`
-6. Add documentation in `docs/resources/`
+The provider requires OneLogin API credentials. You can configure these via environment variables or provider configuration.
 
-### Testing
-- Run unit tests: `make test`
-- Run security checks: `make secure`
-- Run acceptance tests: `make testacc` (requires API credentials)
-- Debug with: `export TF_LOG=trace`
+### Option 1: Environment Variables (Recommended)
 
-### Helpful Commands
 ```bash
-# Build and install locally
-make sideload
-
-# Clean terraform state
-make clean-terraform
-
-# Run tests (skips acceptance tests)
-make test
-
-# Run security checks
-make secure
+export ONELOGIN_CLIENT_ID="your_client_id"
+export ONELOGIN_CLIENT_SECRET="your_client_secret"
+export ONELOGIN_API_URL="https://your-subdomain.onelogin.com"
 ```
 
-## Release Process
+### Option 2: Provider Configuration
 
-To create a new release, simply publish a GitHub Release:
-
-1. Go to the [Releases page](../../releases) in GitHub
-2. Click **"Draft a new release"**
-3. Click **"Choose a tag"** and create a new tag following semantic versioning (e.g., `v0.11.1`)
-4. Set the release title and description (you can use "Generate release notes" for automatic changelog)
-5. Click **"Publish release"**
-
-The Release workflow will automatically:
-- Build the provider binaries with GoReleaser (using the tag version)
-- Generate checksums and sign them with GPG
-- Attach binaries and checksums to the GitHub release
-- Publish to the Terraform Registry
-
-**That's it!** The entire release process is automated from a single GitHub Release creation.
-
-## Terraform Overview
-Terraform enables declarative infrastructure management using HashiCorp Configuration Language (HCL). It tracks the desired state in `.tf` files and the current state in `.tfstate` files.
-
-Basic commands:
-```bash
-# Initialize working directory
-terraform init
-
-# Preview changes
-terraform plan
-
-# Apply changes
-terraform apply
+```hcl
+provider "onelogin" {
+  client_id     = "your_client_id"
+  client_secret = "your_client_secret"
+  url           = "https://your-subdomain.onelogin.com"
+}
 ```
 
-# Dependency Management
-We use go mod for dependency management.
+### Getting API Credentials
 
-To add a package:
+1. Log in to your OneLogin admin portal
+2. Go to **Developers** → **API Credentials**
+3. Create a new API credential with appropriate permissions
+4. Save the Client ID and Client Secret
 
-```
-go get -u "package-name"
-```
+## Quick Start Example
 
-To re-install dependencies for this project:
-```
-rm go.sum
-go mod download
-```
+Here's a simple example that creates a user and assigns them to a role:
 
-To update dependencies for this project:
-```
-go mod -u ./...
-```
+```hcl
+# Create a role
+resource "onelogin_roles" "developers" {
+  name = "Developers"
+}
 
-# Helpful Makefile Commands
+# Create a user
+resource "onelogin_users" "john_doe" {
+  username   = "john.doe@example.com"
+  email      = "john.doe@example.com"
+  firstname  = "John"
+  lastname   = "Doe"
+}
 
-**testacc** runs acceptance tests (actually creates resources in OL then cleans them up)
-```
-make testacc
-```
-
-**sideload** builds and sideloads the provider for local dev/testing
-```
-make sideload
-```
-
-**clean-terraform** reset terraform state in the local folder
-```
-make clean-terraform
+# Create a group
+resource "onelogin_groups" "engineering" {
+  name = "Engineering"
+}
 ```
 
-**test** runs unit tests (non-acceptance and no real requests made) and applies coverage badge
-```
-make test
-```
+## Available Resources
 
-**secure** runs gosec code analysis to warn about possible exploits specific to go
-```
-make secure
-```
+The provider supports the following OneLogin resources:
+
+- `onelogin_users` - Manage users
+- `onelogin_groups` - Manage groups
+- `onelogin_roles` - Manage roles
+- `onelogin_apps` - Manage applications
+- `onelogin_saml_apps` - Manage SAML applications
+- `onelogin_oidc_apps` - Manage OIDC applications
+- `onelogin_app_rules` - Manage application provisioning rules
+- `onelogin_app_role_attachments` - Attach roles to applications
+- `onelogin_auth_servers` - Manage OAuth authorization servers
+- `onelogin_privileges` - Manage custom privileges
+- `onelogin_user_mappings` - Manage user attribute mappings
+- `onelogin_user_custom_attributes` - Manage custom user attributes
+- `onelogin_smarthooks` - Manage SmartHooks
+- `onelogin_smarthook_environment_variables` - Manage SmartHook environment variables
+- `onelogin_self_registration_profiles` - Manage self-registration profiles
+
+## Available Data Sources
+
+Use data sources to reference existing OneLogin resources:
+
+- `onelogin_user` - Look up a single user
+- `onelogin_users` - Query multiple users
+- `onelogin_group` - Look up a single group
+- `onelogin_groups` - Query multiple groups
+
+## Documentation
+
+For detailed documentation on each resource and data source, see:
+
+- [Terraform Registry Documentation](https://registry.terraform.io/providers/onelogin/onelogin/latest/docs)
+- [Examples](./examples/) - Example configurations for common use cases
+
+## Support
+
+- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/onelogin/terraform-provider-onelogin/issues)
+- **Questions**: For questions about using the provider, please use GitHub Discussions or OneLogin support channels
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details on:
+
+- Setting up your development environment
+- Running tests
+- Submitting pull requests
+- Release process
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
