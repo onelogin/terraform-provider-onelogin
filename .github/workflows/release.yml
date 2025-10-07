@@ -41,9 +41,8 @@ jobs:
           # Commit if there are changes (may not be if version files already match)
           git commit -m "chore: bump version to ${{ steps.get_version.outputs.version }}" || echo "No changes to commit"
           # Validate we're on main branch before pushing
-          CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
-          if [ "$CURRENT_BRANCH" != "main" ]; then
-            echo "Error: Current branch is '$CURRENT_BRANCH', expected 'main'. Release should be created from main branch."
+          if [ "${{ github.event.release.target_commitish }}" != "main" ]; then
+            echo "Error: Release was not created from 'main' branch (target_commitish=${{ github.event.release.target_commitish }})."
             exit 1
           fi
           # Push to main
