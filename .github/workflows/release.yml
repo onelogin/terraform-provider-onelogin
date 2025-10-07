@@ -40,13 +40,19 @@ jobs:
           git add GNUmakefile README.md
           # Commit if there are changes (may not be if version files already match)
           git commit -m "chore: bump version to ${{ steps.get_version.outputs.version }}" || echo "No changes to commit"
-          # Push to main (assumes release is created from main branch)
+          # Validate we're on main branch before pushing
+          CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+          if [ "$CURRENT_BRANCH" != "main" ]; then
+            echo "Error: Current branch is '$CURRENT_BRANCH', expected 'main'. Release should be created from main branch."
+            exit 1
+          fi
+          # Push to main
           git push origin main
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.23'
 
       - name: Import GPG key
         id: import_gpg
