@@ -16,44 +16,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract version from tag
-        id: get_version
-        run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          # Remove 'v' prefix if present
-          VERSION="${VERSION#v}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Checkout main branch
-        run: |
-          # Validate we're releasing from main branch
-          if [ "${{ github.event.release.target_commitish }}" != "main" ]; then
-            echo "Error: Release was not created from 'main' branch (target_commitish=${{ github.event.release.target_commitish }})."
-            exit 1
-          fi
-          # Checkout main branch (release event checks out the tag, putting us in detached HEAD)
-          git checkout main
-          git pull origin main
-
-      - name: Update version in files
-        run: |
-          VERSION="${{ steps.get_version.outputs.version }}"
-          # Update GNUmakefile
-          sed -i -E "s/VERSION=[0-9]+\.[0-9]+\.[0-9]+/VERSION=$VERSION/" GNUmakefile
-          # Update README.md
-          sed -i -E "s/version = \"[0-9]+\.[0-9]+\.[0-9]+\"/version = \"$VERSION\"/" README.md
-          echo "Updated version to $VERSION"
-
-      - name: Commit version changes back to main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add GNUmakefile README.md
-          # Commit if there are changes (may not be if version files already match)
-          git diff --staged --quiet || git commit -m "chore: bump version to ${{ steps.get_version.outputs.version }}"
-          # Push to main
-          git push origin main
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:

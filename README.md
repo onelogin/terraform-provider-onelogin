@@ -30,7 +30,7 @@ terraform {
   required_providers {
     onelogin = {
       source  = "onelogin/onelogin"
-      version = "0.11.0"
+      version = "~> 1.0"  # Use the latest version from the Terraform Registry
     }
   }
 }
@@ -84,11 +84,9 @@ To create a new release, simply publish a GitHub Release:
 5. Click **"Publish release"**
 
 The Release workflow will automatically:
-- Extract the version from the tag (e.g., `v0.11.1` → `0.11.1`)
-- Update `VERSION` in `GNUmakefile` and the example provider configuration in `README.md`
-- Commit the version changes back to the main branch
-- Build the provider binaries with GoReleaser
-- Attach signed binaries to the GitHub release
+- Build the provider binaries with GoReleaser (using the tag version)
+- Generate checksums and sign them with GPG
+- Attach binaries and checksums to the GitHub release
 - Publish to the Terraform Registry
 
 **That's it!** The entire release process is automated from a single GitHub Release creation.

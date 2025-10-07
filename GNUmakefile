@@ -10,7 +10,9 @@ GO111MODULE=on
 
 PLUGINS_DIR=~/.terraform.d/plugins
 PLUGIN_PATH=onelogin.com/onelogin/onelogin
-VERSION=0.11.0
+# VERSION is only used for local development (make sideload)
+# For releases, GoReleaser uses the git tag version
+VERSION=dev
 
 clean:
 	rm -r ${DIST_DIR}
