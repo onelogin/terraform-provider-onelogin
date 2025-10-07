@@ -191,6 +191,9 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		if lastRole, ok := roles[len(roles)-1].(map[string]interface{}); ok {
 			if lastID, ok := lastRole["id"].(float64); ok {
 				query.Cursor = fmt.Sprintf("%d", int(lastID))
+				// Clear limit and page when using cursor - API requires cursor XOR pagination
+				query.Limit = ""
+				query.Page = ""
 			}
 		}
 	}
