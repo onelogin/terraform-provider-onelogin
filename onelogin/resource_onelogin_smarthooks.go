@@ -80,7 +80,7 @@ func smartHookCreate(ctx context.Context, d *schema.ResourceData, m interface{})
 
 	// Handle options
 	if v, ok := d.GetOk("options"); ok {
-		optsList := v.([]interface{})
+		optsList := v.(*schema.Set).List()
 		if len(optsList) > 0 {
 			optsMap := optsList[0].(map[string]interface{})
 			opts := &models.Options{}
@@ -287,7 +287,7 @@ func smartHookUpdate(ctx context.Context, d *schema.ResourceData, m interface{})
 
 	// Handle options
 	if v, ok := d.GetOk("options"); ok {
-		optsList := v.([]interface{})
+		optsList := v.(*schema.Set).List()
 		if len(optsList) > 0 {
 			optsMap := optsList[0].(map[string]interface{})
 			opts := &models.Options{}
