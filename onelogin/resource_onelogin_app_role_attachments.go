@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
 // AppRoleAttachment attaches additional configuration and sso schemas and
@@ -53,8 +54,16 @@ func appRoleAttachmentRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	result, err := client.GetAppByID(appID, nil)
 	if err != nil {
-		d.SetId("")
-		return diag.Errorf("App does not exist: %s", err)
+		// Check if this is a 404 (resource not found)
+		if utils.IsNotFoundError(err) {
+			tflog.Info(ctx, "[NOT FOUND] App not found for role attachment", map[string]interface{}{
+				"app_id": appID,
+			})
+			d.SetId("")
+			return nil
+		}
+		// For other errors, return the error
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "App Role Attachment", d.Id())
 	}
 
 	appMap, ok := result.(map[string]interface{})
