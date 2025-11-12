@@ -75,13 +75,20 @@ func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 
 	result, err := client.GetAppByID(aid, nil)
 	if err != nil {
+		// Check if this is a 404 (resource not found)
+		if utils.IsNotFoundError(err) {
+			tflog.Info(ctx, "[NOT FOUND] App not found", map[string]interface{}{"id": aid})
+			d.SetId("")
+			return nil
+		}
+		// For other errors, log and return the error
 		tflog.Error(ctx, "[ERROR] Error reading app", map[string]interface{}{"id": aid, "error": err})
 		return diag.FromErr(err)
 	}
 
-	// Check if app exists
+	// Additional nil check for safety
 	if result == nil {
-		tflog.Info(ctx, "[NOT FOUND] App not found", map[string]interface{}{"id": aid})
+		tflog.Info(ctx, "[NOT FOUND] App not found (nil result)", map[string]interface{}{"id": aid})
 		d.SetId("")
 		return nil
 	}

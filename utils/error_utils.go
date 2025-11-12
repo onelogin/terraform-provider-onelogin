@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -93,4 +94,17 @@ func HandleSchemaError(ctx context.Context, err error, category ErrorCategory, r
 		id,
 		err,
 	)
+}
+
+// IsNotFoundError checks if an error represents a 404/not found condition
+// This is used to distinguish between "resource doesn't exist" (which should
+// remove the resource from state) and actual errors (which should fail the operation)
+func IsNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errMsg := err.Error()
+	return strings.Contains(errMsg, "404") ||
+		strings.Contains(errMsg, "not found") ||
+		strings.Contains(strings.ToLower(errMsg), "does not exist")
 }

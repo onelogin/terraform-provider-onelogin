@@ -103,12 +103,21 @@ func samlAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	result, err := client.GetAppByID(aid, nil)
 	if err != nil {
+		// Check if this is a 404 (resource not found)
+		if utils.IsNotFoundError(err) {
+			tflog.Info(ctx, "[NOT FOUND] SAML app not found", map[string]interface{}{
+				"id": aid,
+			})
+			d.SetId("")
+			return nil
+		}
+		// For other errors, use standard error handling
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "SAML App", d.Id())
 	}
 
-	// Check if app exists
+	// Additional nil check for safety
 	if result == nil {
-		tflog.Info(ctx, "[NOT FOUND] SAML app not found", map[string]interface{}{
+		tflog.Info(ctx, "[NOT FOUND] SAML app not found (nil result)", map[string]interface{}{
 			"id": aid,
 		})
 		d.SetId("")
