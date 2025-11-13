@@ -103,8 +103,8 @@ func IsNotFoundError(err error) bool {
 	if err == nil {
 		return false
 	}
-	errMsg := err.Error()
+	errMsg := strings.ToLower(err.Error())
 	return strings.Contains(errMsg, "404") ||
 		strings.Contains(errMsg, "not found") ||
-		strings.Contains(strings.ToLower(errMsg), "does not exist")
+		strings.Contains(errMsg, "does not exist")
 }
