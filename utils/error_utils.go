@@ -104,7 +104,7 @@ func IsNotFoundError(err error) bool {
 		return false
 	}
 	errMsg := strings.ToLower(err.Error())
-	return strings.Contains(errMsg, "404") ||
+	return strings.Contains(errMsg, "status: 404") ||
 		strings.Contains(errMsg, "not found") ||
 		strings.Contains(errMsg, "does not exist")
 }
