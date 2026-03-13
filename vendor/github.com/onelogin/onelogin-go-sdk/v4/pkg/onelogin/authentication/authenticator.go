@@ -114,7 +114,7 @@ func (a *Authenticator) RevokeToken(token *string) error {
 	}
 
 	// Convert payload to JSON
-	jsonData, err := json.Marshal(data)
+	jsonData, err := json.Marshal(data) // #nosec G117 -- access_token field name is required by the OAuth2 revocation spec
 	if err != nil {
 		return fmt.Errorf("failed to create revocation request: %w", err)
 	}

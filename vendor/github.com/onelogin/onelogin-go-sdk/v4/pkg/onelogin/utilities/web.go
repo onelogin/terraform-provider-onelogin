@@ -6,9 +6,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	olerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
+	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 // receive http response, check error code status, if good return json of resp.Body
@@ -60,6 +62,32 @@ func CheckHTTPResponse(resp *http.Response) (any, error) {
 
 	//log.Printf("Response body unmarshaled successfully: %v\n", data)
 	return data, nil
+}
+
+// CheckHTTPResponseWithPagination parses the response body and extracts pagination
+// cursor headers (After-Cursor, Before-Cursor) from the V2 API response.
+func CheckHTTPResponseWithPagination(resp *http.Response) (any, *mod.PaginationInfo, error) {
+	data, err := CheckHTTPResponse(resp)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	pagination := &mod.PaginationInfo{
+		AfterCursor:  resp.Header.Get("After-Cursor"),
+		BeforeCursor: resp.Header.Get("Before-Cursor"),
+		Cursor:       resp.Header.Get("Cursor"),
+	}
+	if tp := resp.Header.Get("Total-Pages"); tp != "" {
+		pagination.TotalPages, _ = strconv.Atoi(tp)
+	}
+	if cp := resp.Header.Get("Current-Page"); cp != "" {
+		pagination.CurrentPage, _ = strconv.Atoi(cp)
+	}
+	if tc := resp.Header.Get("Total-Count"); tc != "" {
+		pagination.TotalCount, _ = strconv.Atoi(tc)
+	}
+
+	return data, pagination, nil
 }
 
 // CheckHTTPResponseAndUnmarshal checks the HTTP response and unmarshals the response body into the target struct

@@ -137,3 +137,18 @@ func (q *AppQuery) GetKeyValidators() map[string]func(interface{}) bool {
 		"auth_method":  validateInt,
 	}
 }
+
+// AppUserQuery represents query parameters for listing app users with pagination support
+type AppUserQuery struct {
+	Limit  string `json:"limit,omitempty"`
+	Page   string `json:"page,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
+}
+
+func (q *AppUserQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":  validateString,
+		"page":   validateString,
+		"cursor": validateString,
+	}
+}

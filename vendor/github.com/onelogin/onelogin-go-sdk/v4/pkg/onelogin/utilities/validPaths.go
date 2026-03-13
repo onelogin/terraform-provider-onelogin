@@ -15,6 +15,8 @@ var validPaths = []string{
 	"^/api/1/events/types$",
 	"^/api/1/groups$",
 	"^/api/1/groups/[0-9]+$",
+	"^/api/2/groups$",
+	"^/api/2/groups/[0-9]+$",
 	"^/api/1/login/auth$",
 	"^/api/1/login/verify_factor$",
 	"^/api/1/invites/get_invite_link$",

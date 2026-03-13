@@ -1,6 +1,10 @@
 package onelogin
 
 import (
+	"context"
+	"fmt"
+	"strconv"
+	
 	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
@@ -94,6 +98,72 @@ func (sdk *OneloginSDK) GetAppUsers(appID int) (interface{}, error) {
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
+}
+
+// GetAppUsersWithPagination retrieves users for an app with optional pagination parameters
+func (sdk *OneloginSDK) GetAppUsersWithPagination(appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
+	return sdk.GetAppUsersWithPaginationAndContext(context.Background(), appID, queryParams)
+}
+
+// GetAppUsersWithPaginationAndContext retrieves users for an app with optional query parameters using the provided context
+// Returns pagination metadata along with the user data
+func (sdk *OneloginSDK) GetAppUsersWithPaginationAndContext(ctx context.Context, appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
+	p, err := utl.BuildAPIPath(AppPath, appID, "users")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build API path: %w", err)
+	}
+	
+	// Validate query parameters if provided
+	if queryParams != nil {
+		validators := queryParams.GetKeyValidators()
+		if !utl.ValidateQueryParams(queryParams, validators) {
+			return nil, fmt.Errorf("invalid query parameters: validation failed")
+		}
+	}
+	
+	// Make the API request with context
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get app users: %w", err)
+	}
+
+	// Extract data from response
+	data, err := utl.CheckHTTPResponse(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process response: %w", err)
+	}
+
+	// Extract pagination information from headers
+	pagination := mod.PaginationInfo{
+		Cursor:       resp.Header.Get("Cursor"),
+		AfterCursor:  resp.Header.Get("After-Cursor"),
+		BeforeCursor: resp.Header.Get("Before-Cursor"),
+	}
+
+	// Try to parse total pages and current page
+	if totalPages := resp.Header.Get("Total-Pages"); totalPages != "" {
+		if i, err := strconv.Atoi(totalPages); err == nil {
+			pagination.TotalPages = i
+		}
+	}
+
+	if currentPage := resp.Header.Get("Current-Page"); currentPage != "" {
+		if i, err := strconv.Atoi(currentPage); err == nil {
+			pagination.CurrentPage = i
+		}
+	}
+
+	if totalCount := resp.Header.Get("Total-Count"); totalCount != "" {
+		if i, err := strconv.Atoi(totalCount); err == nil {
+			pagination.TotalCount = i
+		}
+	}
+
+	// Combine data and pagination info
+	return &mod.PagedResponse{
+		Data:       data,
+		Pagination: pagination,
+	}, nil
 }
 
 // App Rules APIs
