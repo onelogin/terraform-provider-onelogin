@@ -43,10 +43,14 @@ func resourceOneLoginGroups() *schema.Resource {
 
 // groupCreate creates a new OneLogin Group
 func groupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	group, err := groupschema.Inflate(map[string]interface{}{
-		"name":      d.Get("name"),
-		"reference": d.Get("reference"),
-	})
+	inflateMap := map[string]interface{}{
+		"name": d.Get("name"),
+	}
+	if ref, ok := d.GetOk("reference"); ok {
+		inflateMap["reference"] = ref
+	}
+
+	group, err := groupschema.Inflate(inflateMap)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "Group", "")
 	}
@@ -92,7 +96,7 @@ func groupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		"id": groupID,
 	})
 
-	result, err := client.GetGroupByID(groupID)
+	result, err := client.GetGroupByIDV2(groupID)
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Group", d.Id())
 	}
@@ -112,13 +116,12 @@ func groupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.Errorf("failed to parse group response")
 	}
 
-	// Set basic fields
-	if name, ok := groupMap["name"].(string); ok {
-		d.Set("name", name)
+	if err := d.Set("name", groupMap["name"]); err != nil {
+		return diag.FromErr(err)
 	}
 
-	if ref, ok := groupMap["reference"].(string); ok {
-		d.Set("reference", ref)
+	if err := d.Set("reference", groupMap["reference"]); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return nil
@@ -131,11 +134,15 @@ func groupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	group, err := groupschema.Inflate(map[string]interface{}{
-		"id":        groupID,
-		"name":      d.Get("name"),
-		"reference": d.Get("reference"),
-	})
+	inflateMap := map[string]interface{}{
+		"id":   groupID,
+		"name": d.Get("name"),
+	}
+	if ref, ok := d.GetOk("reference"); ok {
+		inflateMap["reference"] = ref
+	}
+
+	group, err := groupschema.Inflate(inflateMap)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "Group", d.Id())
 	}

@@ -34,6 +34,18 @@ func (sdk *OneloginSDK) GetGroupByID(groupID int) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
+func (sdk *OneloginSDK) GetGroupByIDV2(groupID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(GroupsV2Path, groupID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
 func (sdk *OneloginSDK) CreateGroup(group *mod.Group) (interface{}, error) {
 	p, err := utl.BuildAPIPath(GroupsV2Path)
 	if err != nil {

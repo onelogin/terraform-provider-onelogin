@@ -1,15 +1,20 @@
 package onelogin
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 )
 
 func TestAccOneLoginGroup_crud(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { TestAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckOneLoginGroupDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckOneLoginGroupConfig,
@@ -25,8 +30,31 @@ func TestAccOneLoginGroup_crud(t *testing.T) {
 					resource.TestCheckResourceAttr("onelogin_groups.test", "reference", "updated-test-group"),
 				),
 			},
+			{
+				ResourceName:      "onelogin_groups.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
+}
+
+func testAccCheckOneLoginGroupDestroyed(s *terraform.State) error {
+	client := testAccProvider.Meta().(*onelogin.OneloginSDK)
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "onelogin_groups" {
+			continue
+		}
+		id, err := strconv.Atoi(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := client.GetGroupByIDV2(id)
+		if err == nil && resp != nil {
+			return fmt.Errorf("group %d still exists", id)
+		}
+	}
+	return nil
 }
 
 const testAccCheckOneLoginGroupConfig = `
