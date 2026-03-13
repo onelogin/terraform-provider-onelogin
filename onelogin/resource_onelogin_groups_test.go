@@ -7,9 +7,6 @@ import (
 )
 
 func TestAccOneLoginGroup_crud(t *testing.T) {
-	// Skip this test for now since the OneLogin API doesn't support group creation/update/deletion
-	t.Skip("Skipping test as OneLogin API doesn't support group CRUD operations")
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: testAccProviders,
