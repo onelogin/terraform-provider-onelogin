@@ -2,6 +2,7 @@ package onelogin
 
 import (
 	"context"
+	"strconv"
 
 	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
@@ -44,6 +45,57 @@ func (sdk *OneloginSDK) GetRolesWithContext(ctx context.Context, queryParams mod
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
+}
+
+// GetRolesWithPagination retrieves roles with pagination information extracted from response headers
+func (sdk *OneloginSDK) GetRolesWithPagination(queryParams mod.Queryable) (*mod.PagedResponse, error) {
+	return sdk.GetRolesWithPaginationWithContext(context.Background(), queryParams)
+}
+
+// GetRolesWithPaginationWithContext retrieves roles with pagination information using the provided context
+func (sdk *OneloginSDK) GetRolesWithPaginationWithContext(ctx context.Context, queryParams mod.Queryable) (*mod.PagedResponse, error) {
+	p, err := utl.BuildAPIPath(RolePath)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := utl.CheckHTTPResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	pagination := mod.PaginationInfo{
+		Cursor:       resp.Header.Get("Cursor"),
+		AfterCursor:  resp.Header.Get("After-Cursor"),
+		BeforeCursor: resp.Header.Get("Before-Cursor"),
+	}
+
+	if totalPages := resp.Header.Get("Total-Pages"); totalPages != "" {
+		if i, err := strconv.Atoi(totalPages); err == nil {
+			pagination.TotalPages = i
+		}
+	}
+
+	if currentPage := resp.Header.Get("Current-Page"); currentPage != "" {
+		if i, err := strconv.Atoi(currentPage); err == nil {
+			pagination.CurrentPage = i
+		}
+	}
+
+	if totalCount := resp.Header.Get("Total-Count"); totalCount != "" {
+		if i, err := strconv.Atoi(totalCount); err == nil {
+			pagination.TotalCount = i
+		}
+	}
+
+	return &mod.PagedResponse{
+		Data:       data,
+		Pagination: pagination,
+	}, nil
 }
 
 func (sdk *OneloginSDK) GetRoleByID(id int, queryParams mod.Queryable) (interface{}, error) {

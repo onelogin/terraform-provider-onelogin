@@ -132,17 +132,17 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	utils.AddRequestResponseLogging(ctx, client)
 
 	for !foundRole {
-		// Get a batch of roles
-		result, err := client.GetRolesWithContext(ctx, query)
+		// Get a batch of roles with pagination headers
+		pagedResult, err := client.GetRolesWithPaginationWithContext(ctx, query)
 		if err != nil {
 			return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role", d.Id())
 		}
 
 		// Parse the roles from the result
-		roles, ok := result.([]interface{})
+		roles, ok := pagedResult.Data.([]interface{})
 		if !ok {
 			// Try to handle if the API returns an object with array under a key
-			resultMap, mapOk := result.(map[string]interface{})
+			resultMap, mapOk := pagedResult.Data.(map[string]interface{})
 			if mapOk {
 				if data, dataOk := resultMap["data"].([]interface{}); dataOk {
 					roles = data
@@ -176,10 +176,10 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 			break
 		}
 
-		// Handle pagination
-		// Check if there's more data to fetch
-		if len(roles) < 100 {
-			// No more roles to check, the role doesn't exist
+		// Handle pagination using the After-Cursor header value
+		afterCursor := pagedResult.Pagination.AfterCursor
+		if afterCursor == "" {
+			// No more pages - an empty After-Cursor indicates we've reached the end of the result set
 			tflog.Info(ctx, "[NOT FOUND] Role not found in any page", map[string]interface{}{
 				"id": rid,
 			})
@@ -187,15 +187,10 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 			return nil
 		}
 
-		// Use the last role's ID as the cursor for the next page
-		if lastRole, ok := roles[len(roles)-1].(map[string]interface{}); ok {
-			if lastID, ok := lastRole["id"].(float64); ok {
-				query.Cursor = fmt.Sprintf("%d", int(lastID))
-				// Clear limit and page when using cursor - API requires cursor XOR pagination
-				query.Limit = ""
-				query.Page = ""
-			}
-		}
+		// Use the After-Cursor header value as the cursor for the next page
+		query.Cursor = afterCursor
+		query.Limit = ""
+		query.Page = ""
 	}
 
 	// If we get here and haven't found the role, it doesn't exist
