@@ -46,6 +46,24 @@ func (sdk *OneloginSDK) GetRolesWithContext(ctx context.Context, queryParams mod
 	return utl.CheckHTTPResponse(resp)
 }
 
+// GetRolesWithPagination retrieves a list of roles with pagination info from response headers
+func (sdk *OneloginSDK) GetRolesWithPagination(queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	return sdk.GetRolesWithPaginationAndContext(context.Background(), queryParams)
+}
+
+// GetRolesWithPaginationAndContext retrieves a list of roles with pagination info using the provided context
+func (sdk *OneloginSDK) GetRolesWithPaginationAndContext(ctx context.Context, queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	p, err := utl.BuildAPIPath(RolePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
+	if err != nil {
+		return nil, nil, err
+	}
+	return utl.CheckHTTPResponseWithPagination(resp)
+}
+
 func (sdk *OneloginSDK) GetRoleByID(id int, queryParams mod.Queryable) (interface{}, error) {
 	return sdk.GetRoleByIDWithContext(context.Background(), id, queryParams)
 }

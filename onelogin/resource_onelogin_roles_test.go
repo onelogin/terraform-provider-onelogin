@@ -45,11 +45,12 @@ func TestRoleQueryPagination(t *testing.T) {
 	assert.Equal(t, "", query.Page, "Initial page should be empty")
 
 	// Test cursor-based pagination - simulate what happens in roleRead
-	query.Cursor = "12345"
+	// Cursors are now opaque base64 values from the After-Cursor response header
+	query.Cursor = "bGltaXQ9MTAwJnNvcnQ9aWQmcGFnZT0yJnNvcnRfZGlyZWN0aW9uPWFzYw=="
 	query.Limit = ""
 	query.Page = ""
 
-	assert.Equal(t, "12345", query.Cursor, "Cursor should be set")
+	assert.Equal(t, "bGltaXQ9MTAwJnNvcnQ9aWQmcGFnZT0yJnNvcnRfZGlyZWN0aW9uPWFzYw==", query.Cursor, "Cursor should be set to opaque After-Cursor value")
 	assert.Equal(t, "", query.Limit, "Limit should be cleared when using cursor")
 	assert.Equal(t, "", query.Page, "Page should be cleared when using cursor")
 }

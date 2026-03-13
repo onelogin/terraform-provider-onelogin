@@ -3,19 +3,16 @@ layout: "onelogin"
 page_title: "OneLogin: onelogin_groups"
 sidebar_current: "docs-onelogin-resource-groups"
 description: |-
-  Provides a OneLogin group resource.
+  Manages a OneLogin group.
 ---
 
 # onelogin_groups
 
-Provides a OneLogin group resource.
-
-> **Note:** The OneLogin API currently only supports reading groups. Creating, updating, and deleting groups through the API is not supported at this time. This resource is provided for future compatibility when these operations become available.
+Manages a OneLogin group. Supports full CRUD operations via the V2 API.
 
 ## Example Usage
 
 ```hcl
-# This resource is read-only for now
 resource "onelogin_groups" "engineering" {
   name      = "Engineering"
   reference = "eng-group"

@@ -118,30 +118,23 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		"id": rid,
 	})
 
-	// Use the GetRoles endpoint which returns complete role objects
-	// We'll need to handle pagination and filter to find our specific role
+	// Paginate through roles to find the one matching our ID.
+	// Uses the After-Cursor header from V2 API responses for proper cursor-based pagination.
 	foundRole := false
 	var roleObj map[string]interface{}
 
-	// Initialize query with pagination parameters
 	query := &roleschema.RoleQuery{
-		Limit: "100", // Get reasonable batch size
+		Limit: "100",
 	}
 
-	// Enable debugging
-	utils.AddRequestResponseLogging(ctx, client)
-
 	for !foundRole {
-		// Get a batch of roles
-		result, err := client.GetRolesWithContext(ctx, query)
+		result, pagination, err := client.GetRolesWithPaginationAndContext(ctx, query)
 		if err != nil {
 			return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role", d.Id())
 		}
 
-		// Parse the roles from the result
 		roles, ok := result.([]interface{})
 		if !ok {
-			// Try to handle if the API returns an object with array under a key
 			resultMap, mapOk := result.(map[string]interface{})
 			if mapOk {
 				if data, dataOk := resultMap["data"].([]interface{}); dataOk {
@@ -156,14 +149,11 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 
 		tflog.Debug(ctx, fmt.Sprintf("[READ] Found %d roles to search through", len(roles)))
 
-		// Check if our role is in this batch
 		for _, r := range roles {
 			role, ok := r.(map[string]interface{})
 			if !ok {
 				continue
 			}
-
-			// Check if this is the role we're looking for
 			if roleID, ok := role["id"].(float64); ok && int(roleID) == rid {
 				roleObj = role
 				foundRole = true
@@ -171,15 +161,12 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 			}
 		}
 
-		// If we found the role, break out of the pagination loop
 		if foundRole {
 			break
 		}
 
-		// Handle pagination
-		// Check if there's more data to fetch
-		if len(roles) < 100 {
-			// No more roles to check, the role doesn't exist
+		// Use the After-Cursor header for next page
+		if pagination == nil || pagination.AfterCursor == "" {
 			tflog.Info(ctx, "[NOT FOUND] Role not found in any page", map[string]interface{}{
 				"id": rid,
 			})
@@ -187,15 +174,9 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 			return nil
 		}
 
-		// Use the last role's ID as the cursor for the next page
-		if lastRole, ok := roles[len(roles)-1].(map[string]interface{}); ok {
-			if lastID, ok := lastRole["id"].(float64); ok {
-				query.Cursor = fmt.Sprintf("%d", int(lastID))
-				// Clear limit and page when using cursor - API requires cursor XOR pagination
-				query.Limit = ""
-				query.Page = ""
-			}
-		}
+		query.Cursor = pagination.AfterCursor
+		query.Limit = ""
+		query.Page = ""
 	}
 
 	// If we get here and haven't found the role, it doesn't exist
