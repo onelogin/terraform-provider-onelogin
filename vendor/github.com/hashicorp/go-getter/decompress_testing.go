@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package getter
@@ -7,7 +7,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -36,7 +35,7 @@ func TestDecompressor(t testing.TB, d Decompressor, cases []TestDecompressCase) 
 		t.Logf("Testing: %s", tc.Input)
 
 		// Temporary dir to store stuff
-		td, err := ioutil.TempDir("", "getter")
+		td, err := os.MkdirTemp("", "getter")
 		if err != nil {
 			t.Fatalf("err: %s", err)
 		}
