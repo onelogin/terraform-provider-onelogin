@@ -85,15 +85,14 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 	}
 
 	// Parse the response
-	respMap, ok := result.(map[string]interface{})
-	if !ok {
+	data, err := usersFromResponse(result)
+	if err != nil {
 		log.Printf("[WARNING] Invalid response format")
 		d.SetId("")
-		return fmt.Errorf("Invalid response format from API")
+		return err
 	}
 
-	data, ok := respMap["data"].([]interface{})
-	if !ok || len(data) == 0 {
+	if len(data) == 0 {
 		log.Printf("[WARNING] No users returned by the query")
 		d.SetId("")
 		return nil
