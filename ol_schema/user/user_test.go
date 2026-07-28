@@ -8,6 +8,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestQuerySchema(t *testing.T) {
+	t.Run("creates and returns a map of a user QuerySchema including email", func(t *testing.T) {
+		querySchema := QuerySchema()
+		assert.NotNil(t, querySchema["username"])
+		assert.NotNil(t, querySchema["email"])
+		assert.NotNil(t, querySchema["firstname"])
+		assert.NotNil(t, querySchema["lastname"])
+		assert.NotNil(t, querySchema["samaccountname"])
+		assert.NotNil(t, querySchema["directory_id"])
+		assert.NotNil(t, querySchema["external_id"])
+		assert.NotNil(t, querySchema["ids"])
+		assert.NotNil(t, querySchema["users"])
+	})
+}
+
+func TestQueryInflate(t *testing.T) {
+	t.Run("inflates email from query map", func(t *testing.T) {
+		q, err := QueryInflate(map[string]interface{}{
+			"email": "bob@example.com",
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, "bob@example.com", q.Email)
+	})
+}
+
 func TestSchema(t *testing.T) {
 	t.Run("creates and returns a map of a user Schema", func(t *testing.T) {
 		provSchema := Schema()

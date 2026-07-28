@@ -261,6 +261,10 @@ func QuerySchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+		"email": &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 		"firstname": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
@@ -347,6 +351,7 @@ func QuerySchema() map[string]*schema.Schema {
 type UserQuery struct {
 	UserIDs        string
 	Username       string
+	Email          string
 	DirectoryID    string
 	ExternalID     string
 	Firstname      string
@@ -361,6 +366,9 @@ func QueryInflate(s map[string]interface{}) (UserQuery, error) {
 	}
 	if username, notNil := s["username"].(string); notNil {
 		out.Username = username
+	}
+	if email, notNil := s["email"].(string); notNil {
+		out.Email = email
 	}
 	if directoryid, notNil := s["directory_id"].(int); directoryid != 0 && notNil {
 		out.DirectoryID = fmt.Sprint(directoryid)
