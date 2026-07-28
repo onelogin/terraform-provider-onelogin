@@ -35,11 +35,16 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 	})
 
 	// Create pointers for non-empty query parameters
-	var username, firstname, lastname, samaccountname, externalID, directoryID *string
+	var username, email, firstname, lastname, samaccountname, externalID, directoryID *string
 
 	if query.Username != "" {
 		usernameVal := query.Username
 		username = &usernameVal
+	}
+
+	if query.Email != "" {
+		emailVal := query.Email
+		email = &emailVal
 	}
 
 	if query.Firstname != "" {
@@ -70,6 +75,7 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 	// Create the SDK query
 	sdkQuery := &models.UserQuery{
 		Username:       username,
+		Email:          email,
 		Firstname:      firstname,
 		Lastname:       lastname,
 		Samaccountname: samaccountname,
