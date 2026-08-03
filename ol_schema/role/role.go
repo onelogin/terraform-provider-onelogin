@@ -7,28 +7,6 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
-// RoleQuery implements the Queryable interface for role queries
-type RoleQuery struct {
-	Limit  string `json:"limit,omitempty"`
-	Page   string `json:"page,omitempty"`
-	Cursor string `json:"cursor,omitempty"`
-}
-
-// GetKeyValidators returns the validation functions for the query keys
-func (r *RoleQuery) GetKeyValidators() map[string]func(interface{}) bool {
-	return map[string]func(interface{}) bool{
-		"limit":  validateString,
-		"page":   validateString,
-		"cursor": validateString,
-	}
-}
-
-// validateString ensures a value is a string
-func validateString(v interface{}) bool {
-	_, ok := v.(string)
-	return ok
-}
-
 // Schema returns a key/value map of the various fields that make up a OneLogin User.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{

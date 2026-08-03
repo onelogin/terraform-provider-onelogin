@@ -31,54 +31,45 @@ func TestAccRole_crud(t *testing.T) {
 	})
 }
 
-// TestRoleReadUsesDirectFetch verifies that the roleRead implementation fields align
-// with the map structure returned by a direct GET /api/2/roles/{id} response.
-// roleRead now calls GetRoleByIDWithContext (one request per role) instead of
-// paginating through the full role list, which eliminates redundant API calls when
-// multiple role resources are refreshed concurrently.
-func TestRoleReadUsesDirectFetch(t *testing.T) {
-	// Simulate the map[string]interface{} payload returned by the SDK for a single role.
-	roleResponse := map[string]interface{}{
-		"id":     float64(42),
-		"name":   "executive admin",
-		"apps":   []interface{}{float64(1), float64(2)},
-		"users":  []interface{}{float64(10)},
-		"admins": []interface{}{},
+// TestExtractMemberIDs tests the extractMemberIDs helper that converts sub-endpoint
+// object arrays (GET /api/2/roles/{id}/apps|users|admins) into flat integer ID slices.
+// Sub-endpoints return objects like {"id": 1, "name": "..."} rather than bare IDs.
+func TestExtractMemberIDs(t *testing.T) {
+	tests := map[string]struct {
+		input    interface{}
+		expected []int
+	}{
+		"nil input returns empty slice": {
+			input:    nil,
+			expected: []int{},
+		},
+		"empty array returns empty slice": {
+			input:    []interface{}{},
+			expected: []int{},
+		},
+		"objects with id fields": {
+			input: []interface{}{
+				map[string]interface{}{"id": float64(1), "name": "app-one"},
+				map[string]interface{}{"id": float64(2), "name": "app-two"},
+			},
+			expected: []int{1, 2},
+		},
+		"skips objects missing id field": {
+			input: []interface{}{
+				map[string]interface{}{"name": "no-id"},
+				map[string]interface{}{"id": float64(5), "name": "has-id"},
+			},
+			expected: []int{5},
+		},
+		"non-slice input returns empty slice": {
+			input:    "unexpected-string",
+			expected: []int{},
+		},
 	}
-
-	// Validate name field
-	assert.Equal(t, "executive admin", roleResponse["name"])
-
-	// Validate apps parsing
-	var appIDs []int
-	if v, ok := roleResponse["apps"].([]interface{}); ok {
-		for _, app := range v {
-			if id, ok := app.(float64); ok {
-				appIDs = append(appIDs, int(id))
-			}
-		}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := extractMemberIDs(tc.input)
+			assert.Equal(t, tc.expected, got)
+		})
 	}
-	assert.Equal(t, []int{1, 2}, appIDs, "apps should be parsed correctly from direct fetch response")
-
-	// Validate users parsing
-	var userIDs []int
-	if v, ok := roleResponse["users"].([]interface{}); ok {
-		for _, user := range v {
-			if id, ok := user.(float64); ok {
-				userIDs = append(userIDs, int(id))
-			}
-		}
-	}
-	assert.Equal(t, []int{10}, userIDs, "users should be parsed correctly from direct fetch response")
-
-	// Validate admins — empty array should result in nil slice (no entries appended)
-	var adminIDs []int
-	if v, ok := roleResponse["admins"].([]interface{}); ok {
-		for _, admin := range v {
-			if id, ok := admin.(float64); ok {
-				adminIDs = append(adminIDs, int(id))
-			}
-		}
-	}
-	assert.Empty(t, adminIDs, "admins should be empty when API returns empty array")
 }

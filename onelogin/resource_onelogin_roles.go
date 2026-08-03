@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -110,7 +109,10 @@ func roleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 	return roleRead(ctx, d, m)
 }
 
-// roleRead reads a role by ID from OneLogin
+// roleRead reads a role by ID from OneLogin using the direct GET /api/2/roles/{id}
+// endpoint for the base object, then fetches membership via the sub-endpoints
+// GET /api/2/roles/{id}/apps, /users, /admins.  This is O(roles) total requests
+// rather than O(roles × pages) from the previous full-list pagination approach.
 func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*onelogin.OneloginSDK)
 	rid, _ := strconv.Atoi(d.Id())
@@ -119,10 +121,10 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		"id": rid,
 	})
 
+	// Fetch base role object (returns {"id": ..., "name": ...}).
 	result, err := client.GetRoleByIDWithContext(ctx, rid, nil)
 	if err != nil {
-		// Role was deleted outside Terraform — remove it from state without error.
-		if strings.Contains(err.Error(), "status: 404") {
+		if utils.IsNotFoundError(err) {
 			tflog.Info(ctx, "[NOT FOUND] Role not found, removing from state", map[string]interface{}{
 				"id": rid,
 			})
@@ -136,53 +138,52 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	if !ok {
 		return diag.Errorf("failed to parse role response")
 	}
-
-	// Set basic fields
 	d.Set("name", roleObj["name"])
 
-	// Handle apps
-	if v, ok := roleObj["apps"].([]interface{}); ok {
-		var appIDs []int
-		for _, app := range v {
-			if id, ok := app.(float64); ok {
-				appIDs = append(appIDs, int(id))
-			}
-		}
-		d.Set("apps", appIDs)
-	} else {
-		// Always ensure we have an empty array rather than nil
-		d.Set("apps", []int{})
+	// Fetch apps — GET /api/2/roles/{id}/apps returns objects like {"id":1,"name":"..."}.
+	appsResult, err := client.GetRoleApps(rid)
+	if err != nil && !utils.IsNotFoundError(err) {
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role apps", d.Id())
 	}
+	d.Set("apps", extractMemberIDs(appsResult))
 
-	// Handle users
-	if v, ok := roleObj["users"].([]interface{}); ok {
-		var userIDs []int
-		for _, user := range v {
-			if id, ok := user.(float64); ok {
-				userIDs = append(userIDs, int(id))
-			}
-		}
-		d.Set("users", userIDs)
-	} else {
-		// Always ensure we have an empty array rather than nil
-		d.Set("users", []int{})
+	// Fetch users — GET /api/2/roles/{id}/users returns objects like {"id":1,"username":"..."}.
+	usersResult, err := client.GetRoleUsers(rid, nil)
+	if err != nil && !utils.IsNotFoundError(err) {
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role users", d.Id())
 	}
+	d.Set("users", extractMemberIDs(usersResult))
 
-	// Handle admins
-	if v, ok := roleObj["admins"].([]interface{}); ok {
-		var adminIDs []int
-		for _, admin := range v {
-			if id, ok := admin.(float64); ok {
-				adminIDs = append(adminIDs, int(id))
-			}
-		}
-		d.Set("admins", adminIDs)
-	} else {
-		// Always ensure we have an empty array rather than nil
-		d.Set("admins", []int{})
+	// Fetch admins — GET /api/2/roles/{id}/admins returns objects like {"id":1,"username":"..."}.
+	adminsResult, err := client.GetRoleAdmins(rid)
+	if err != nil && !utils.IsNotFoundError(err) {
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role admins", d.Id())
 	}
+	d.Set("admins", extractMemberIDs(adminsResult))
 
 	return nil
+}
+
+// extractMemberIDs converts the slice of member objects returned by role sub-endpoints
+// (apps, users, admins) into a flat []int of IDs.  Each element is an object such as
+// {"id": 123, "name": "..."} — only the "id" field is required; others are ignored.
+func extractMemberIDs(result interface{}) []int {
+	if result == nil {
+		return []int{}
+	}
+	items, ok := result.([]interface{})
+	if !ok {
+		return []int{}
+	}
+	ids := make([]int, 0, len(items))
+	for _, item := range items {
+		if obj, ok := item.(map[string]interface{}); ok {
+			if id, ok := obj["id"].(float64); ok {
+				ids = append(ids, int(id))
+			}
+		}
+	}
+	return ids
 }
 
 // roleUpdate updates a role by ID in OneLogin

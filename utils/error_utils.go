@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -93,4 +94,12 @@ func HandleSchemaError(ctx context.Context, err error, category ErrorCategory, r
 		id,
 		err,
 	)
+}
+
+// IsNotFoundError reports whether err represents an HTTP 404 from the OneLogin API.
+// The SDK formats non-2xx responses as "request failed with status: <code>"
+// (utilities/web.go:26). Centralising the check here means a single edit when
+// the SDK eventually exposes a typed APIError carrying StatusCode.
+func IsNotFoundError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "status: 404")
 }
