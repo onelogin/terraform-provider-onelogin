@@ -128,6 +128,26 @@ func (sdk *OneloginSDK) GetRoleUsers(roleID int, queryParams mod.Queryable) (int
 	return utl.CheckHTTPResponse(resp)
 }
 
+// GetRoleUsersWithPagination retrieves a role's users with pagination info from response headers
+func (sdk *OneloginSDK) GetRoleUsersWithPagination(roleID int, queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	return sdk.GetRoleUsersWithPaginationAndContext(context.Background(), roleID, queryParams)
+}
+
+// GetRoleUsersWithPaginationAndContext retrieves a role's users with pagination info using the provided context.
+// This endpoint is paginated: callers should follow PaginationInfo.AfterCursor until it is empty to
+// retrieve every user, otherwise only the first page is returned.
+func (sdk *OneloginSDK) GetRoleUsersWithPaginationAndContext(ctx context.Context, roleID int, queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "users")
+	if err != nil {
+		return nil, nil, err
+	}
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
+	if err != nil {
+		return nil, nil, err
+	}
+	return utl.CheckHTTPResponseWithPagination(resp)
+}
+
 func (sdk *OneloginSDK) AddRoleUsers(roleID int, users []int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, roleID, "users")
 	if err != nil {
@@ -165,6 +185,26 @@ func (sdk *OneloginSDK) GetRoleAdmins(roleID int) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
+// GetRoleAdminsWithPagination retrieves a role's admins with pagination info from response headers
+func (sdk *OneloginSDK) GetRoleAdminsWithPagination(roleID int, queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	return sdk.GetRoleAdminsWithPaginationAndContext(context.Background(), roleID, queryParams)
+}
+
+// GetRoleAdminsWithPaginationAndContext retrieves a role's admins with pagination info using the provided context.
+// This endpoint is paginated: callers should follow PaginationInfo.AfterCursor until it is empty to
+// retrieve every admin, otherwise only the first page is returned.
+func (sdk *OneloginSDK) GetRoleAdminsWithPaginationAndContext(ctx context.Context, roleID int, queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "admins")
+	if err != nil {
+		return nil, nil, err
+	}
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
+	if err != nil {
+		return nil, nil, err
+	}
+	return utl.CheckHTTPResponseWithPagination(resp)
+}
+
 func (sdk *OneloginSDK) AddRoleAdmins(roleID int, admins []int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, roleID, "admins")
 	if err != nil {
@@ -200,6 +240,26 @@ func (sdk *OneloginSDK) GetRoleApps(roleID int) (interface{}, error) {
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
+}
+
+// GetRoleAppsWithPagination retrieves a role's apps with pagination info from response headers
+func (sdk *OneloginSDK) GetRoleAppsWithPagination(roleID int, queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	return sdk.GetRoleAppsWithPaginationAndContext(context.Background(), roleID, queryParams)
+}
+
+// GetRoleAppsWithPaginationAndContext retrieves a role's apps with pagination info using the provided context.
+// This endpoint is paginated: callers should follow PaginationInfo.AfterCursor until it is empty to
+// retrieve every app, otherwise only the first page is returned.
+func (sdk *OneloginSDK) GetRoleAppsWithPaginationAndContext(ctx context.Context, roleID int, queryParams mod.Queryable) (interface{}, *mod.PaginationInfo, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "apps")
+	if err != nil {
+		return nil, nil, err
+	}
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
+	if err != nil {
+		return nil, nil, err
+	}
+	return utl.CheckHTTPResponseWithPagination(resp)
 }
 
 // was setRoleApps

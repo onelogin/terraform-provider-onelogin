@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	roleschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/role"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
@@ -140,28 +141,80 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	}
 	d.Set("name", roleObj["name"])
 
-	// Fetch apps — GET /api/2/roles/{id}/apps returns objects like {"id":1,"name":"..."}.
-	appsResult, err := client.GetRoleApps(rid)
-	if err != nil && !utils.IsNotFoundError(err) {
-		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role apps", d.Id())
+	// Membership is not part of the base role object — it lives on three separate
+	// sub-endpoints, each of which is paginated.
+	memberAttrs := []struct {
+		attr  string
+		fetch memberFetcher
+	}{
+		{"apps", func(ctx context.Context, q *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+			return client.GetRoleAppsWithPaginationAndContext(ctx, rid, q)
+		}},
+		{"users", func(ctx context.Context, q *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+			return client.GetRoleUsersWithPaginationAndContext(ctx, rid, q)
+		}},
+		{"admins", func(ctx context.Context, q *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+			return client.GetRoleAdminsWithPaginationAndContext(ctx, rid, q)
+		}},
 	}
-	d.Set("apps", extractMemberIDs(appsResult))
 
-	// Fetch users — GET /api/2/roles/{id}/users returns objects like {"id":1,"username":"..."}.
-	usersResult, err := client.GetRoleUsers(rid, nil)
-	if err != nil && !utils.IsNotFoundError(err) {
-		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role users", d.Id())
+	for _, m := range memberAttrs {
+		ids, err := fetchAllMemberIDs(ctx, m.fetch)
+		if err != nil {
+			// A 404 here means the role was deleted between the base fetch and now.
+			// Treat it the same as a missing base object rather than recording the
+			// role as having no members.
+			if utils.IsNotFoundError(err) {
+				tflog.Info(ctx, "[NOT FOUND] Role disappeared while reading membership, removing from state", map[string]interface{}{
+					"id":        rid,
+					"attribute": m.attr,
+				})
+				d.SetId("")
+				return nil
+			}
+			return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, fmt.Sprintf("Role %s", m.attr), d.Id())
+		}
+		if err := d.Set(m.attr, ids); err != nil {
+			return diag.FromErr(err)
+		}
 	}
-	d.Set("users", extractMemberIDs(usersResult))
-
-	// Fetch admins — GET /api/2/roles/{id}/admins returns objects like {"id":1,"username":"..."}.
-	adminsResult, err := client.GetRoleAdmins(rid)
-	if err != nil && !utils.IsNotFoundError(err) {
-		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role admins", d.Id())
-	}
-	d.Set("admins", extractMemberIDs(adminsResult))
 
 	return nil
+}
+
+// memberFetcher retrieves one page of a role sub-endpoint (apps, users or admins).
+type memberFetcher func(context.Context, *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error)
+
+// rolePageLimit is the page size requested when walking role sub-endpoints.
+const rolePageLimit = "100"
+
+// fetchAllMemberIDs walks every page of a role sub-endpoint and returns the flat
+// list of member IDs. These endpoints are paginated, so reading only the first
+// page would write a truncated list into state and produce a permanent diff for
+// any role with more members than fit on one page.
+func fetchAllMemberIDs(ctx context.Context, fetch memberFetcher) ([]int, error) {
+	ids := []int{}
+	query := &roleschema.RoleQuery{Limit: rolePageLimit}
+
+	for {
+		result, pagination, err := fetch(ctx, query)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, extractMemberIDs(result)...)
+
+		if pagination == nil || pagination.AfterCursor == "" {
+			return ids, nil
+		}
+		// Guard against a server that keeps handing back the same cursor, which
+		// would otherwise hang the plan rather than fail it.
+		if pagination.AfterCursor == query.Cursor {
+			return ids, fmt.Errorf("pagination stalled: role sub-endpoint repeated cursor %q", query.Cursor)
+		}
+		// Cursor and limit/page are mutually exclusive in the V2 API.
+		query.Cursor = pagination.AfterCursor
+		query.Limit, query.Page = "", ""
+	}
 }
 
 // extractMemberIDs converts the slice of member objects returned by role sub-endpoints
