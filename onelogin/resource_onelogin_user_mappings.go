@@ -14,6 +14,22 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
+func userMappingUpdateInput(d *schema.ResourceData) map[string]interface{} {
+	input := map[string]interface{}{
+		"name":       d.Get("name"),
+		"match":      d.Get("match"),
+		"enabled":    d.Get("enabled"),
+		"conditions": d.Get("conditions"),
+		"actions":    d.Get("actions"),
+	}
+
+	if _, ok := d.GetOk("position"); ok {
+		input["position"] = d.Get("position")
+	}
+
+	return input
+}
+
 // UserMappings returns a resource with the CRUD methods and Terraform Schema defined
 func UserMappings() *schema.Resource {
 	return &schema.Resource{
@@ -102,6 +118,8 @@ func userMappingRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	}
 	if result.Position != nil {
 		d.Set("position", *result.Position)
+	} else {
+		d.Set("position", nil)
 	}
 
 	// Handle conditions
@@ -145,15 +163,7 @@ func userMappingUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 	mid, _ := strconv.Atoi(d.Id())
 	mid32 := int32(mid)
 
-	userMapping, err := usermappingschema.Inflate(map[string]interface{}{
-		"id":         d.Id(),
-		"name":       d.Get("name"),
-		"match":      d.Get("match"),
-		"enabled":    d.Get("enabled"),
-		"position":   d.Get("position"),
-		"conditions": d.Get("conditions"),
-		"actions":    d.Get("actions"),
-	})
+	userMapping, err := usermappingschema.Inflate(userMappingUpdateInput(d))
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "User Mapping", d.Id())
 	}

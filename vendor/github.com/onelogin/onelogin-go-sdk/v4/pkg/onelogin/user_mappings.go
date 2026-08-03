@@ -15,6 +15,24 @@ const (
 	UserMappingsPath string = "api/2/mappings"
 )
 
+func buildUserMappingUpdatePayload(mapping mod.UserMapping) map[string]interface{} {
+	payload := map[string]interface{}{
+		"name":       mapping.Name,
+		"match":      mapping.Match,
+		"enabled":    mapping.Enabled,
+		"conditions": mapping.Conditions,
+		"actions":    mapping.Actions,
+	}
+
+	if mapping.Enabled != nil && !*mapping.Enabled {
+		payload["position"] = nil
+	} else if mapping.Position != nil {
+		payload["position"] = mapping.Position
+	}
+
+	return payload
+}
+
 // ListUserMappings gets a list of all User Mappings
 // Returns an array of UserMapping objects or an error
 func (sdk *OneloginSDK) ListUserMappings(query *mod.UserMappingsQuery) ([]mod.UserMapping, error) {
@@ -70,7 +88,7 @@ func (sdk *OneloginSDK) UpdateUserMapping(mappingID int32, mapping mod.UserMappi
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Put(&p, mapping)
+	resp, err := sdk.Client.Put(&p, buildUserMappingUpdatePayload(mapping))
 	if err != nil {
 		return nil, err
 	}
