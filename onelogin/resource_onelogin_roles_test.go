@@ -74,6 +74,23 @@ func TestExtractMemberIDs(t *testing.T) {
 			},
 			expected: []int{34},
 		},
+		// /apps returns a different object shape from /users — only "id" is common
+		// to both, which is why that is the only field this helper reads.
+		"real apps payload shape": {
+			input: []interface{}{
+				map[string]interface{}{
+					"id":       float64(327),
+					"name":     "Airbrake Admin",
+					"icon_url": "https://cdn-shadow.onlgn.net/images/icons/square/airbrake/original.svg",
+				},
+				map[string]interface{}{
+					"id":       float64(355),
+					"name":     "GoDaddy",
+					"icon_url": "https://cdn-shadow.onlgn.net/images/icons/square/godaddy/original.png",
+				},
+			},
+			expected: []int{327, 355},
+		},
 		"skips objects missing id field": {
 			input: []interface{}{
 				map[string]interface{}{"name": "no-id"},

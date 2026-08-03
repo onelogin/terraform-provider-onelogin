@@ -188,8 +188,8 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 type memberFetcher func(context.Context, *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error)
 
 // rolePageLimit is the page size requested when walking role sub-endpoints.
-// Verified against the V2 API: GET /api/2/roles/{id}/users?limit=100 returns
-// 200 with page-items: 100.
+// Verified against the V2 API: GET /api/2/roles/{id}/users and .../apps with
+// ?limit=100 both return 200 with page-items: 100 and a bare JSON array.
 const rolePageLimit = "100"
 
 // maxMemberPages bounds the cursor walk. At rolePageLimit per page this allows
