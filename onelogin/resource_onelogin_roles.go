@@ -139,7 +139,9 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	if !ok {
 		return diag.Errorf("failed to parse role response")
 	}
-	d.Set("name", roleObj["name"])
+	if err := d.Set("name", roleObj["name"]); err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Membership is not part of the base role object — it lives on three separate
 	// sub-endpoints, each of which is paginated.
@@ -158,8 +160,8 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		}},
 	}
 
-	for _, m := range memberAttrs {
-		ids, err := fetchAllMemberIDs(ctx, m.fetch)
+	for _, member := range memberAttrs {
+		ids, err := fetchAllMemberIDs(ctx, member.fetch)
 		if err != nil {
 			// A 404 here means the role was deleted between the base fetch and now.
 			// Treat it the same as a missing base object rather than recording the
@@ -167,14 +169,14 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 			if utils.IsNotFoundError(err) {
 				tflog.Info(ctx, "[NOT FOUND] Role disappeared while reading membership, removing from state", map[string]interface{}{
 					"id":        rid,
-					"attribute": m.attr,
+					"attribute": member.attr,
 				})
 				d.SetId("")
 				return nil
 			}
-			return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, fmt.Sprintf("Role %s", m.attr), d.Id())
+			return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, fmt.Sprintf("Role %s", member.attr), d.Id())
 		}
-		if err := d.Set(m.attr, ids); err != nil {
+		if err := d.Set(member.attr, ids); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -186,7 +188,14 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 type memberFetcher func(context.Context, *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error)
 
 // rolePageLimit is the page size requested when walking role sub-endpoints.
+// Verified against the V2 API: GET /api/2/roles/{id}/users?limit=100 returns
+// 200 with page-items: 100.
 const rolePageLimit = "100"
+
+// maxMemberPages bounds the cursor walk. At rolePageLimit per page this allows
+// 50,000 members, far beyond any real role, so hitting it means the server is
+// cycling cursors rather than advancing.
+const maxMemberPages = 500
 
 // fetchAllMemberIDs walks every page of a role sub-endpoint and returns the flat
 // list of member IDs. These endpoints are paginated, so reading only the first
@@ -196,37 +205,49 @@ func fetchAllMemberIDs(ctx context.Context, fetch memberFetcher) ([]int, error) 
 	ids := []int{}
 	query := &roleschema.RoleQuery{Limit: rolePageLimit}
 
-	for {
+	for page := 1; ; page++ {
 		result, pagination, err := fetch(ctx, query)
 		if err != nil {
 			return nil, err
 		}
-		ids = append(ids, extractMemberIDs(result)...)
+		pageIDs, err := extractMemberIDs(result)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, pageIDs...)
 
 		if pagination == nil || pagination.AfterCursor == "" {
 			return ids, nil
 		}
-		// Guard against a server that keeps handing back the same cursor, which
-		// would otherwise hang the plan rather than fail it.
+		// A server that never advances the cursor would otherwise hang the plan
+		// rather than fail it. Catch both the immediate repeat and a longer cycle.
 		if pagination.AfterCursor == query.Cursor {
-			return ids, fmt.Errorf("pagination stalled: role sub-endpoint repeated cursor %q", query.Cursor)
+			return nil, fmt.Errorf("pagination stalled: role sub-endpoint repeated cursor %q", query.Cursor)
 		}
-		// Cursor and limit/page are mutually exclusive in the V2 API.
+		if page >= maxMemberPages {
+			return nil, fmt.Errorf("pagination exceeded %d pages; the role sub-endpoint is not advancing", maxMemberPages)
+		}
+		// The cursor encodes limit and page itself, and the V2 API rejects it
+		// alongside either, so clear them once we have one.
 		query.Cursor = pagination.AfterCursor
 		query.Limit, query.Page = "", ""
 	}
 }
 
 // extractMemberIDs converts the slice of member objects returned by role sub-endpoints
-// (apps, users, admins) into a flat []int of IDs.  Each element is an object such as
+// (apps, users, admins) into a flat []int of IDs. Each element is an object such as
 // {"id": 123, "name": "..."} — only the "id" field is required; others are ignored.
-func extractMemberIDs(result interface{}) []int {
+//
+// An unexpected shape is an error rather than an empty result: silently returning
+// no members would be written straight into state as "this role has nobody in it",
+// which is indistinguishable from the truth and produces a permanent diff.
+func extractMemberIDs(result interface{}) ([]int, error) {
 	if result == nil {
-		return []int{}
+		return []int{}, nil
 	}
 	items, ok := result.([]interface{})
 	if !ok {
-		return []int{}
+		return nil, fmt.Errorf("unexpected role membership response: want a JSON array, got %T", result)
 	}
 	ids := make([]int, 0, len(items))
 	for _, item := range items {
@@ -236,7 +257,7 @@ func extractMemberIDs(result interface{}) []int {
 			}
 		}
 	}
-	return ids
+	return ids, nil
 }
 
 // roleUpdate updates a role by ID in OneLogin

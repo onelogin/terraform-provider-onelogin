@@ -37,11 +37,14 @@ func TestAccRole_crud(t *testing.T) {
 
 // TestExtractMemberIDs tests the extractMemberIDs helper that converts sub-endpoint
 // object arrays (GET /api/2/roles/{id}/apps|users|admins) into flat integer ID slices.
-// Sub-endpoints return objects like {"id": 1, "name": "..."} rather than bare IDs.
+// Sub-endpoints return a bare JSON array of objects like
+// {"id": 34, "name": "Thomas Pedersen", "username": "...", "assigned": true},
+// verified against GET /api/2/roles/{id}/users on a live tenant.
 func TestExtractMemberIDs(t *testing.T) {
 	tests := map[string]struct {
-		input    interface{}
-		expected []int
+		input     interface{}
+		expected  []int
+		expectErr bool
 	}{
 		"nil input returns empty slice": {
 			input:    nil,
@@ -58,6 +61,19 @@ func TestExtractMemberIDs(t *testing.T) {
 			},
 			expected: []int{1, 2},
 		},
+		"real users payload shape": {
+			input: []interface{}{
+				map[string]interface{}{
+					"id":       float64(34),
+					"name":     "Thomas Pedersen",
+					"username": "thomas.pedersen",
+					"email":    "thomas@onelogin.com",
+					"assigned": true,
+					"added_by": map[string]interface{}{"id": nil, "name": nil},
+				},
+			},
+			expected: []int{34},
+		},
 		"skips objects missing id field": {
 			input: []interface{}{
 				map[string]interface{}{"name": "no-id"},
@@ -65,14 +81,27 @@ func TestExtractMemberIDs(t *testing.T) {
 			},
 			expected: []int{5},
 		},
-		"non-slice input returns empty slice": {
-			input:    "unexpected-string",
-			expected: []int{},
+		// An unexpected shape must be loud. Returning an empty slice here would be
+		// written into state as "this role has no members", which is a silent
+		// permanent diff — the exact failure this pagination work exists to prevent.
+		"non-slice input is an error, not an empty slice": {
+			input:     "unexpected-string",
+			expectErr: true,
+		},
+		"data-envelope response is an error, not an empty slice": {
+			input:     map[string]interface{}{"data": []interface{}{}},
+			expectErr: true,
 		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := extractMemberIDs(tc.input)
+			got, err := extractMemberIDs(tc.input)
+			if tc.expectErr {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+				return
+			}
+			assert.NoError(t, err)
 			assert.Equal(t, tc.expected, got)
 		})
 	}
@@ -189,4 +218,42 @@ func TestFetchAllMemberIDsStalledCursor(t *testing.T) {
 		return
 	}
 	assert.Contains(t, err.Error(), "pagination stalled")
+}
+
+// TestFetchAllMemberIDsRejectsBadShape checks that an unexpected page shape aborts
+// the walk instead of contributing zero members and looking like a small role.
+func TestFetchAllMemberIDsRejectsBadShape(t *testing.T) {
+	fetch := func(_ context.Context, _ *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+		return map[string]interface{}{"data": []interface{}{}}, &models.PaginationInfo{}, nil
+	}
+
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.Error(t, err) {
+		return
+	}
+	assert.Nil(t, ids)
+	assert.Contains(t, err.Error(), "want a JSON array")
+}
+
+// TestFetchAllMemberIDsBoundsPageCount covers a server that cycles cursors rather
+// than repeating one, which the immediate-repeat guard alone would not catch.
+func TestFetchAllMemberIDsBoundsPageCount(t *testing.T) {
+	call := 0
+	fetch := func(_ context.Context, _ *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+		call++
+		// Alternate between two cursors forever: never equal to the previous one.
+		cursor := "cursor-a"
+		if call%2 == 0 {
+			cursor = "cursor-b"
+		}
+		return []interface{}{memberObj(float64(call))}, &models.PaginationInfo{AfterCursor: cursor}, nil
+	}
+
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.Error(t, err) {
+		return
+	}
+	assert.Nil(t, ids)
+	assert.Contains(t, err.Error(), "exceeded")
+	assert.Equal(t, maxMemberPages, call, "should stop exactly at the page bound")
 }
