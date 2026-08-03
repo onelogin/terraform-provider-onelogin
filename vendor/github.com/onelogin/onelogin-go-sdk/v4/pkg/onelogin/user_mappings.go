@@ -63,6 +63,49 @@ func (sdk *OneloginSDK) CreateUserMapping(mapping mod.UserMapping) (*mod.UserMap
 	return &newMapping, err
 }
 
+// buildUserMappingUpdatePayload converts a UserMapping into the body the mappings
+// update endpoint expects. Two rules cannot be expressed by the model's struct
+// tags, so the body is assembled as a map instead of marshaling the struct:
+//
+//   - "id" is never sent. The endpoint takes the mapping ID from the URL and
+//     rejects a body that also carries it.
+//   - "position" must be explicitly null when the mapping is being disabled.
+//     A disabled mapping has no position, and sending its previous position is
+//     rejected. `json:"position,omitempty"` can only omit the key, never emit
+//     an explicit null.
+//
+// These rules are specific to update; create must not force a null position, so
+// this is deliberately not a MarshalJSON method on models.UserMapping.
+//
+// Every other field keeps the omitempty behaviour of models.UserMapping, so a
+// partial update does not blank out fields the caller left unset.
+func buildUserMappingUpdatePayload(mapping mod.UserMapping) map[string]interface{} {
+	// conditions and actions carry no omitempty on the model and are always sent
+	payload := map[string]interface{}{
+		"conditions": mapping.Conditions,
+		"actions":    mapping.Actions,
+	}
+
+	if mapping.Name != nil {
+		payload["name"] = mapping.Name
+	}
+	if mapping.Match != nil {
+		payload["match"] = mapping.Match
+	}
+	if mapping.Enabled != nil {
+		payload["enabled"] = mapping.Enabled
+	}
+
+	switch {
+	case mapping.Enabled != nil && !*mapping.Enabled:
+		payload["position"] = nil
+	case mapping.Position != nil:
+		payload["position"] = mapping.Position
+	}
+
+	return payload
+}
+
 // UpdateUserMapping updates an existing User Mapping
 // Returns the updated UserMapping object or an error
 func (sdk *OneloginSDK) UpdateUserMapping(mappingID int32, mapping mod.UserMapping) (*mod.UserMapping, error) {
@@ -70,7 +113,7 @@ func (sdk *OneloginSDK) UpdateUserMapping(mappingID int32, mapping mod.UserMappi
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Put(&p, mapping)
+	resp, err := sdk.Client.Put(&p, buildUserMappingUpdatePayload(mapping))
 	if err != nil {
 		return nil, err
 	}
