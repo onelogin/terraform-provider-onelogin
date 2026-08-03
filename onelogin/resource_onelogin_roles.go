@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -118,78 +119,23 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		"id": rid,
 	})
 
-	// Paginate through roles to find the one matching our ID.
-	// Uses the After-Cursor header from V2 API responses for proper cursor-based pagination.
-	foundRole := false
-	var roleObj map[string]interface{}
-
-	query := &roleschema.RoleQuery{
-		Limit: "100",
-	}
-
-	for !foundRole {
-		result, pagination, err := client.GetRolesWithPaginationAndContext(ctx, query)
-		if err != nil {
-			return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role", d.Id())
-		}
-
-		roles, ok := result.([]interface{})
-		if !ok {
-			resultMap, mapOk := result.(map[string]interface{})
-			if mapOk {
-				if data, dataOk := resultMap["data"].([]interface{}); dataOk {
-					roles = data
-				} else {
-					return diag.Errorf("failed to parse roles response: unexpected structure")
-				}
-			} else {
-				return diag.Errorf("failed to parse roles response: not an array or map")
-			}
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("[READ] Found %d roles to search through", len(roles)))
-
-		for _, r := range roles {
-			role, ok := r.(map[string]interface{})
-			if !ok {
-				continue
-			}
-			if roleID, ok := role["id"].(float64); ok && int(roleID) == rid {
-				roleObj = role
-				foundRole = true
-				break
-			}
-		}
-
-		if foundRole {
-			break
-		}
-
-		// Use the After-Cursor header for next page
-		if pagination == nil || pagination.AfterCursor == "" {
-			tflog.Info(ctx, "[NOT FOUND] Role not found in any page", map[string]interface{}{
+	result, err := client.GetRoleByIDWithContext(ctx, rid, nil)
+	if err != nil {
+		// Role was deleted outside Terraform — remove it from state without error.
+		if strings.Contains(err.Error(), "status: 404") {
+			tflog.Info(ctx, "[NOT FOUND] Role not found, removing from state", map[string]interface{}{
 				"id": rid,
 			})
 			d.SetId("")
 			return nil
 		}
-
-		query.Cursor = pagination.AfterCursor
-		query.Limit = ""
-		query.Page = ""
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Role", d.Id())
 	}
 
-	// If we get here and haven't found the role, it doesn't exist
-	if !foundRole {
-		tflog.Info(ctx, "[NOT FOUND] Role not found", map[string]interface{}{
-			"id": rid,
-		})
-		d.SetId("")
-		return nil
+	roleObj, ok := result.(map[string]interface{})
+	if !ok {
+		return diag.Errorf("failed to parse role response")
 	}
-
-	// Role found - set its properties in the state
-	// No need to use Inflate here since we're directly reading from the API response
 
 	// Set basic fields
 	d.Set("name", roleObj["name"])
