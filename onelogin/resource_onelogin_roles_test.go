@@ -1,9 +1,12 @@
 package onelogin
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	roleschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/role"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,25 +35,242 @@ func TestAccRole_crud(t *testing.T) {
 	})
 }
 
-// TestRoleQueryPagination tests that when cursor is set, limit and page are cleared
-// to comply with the OneLogin API requirement: "cursor xor pagination arguments"
-func TestRoleQueryPagination(t *testing.T) {
-	// Test initial query with limit
-	query := &roleschema.RoleQuery{
-		Limit: "100",
+// TestExtractMemberIDs tests the extractMemberIDs helper that converts sub-endpoint
+// object arrays (GET /api/2/roles/{id}/apps|users|admins) into flat integer ID slices.
+// Sub-endpoints return a bare JSON array of objects like
+// {"id": 34, "name": "Thomas Pedersen", "username": "...", "assigned": true},
+// verified against GET /api/2/roles/{id}/users on a live tenant.
+func TestExtractMemberIDs(t *testing.T) {
+	tests := map[string]struct {
+		input     interface{}
+		expected  []int
+		expectErr bool
+	}{
+		"nil input returns empty slice": {
+			input:    nil,
+			expected: []int{},
+		},
+		"empty array returns empty slice": {
+			input:    []interface{}{},
+			expected: []int{},
+		},
+		"objects with id fields": {
+			input: []interface{}{
+				map[string]interface{}{"id": float64(1), "name": "app-one"},
+				map[string]interface{}{"id": float64(2), "name": "app-two"},
+			},
+			expected: []int{1, 2},
+		},
+		"real users payload shape": {
+			input: []interface{}{
+				map[string]interface{}{
+					"id":       float64(34),
+					"name":     "Thomas Pedersen",
+					"username": "thomas.pedersen",
+					"email":    "thomas@onelogin.com",
+					"assigned": true,
+					"added_by": map[string]interface{}{"id": nil, "name": nil},
+				},
+			},
+			expected: []int{34},
+		},
+		// /apps returns a different object shape from /users — only "id" is common
+		// to both, which is why that is the only field this helper reads.
+		"real apps payload shape": {
+			input: []interface{}{
+				map[string]interface{}{
+					"id":       float64(327),
+					"name":     "Airbrake Admin",
+					"icon_url": "https://cdn-shadow.onlgn.net/images/icons/square/airbrake/original.svg",
+				},
+				map[string]interface{}{
+					"id":       float64(355),
+					"name":     "GoDaddy",
+					"icon_url": "https://cdn-shadow.onlgn.net/images/icons/square/godaddy/original.png",
+				},
+			},
+			expected: []int{327, 355},
+		},
+		"skips objects missing id field": {
+			input: []interface{}{
+				map[string]interface{}{"name": "no-id"},
+				map[string]interface{}{"id": float64(5), "name": "has-id"},
+			},
+			expected: []int{5},
+		},
+		// An unexpected shape must be loud. Returning an empty slice here would be
+		// written into state as "this role has no members", which is a silent
+		// permanent diff — the exact failure this pagination work exists to prevent.
+		"non-slice input is an error, not an empty slice": {
+			input:     "unexpected-string",
+			expectErr: true,
+		},
+		"data-envelope response is an error, not an empty slice": {
+			input:     map[string]interface{}{"data": []interface{}{}},
+			expectErr: true,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := extractMemberIDs(tc.input)
+			if tc.expectErr {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, got)
+		})
+	}
+}
+
+// memberPage is a canned sub-endpoint response: the objects on one page plus the
+// After-Cursor the API would return alongside them ("" on the last page).
+type memberPage struct {
+	items       []interface{}
+	afterCursor string
+}
+
+// stubFetcher returns a memberFetcher that serves pages in order while recording
+// the query it was called with, so tests can assert on the cursor walk itself.
+func stubFetcher(pages []memberPage, calls *[]roleschema.RoleQuery) memberFetcher {
+	return func(_ context.Context, q *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+		*calls = append(*calls, *q)
+		if len(*calls) > len(pages) {
+			return nil, nil, fmt.Errorf("unexpected request %d, only %d pages defined", len(*calls), len(pages))
+		}
+		page := pages[len(*calls)-1]
+		return page.items, &models.PaginationInfo{AfterCursor: page.afterCursor}, nil
+	}
+}
+
+func memberObj(id float64) interface{} {
+	return map[string]interface{}{"id": id, "name": fmt.Sprintf("member-%v", id)}
+}
+
+// TestFetchAllMemberIDsWalksEveryPage is the regression test for the bug this
+// pagination exists to prevent: role sub-endpoints are paginated, so stopping at
+// the first page writes a truncated membership list into state and produces a
+// permanent diff for any role larger than one page.
+func TestFetchAllMemberIDsWalksEveryPage(t *testing.T) {
+	var calls []roleschema.RoleQuery
+	fetch := stubFetcher([]memberPage{
+		{items: []interface{}{memberObj(1), memberObj(2)}, afterCursor: "cursor-2"},
+		{items: []interface{}{memberObj(3), memberObj(4)}, afterCursor: "cursor-3"},
+		{items: []interface{}{memberObj(5)}, afterCursor: ""},
+	}, &calls)
+
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.NoError(t, err) {
+		return
+	}
+	assert.Equal(t, []int{1, 2, 3, 4, 5}, ids, "every page's members should be accumulated")
+	if !assert.Len(t, calls, 3, "should keep requesting until After-Cursor is empty") {
+		return
 	}
 
-	assert.Equal(t, "100", query.Limit, "Initial limit should be set")
-	assert.Equal(t, "", query.Cursor, "Initial cursor should be empty")
-	assert.Equal(t, "", query.Page, "Initial page should be empty")
+	// First request asks for a page size; subsequent ones carry the cursor with
+	// limit and page cleared, which the V2 API requires.
+	assert.Equal(t, roleschema.RoleQuery{Limit: rolePageLimit}, calls[0])
+	assert.Equal(t, roleschema.RoleQuery{Cursor: "cursor-2"}, calls[1])
+	assert.Equal(t, roleschema.RoleQuery{Cursor: "cursor-3"}, calls[2])
+}
 
-	// Test cursor-based pagination - simulate what happens in roleRead
-	// Cursors are now opaque base64 values from the After-Cursor response header
-	query.Cursor = "bGltaXQ9MTAwJnNvcnQ9aWQmcGFnZT0yJnNvcnRfZGlyZWN0aW9uPWFzYw=="
-	query.Limit = ""
-	query.Page = ""
+func TestFetchAllMemberIDsSinglePage(t *testing.T) {
+	var calls []roleschema.RoleQuery
+	fetch := stubFetcher([]memberPage{
+		{items: []interface{}{memberObj(7)}, afterCursor: ""},
+	}, &calls)
 
-	assert.Equal(t, "bGltaXQ9MTAwJnNvcnQ9aWQmcGFnZT0yJnNvcnRfZGlyZWN0aW9uPWFzYw==", query.Cursor, "Cursor should be set to opaque After-Cursor value")
-	assert.Equal(t, "", query.Limit, "Limit should be cleared when using cursor")
-	assert.Equal(t, "", query.Page, "Page should be cleared when using cursor")
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.NoError(t, err) {
+		return
+	}
+	assert.Equal(t, []int{7}, ids)
+	assert.Len(t, calls, 1, "an empty After-Cursor should end the walk immediately")
+}
+
+func TestFetchAllMemberIDsEmptyMembership(t *testing.T) {
+	var calls []roleschema.RoleQuery
+	fetch := stubFetcher([]memberPage{
+		{items: []interface{}{}, afterCursor: ""},
+	}, &calls)
+
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.NoError(t, err) {
+		return
+	}
+	assert.Equal(t, []int{}, ids, "a role with no members reads as empty, not nil")
+}
+
+// TestFetchAllMemberIDsPropagatesError checks that a mid-walk failure surfaces
+// rather than being silently truncated into a partial membership list.
+func TestFetchAllMemberIDsPropagatesError(t *testing.T) {
+	callCount := 0
+	fetch := func(_ context.Context, _ *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+		callCount++
+		if callCount == 1 {
+			return []interface{}{memberObj(1)}, &models.PaginationInfo{AfterCursor: "cursor-2"}, nil
+		}
+		return nil, nil, fmt.Errorf("request failed with status: 502")
+	}
+
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.Error(t, err) {
+		return
+	}
+	assert.Nil(t, ids, "a failed walk must not return a partial list")
+	assert.Contains(t, err.Error(), "502")
+}
+
+// TestFetchAllMemberIDsStalledCursor guards the loop against a server that keeps
+// returning the same cursor, which would hang a plan instead of failing it.
+func TestFetchAllMemberIDsStalledCursor(t *testing.T) {
+	fetch := func(_ context.Context, _ *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+		return []interface{}{memberObj(1)}, &models.PaginationInfo{AfterCursor: "stuck"}, nil
+	}
+
+	_, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.Error(t, err) {
+		return
+	}
+	assert.Contains(t, err.Error(), "pagination stalled")
+}
+
+// TestFetchAllMemberIDsRejectsBadShape checks that an unexpected page shape aborts
+// the walk instead of contributing zero members and looking like a small role.
+func TestFetchAllMemberIDsRejectsBadShape(t *testing.T) {
+	fetch := func(_ context.Context, _ *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+		return map[string]interface{}{"data": []interface{}{}}, &models.PaginationInfo{}, nil
+	}
+
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.Error(t, err) {
+		return
+	}
+	assert.Nil(t, ids)
+	assert.Contains(t, err.Error(), "want a JSON array")
+}
+
+// TestFetchAllMemberIDsBoundsPageCount covers a server that cycles cursors rather
+// than repeating one, which the immediate-repeat guard alone would not catch.
+func TestFetchAllMemberIDsBoundsPageCount(t *testing.T) {
+	call := 0
+	fetch := func(_ context.Context, _ *roleschema.RoleQuery) (interface{}, *models.PaginationInfo, error) {
+		call++
+		// Alternate between two cursors forever: never equal to the previous one.
+		cursor := "cursor-a"
+		if call%2 == 0 {
+			cursor = "cursor-b"
+		}
+		return []interface{}{memberObj(float64(call))}, &models.PaginationInfo{AfterCursor: cursor}, nil
+	}
+
+	ids, err := fetchAllMemberIDs(context.Background(), fetch)
+	if !assert.Error(t, err) {
+		return
+	}
+	assert.Nil(t, ids)
+	assert.Contains(t, err.Error(), "exceeded")
+	assert.Equal(t, maxMemberPages, call, "should stop exactly at the page bound")
 }

@@ -7,7 +7,11 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
-// RoleQuery implements the Queryable interface for role queries
+// RoleQuery implements the Queryable interface for role queries.
+//
+// The V2 API treats cursor and limit/page as mutually exclusive — supplying a
+// cursor alongside either is rejected — so callers clear Limit and Page once
+// they have a cursor from the After-Cursor response header.
 type RoleQuery struct {
 	Limit  string `json:"limit,omitempty"`
 	Page   string `json:"page,omitempty"`

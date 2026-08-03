@@ -32,3 +32,32 @@ func TestOneOf(t *testing.T) {
 		})
 	}
 }
+
+func TestIsNotFoundError(t *testing.T) {
+	tests := map[string]struct {
+		err      error
+		expected bool
+	}{
+		"nil error is not a 404": {
+			err:      nil,
+			expected: false,
+		},
+		"404 status error is recognised": {
+			err:      fmt.Errorf("request failed with status: 404"),
+			expected: true,
+		},
+		"502 status error is not a 404": {
+			err:      fmt.Errorf("request failed with status: 502"),
+			expected: false,
+		},
+		"unrelated error is not a 404": {
+			err:      fmt.Errorf("connection refused"),
+			expected: false,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsNotFoundError(tc.err))
+		})
+	}
+}
