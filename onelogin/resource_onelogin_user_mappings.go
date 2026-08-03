@@ -14,6 +14,36 @@ import (
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
+// userMappingUpdateInput builds the values handed to the schema inflater on update.
+//
+// It deliberately differs from the create input in two ways:
+//
+//   - "id" is left out. The API takes the mapping ID from the URL and rejects a
+//     body that also carries it.
+//   - "position" is included only when it is actually set. A mapping that was
+//     disabled has no position, so reusing the one left in state would send a
+//     stale value when the mapping is re-enabled. Leaving it out lets the API
+//     assign the next position itself.
+//
+// GetOk reports false for an unset int as well as for a literal 0, which is the
+// behaviour wanted here: OneLogin positions start at 1, so 0 only ever means
+// "no position".
+func userMappingUpdateInput(d *schema.ResourceData) map[string]interface{} {
+	input := map[string]interface{}{
+		"name":       d.Get("name"),
+		"match":      d.Get("match"),
+		"enabled":    d.Get("enabled"),
+		"conditions": d.Get("conditions"),
+		"actions":    d.Get("actions"),
+	}
+
+	if _, ok := d.GetOk("position"); ok {
+		input["position"] = d.Get("position")
+	}
+
+	return input
+}
+
 // UserMappings returns a resource with the CRUD methods and Terraform Schema defined
 func UserMappings() *schema.Resource {
 	return &schema.Resource{
@@ -102,6 +132,10 @@ func userMappingRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	}
 	if result.Position != nil {
 		d.Set("position", *result.Position)
+	} else {
+		// A disabled mapping has no position. Clearing it keeps a stale value
+		// from being sent back when the mapping is later re-enabled.
+		d.Set("position", nil)
 	}
 
 	// Handle conditions
@@ -145,15 +179,7 @@ func userMappingUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 	mid, _ := strconv.Atoi(d.Id())
 	mid32 := int32(mid)
 
-	userMapping, err := usermappingschema.Inflate(map[string]interface{}{
-		"id":         d.Id(),
-		"name":       d.Get("name"),
-		"match":      d.Get("match"),
-		"enabled":    d.Get("enabled"),
-		"position":   d.Get("position"),
-		"conditions": d.Get("conditions"),
-		"actions":    d.Get("actions"),
-	})
+	userMapping, err := usermappingschema.Inflate(userMappingUpdateInput(d))
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "User Mapping", d.Id())
 	}
