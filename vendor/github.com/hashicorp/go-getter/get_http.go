@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package getter
@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-cleanhttp"
-	safetemp "github.com/hashicorp/go-safetemp"
 )
 
 // HttpGetter is a Getter implementation that will download from an HTTP
@@ -443,7 +442,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 			if headResp.StatusCode == 200 {
 				// If the HEAD request succeeded, then attempt to set the range
 				// query if we can.
-				if headResp.Header.Get("Accept-Ranges") == "bytes" && headResp.ContentLength >= 0 {
+				if headResp.Header.Get("Accept-Ranges") == "bytes" && headResp.ContentLength > 0 {
 					if fi, err := f.Stat(); err == nil {
 						if _, err = f.Seek(0, io.SeekEnd); err == nil {
 							currentFileSize = fi.Size()
@@ -514,7 +513,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string, opts ...ClientOption) error {
 	// Create a temporary directory to store the full source. This has to be
 	// a non-existent directory.
-	td, tdcloser, err := safetemp.Dir("", "getter")
+	td, tdcloser, err := mkdirTemp("", "getter")
 	if err != nil {
 		return err
 	}
@@ -533,8 +532,7 @@ func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string, 
 
 	// Make sure the subdir path actually exists
 	if _, err := os.Stat(sourcePath); err != nil {
-		return fmt.Errorf(
-			"Error downloading %s: %s", source, err)
+		return fmt.Errorf("downloading %s: %s", source, err)
 	}
 
 	// Copy the subdirectory into our actual destination.
