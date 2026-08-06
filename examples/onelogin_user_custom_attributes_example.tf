@@ -10,10 +10,12 @@ resource onelogin_user_custom_attributes employee_id_definition {
   shortname = "employee_id"    # Technical name/identifier for the attribute
 }
 
-# Create another custom attribute definition
+# Create another custom attribute definition, ordered ahead of the others.
+# Positions start at 1; leave it out to let the definition sit without one.
 resource onelogin_user_custom_attributes department_definition {
   name      = "Department Code"
   shortname = "dept_code"
+  position  = 1
 }
 
 # Set a custom attribute value for a specific user
