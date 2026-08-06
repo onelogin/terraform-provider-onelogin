@@ -7,6 +7,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// TestValidCustomAttributePosition covers the plan-time guard on position. A
+// negative one reads differently in each payload builder -- sent as-is on
+// create, treated as a clear on update -- so it has to be rejected up front.
+func TestValidCustomAttributePosition(t *testing.T) {
+	for _, position := range []int{0, 1, 27} {
+		if _, errs := validCustomAttributePosition(position, "position"); len(errs) > 0 {
+			t.Fatalf("expected position %d to be accepted, got %v", position, errs)
+		}
+	}
+
+	for _, position := range []int{-1, -27} {
+		if _, errs := validCustomAttributePosition(position, "position"); len(errs) == 0 {
+			t.Fatalf("expected position %d to be rejected", position)
+		}
+	}
+}
+
 // TestUserCustomAttributeDefinitionCreateInput covers the "user_field" body sent
 // when a definition is created. OneLogin defaults position to null, so an unset
 // position has to stay out of the body rather than go in as a zero.

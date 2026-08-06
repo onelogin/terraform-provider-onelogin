@@ -10,6 +10,19 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
+// validCustomAttributePosition rejects a negative position at plan time.
+//
+// Positions start at 1 and 0 stands in for "no position", so the two payload
+// builders read a negative differently: GetOk counts -1 as set and would send it
+// on create, while the update builder only treats a value above 0 as a position
+// and would clear it instead. Neither is what the configuration asked for.
+func validCustomAttributePosition(val interface{}, key string) (warns []string, errs []error) {
+	if position, ok := val.(int); ok && position < 0 {
+		errs = append(errs, fmt.Errorf("%s must be 0 or greater, got %d", key, position))
+	}
+	return warns, errs
+}
+
 // userCustomAttributeDefinitionCreateInput builds the "user_field" body handed to
 // the create endpoint.
 //
@@ -84,6 +97,7 @@ func UserCustomAttributes() *schema.Resource {
 				Type:          schema.TypeInt,
 				Optional:      true,
 				ConflictsWith: []string{"user_id", "value"},
+				ValidateFunc:  validCustomAttributePosition,
 				Description:   "Ordering of the custom attribute definition. Positions start at 1; leaving this unset, or setting it to 0, leaves the definition without a position",
 			},
 			"user_id": {

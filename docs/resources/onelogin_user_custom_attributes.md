@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `name` - (Required) The human-readable display name of the custom attribute.
 * `shortname` - (Required) The short name (identifier) of the custom attribute.
-* `position` - (Optional) The ordering of the custom attribute definition. Positions start at 1. OneLogin leaves a definition without a position unless one is given, which this resource reports as `0`. Removing `position` from the configuration, or setting it to `0`, puts the definition back to having none.
+* `position` - (Optional) The ordering of the custom attribute definition. Positions start at 1, and negative values are rejected. OneLogin leaves a definition without a position unless one is given, which this resource reports as `0`. Removing `position` from the configuration, or setting it to `0`, puts the definition back to having none.
 
 ### For User-Specific Custom Attribute Values
 
