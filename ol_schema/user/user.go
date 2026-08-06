@@ -265,6 +265,13 @@ func QuerySchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+		"emails": &schema.Schema{
+			Type:          schema.TypeList,
+			Optional:      true,
+			Elem:          &schema.Schema{Type: schema.TypeString},
+			ConflictsWith: []string{"email"},
+			Description:   "Look up several users at once by email. The API matches one email per request, so each is queried in turn and the results combined, in the order given. Conflicts with email",
+		},
 		"firstname": &schema.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
