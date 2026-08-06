@@ -10,6 +10,57 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
+// userCustomAttributeDefinitionCreateInput builds the "user_field" body handed to
+// the create endpoint.
+//
+// "position" is left out unless it is actually set. OneLogin defaults a new
+// definition's position to null, so omitting the key asks for exactly that.
+// GetOk reports false for an unset int as well as for a literal 0, which is the
+// behaviour wanted here: positions start at 1, so 0 only ever means "no
+// position".
+func userCustomAttributeDefinitionCreateInput(d *schema.ResourceData) map[string]interface{} {
+	input := map[string]interface{}{
+		"name":      d.Get("name").(string),
+		"shortname": d.Get("shortname").(string),
+	}
+
+	if position, ok := d.GetOk("position"); ok {
+		input["position"] = position.(int)
+	}
+
+	return input
+}
+
+// userCustomAttributeDefinitionUpdateInput builds the body handed to the update
+// endpoint. Unlike create, the API takes this body unwrapped rather than nested
+// under "user_field".
+//
+// It differs from the create input in two ways:
+//
+//   - "name" and "shortname" are always sent. Both are required by the API, so a
+//     body carrying only a changed position would be rejected for the missing
+//     fields.
+//   - "position" is always sent too, as an explicit null once it is no longer
+//     set. Dropping the key instead would leave the old position in place, so a
+//     definition could never be put back to having none.
+//
+// Sending it unconditionally is what the plan already describes: a position left
+// out of the configuration plans as 0, so an update that clears it is the change
+// the user was shown, not a surprise.
+func userCustomAttributeDefinitionUpdateInput(d *schema.ResourceData) map[string]interface{} {
+	input := map[string]interface{}{
+		"name":      d.Get("name").(string),
+		"shortname": d.Get("shortname").(string),
+		"position":  nil,
+	}
+
+	if position := d.Get("position").(int); position > 0 {
+		input["position"] = position
+	}
+
+	return input
+}
+
 // UserCustomAttributes returns a resource with the CRUD methods and Terraform Schema defined
 func UserCustomAttributes() *schema.Resource {
 	return &schema.Resource{
@@ -28,6 +79,12 @@ func UserCustomAttributes() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Short name identifier for the custom attribute",
+			},
+			"position": {
+				Type:          schema.TypeInt,
+				Optional:      true,
+				ConflictsWith: []string{"user_id", "value"},
+				Description:   "Ordering of the custom attribute definition. Positions start at 1; leaving this unset, or setting it to 0, leaves the definition without a position",
 			},
 			"user_id": {
 				Type:        schema.TypeInt,
@@ -99,19 +156,10 @@ func userCustomAttributesCreate(d *schema.ResourceData, m interface{}) error {
 		d.SetId(fmt.Sprintf("%d_%s", userIdInt, shortname))
 		return userCustomAttributesRead(d, m)
 	} else {
-		// Otherwise, we're creating a new custom attribute definition
-		name := d.Get("name").(string)
-		shortname := d.Get("shortname").(string)
-
-		// Create payload for new custom attribute - only name and shortname are allowed
-		userFieldPayload := map[string]interface{}{
-			"name":      name,
-			"shortname": shortname,
-		}
-
-		// Wrap in user_field object as required by API
+		// Otherwise, we're creating a new custom attribute definition,
+		// wrapped in a user_field object as required by API
 		payload := map[string]interface{}{
-			"user_field": userFieldPayload,
+			"user_field": userCustomAttributeDefinitionCreateInput(d),
 		}
 
 		// Create custom attribute
@@ -186,6 +234,14 @@ func userCustomAttributesRead(d *schema.ResourceData, m interface{}) error {
 			if int(id) == attrId {
 				d.Set("name", attrMap["name"])
 				d.Set("shortname", attrMap["shortname"])
+				// A definition without a position reports null, which decodes to
+				// no float64. 0 is what the schema reports for an unset int, so
+				// the two agree and an unmanaged position is not seen as drift.
+				if position, ok := attrMap["position"].(float64); ok {
+					d.Set("position", int(position))
+				} else {
+					d.Set("position", 0)
+				}
 				return nil
 			}
 		}
@@ -257,24 +313,11 @@ func userCustomAttributesUpdate(d *schema.ResourceData, m interface{}) error {
 			return fmt.Errorf("invalid attribute ID format: %v", err)
 		}
 
-		// Create update payload
-		payload := map[string]interface{}{}
-
-		if d.HasChange("name") {
-			payload["name"] = d.Get("name").(string)
-		}
-
-		if d.HasChange("shortname") {
-			payload["shortname"] = d.Get("shortname").(string)
-		}
-
-		if len(payload) > 0 {
-			// Update the custom attribute
-			_, err := client.UpdateCustomAttributes(attrId, payload)
-			if err != nil {
-				log.Printf("[ERROR] Error updating custom attribute %d: %v", attrId, err)
-				return err
-			}
+		// Update the custom attribute
+		_, err = client.UpdateCustomAttributes(attrId, userCustomAttributeDefinitionUpdateInput(d))
+		if err != nil {
+			log.Printf("[ERROR] Error updating custom attribute %d: %v", attrId, err)
+			return err
 		}
 
 		return userCustomAttributesRead(d, m)

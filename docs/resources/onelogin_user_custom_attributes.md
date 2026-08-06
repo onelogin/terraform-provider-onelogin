@@ -28,10 +28,11 @@ resource onelogin_user_custom_attributes employee_id_definition {
   shortname = "employee_id"    # Technical name/identifier for the attribute
 }
 
-# Create another custom attribute definition
+# Create another custom attribute definition, ordered ahead of the others
 resource onelogin_user_custom_attributes department_definition {
   name      = "Department Code"
   shortname = "dept_code"
+  position  = 1
 }
 
 # Set a custom attribute value for a specific user
@@ -57,6 +58,7 @@ The following arguments are supported:
 
 * `name` - (Required) The human-readable display name of the custom attribute.
 * `shortname` - (Required) The short name (identifier) of the custom attribute.
+* `position` - (Optional) The ordering of the custom attribute definition. Positions start at 1. OneLogin leaves a definition without a position unless one is given, which this resource reports as `0`. Removing `position` from the configuration, or setting it to `0`, puts the definition back to having none.
 
 ### For User-Specific Custom Attribute Values
 
