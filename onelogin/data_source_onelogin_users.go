@@ -83,19 +83,45 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		DirectoryID:    directoryID,
 	}
 
-	result, err := client.GetUsers(sdkQuery)
-	if err != nil {
-		log.Printf("[ERROR] There was a problem reading the users!")
-		log.Println(err)
-		return err
-	}
+	// The API matches a single email per request, so a list of them becomes one
+	// request each and the results are combined. Every other filter still
+	// applies to each, which keeps "these people, in this directory" expressible.
+	queries := usersQueriesForEmails(sdkQuery, emailsFromConfig(d))
 
-	// Parse the response
-	data, err := usersFromResponse(result)
-	if err != nil {
-		log.Printf("[WARNING] Invalid response format")
-		d.SetId("")
-		return err
+	data := make([]interface{}, 0)
+	seen := make(map[int]bool)
+	for _, q := range queries {
+		result, err := client.GetUsers(q)
+		if err != nil {
+			log.Printf("[ERROR] There was a problem reading the users!")
+			log.Println(err)
+			return err
+		}
+
+		// Parse the response
+		found, err := usersFromResponse(result)
+		if err != nil {
+			log.Printf("[WARNING] Invalid response format")
+			d.SetId("")
+			return err
+		}
+
+		// A user matching two of the emails, or two filters, is still one user.
+		for _, userData := range found {
+			user, ok := userData.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			id, ok := user["id"].(float64)
+			if !ok {
+				continue
+			}
+			if seen[int(id)] {
+				continue
+			}
+			seen[int(id)] = true
+			data = append(data, userData)
+		}
 	}
 
 	if len(data) == 0 {
@@ -166,8 +192,12 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 		userList = append(userList, u)
 	}
 
-	// Generate a hash for the ID
-	queryBytes, _ := json.Marshal(sdkQuery)
+	// Generate a hash for the ID. The emails go in alongside the query: they are
+	// not part of it, so two different email lists would otherwise hash alike.
+	queryBytes, _ := json.Marshal(struct {
+		Query  *models.UserQuery
+		Emails []string
+	}{sdkQuery, emailsFromConfig(d)})
 	queryHash := md5.Sum(queryBytes)
 	d.SetId(fmt.Sprintf("%x", queryHash))
 
@@ -175,6 +205,41 @@ func dataSourceUsersRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("users", userList)
 
 	return nil
+}
+
+// emailsFromConfig reads the "emails" filter, dropping blanks so an interpolated
+// value that came out empty does not turn into a query for every user.
+func emailsFromConfig(d *schema.ResourceData) []string {
+	raw, ok := d.Get("emails").([]interface{})
+	if !ok {
+		return nil
+	}
+
+	emails := make([]string, 0, len(raw))
+	for _, v := range raw {
+		if email, ok := v.(string); ok && email != "" {
+			emails = append(emails, email)
+		}
+	}
+	return emails
+}
+
+// usersQueriesForEmails fans a query out over a list of emails, one query each,
+// leaving every other filter in place. With no emails the query is returned
+// unchanged, so the single-email and unfiltered cases are untouched.
+func usersQueriesForEmails(base *models.UserQuery, emails []string) []*models.UserQuery {
+	if len(emails) == 0 {
+		return []*models.UserQuery{base}
+	}
+
+	queries := make([]*models.UserQuery, 0, len(emails))
+	for _, email := range emails {
+		q := *base
+		emailVal := email
+		q.Email = &emailVal
+		queries = append(queries, &q)
+	}
+	return queries
 }
 
 func HashQuery(query *userschema.UserQuery) [16]byte {
