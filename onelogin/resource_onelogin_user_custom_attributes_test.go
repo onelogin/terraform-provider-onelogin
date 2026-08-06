@@ -1,11 +1,57 @@
 package onelogin
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+// TestUserCustomAttributesNameIsOptional guards the schema shape. A value set on
+// one user needs no name, so requiring it made the documented usage -- and the
+// user_attr_value acceptance test below -- impossible to plan.
+func TestUserCustomAttributesNameIsOptional(t *testing.T) {
+	name := UserCustomAttributes().Schema["name"]
+
+	if name.Required {
+		t.Fatal("expected name to be optional, a user-value resource has no name to give")
+	}
+	if !name.Optional {
+		t.Fatal("expected name to be optional")
+	}
+}
+
+// TestCheckCustomAttributeDefinitionName covers the apply-time check that stands
+// in for the Required the schema can no longer carry.
+func TestCheckCustomAttributeDefinitionName(t *testing.T) {
+	t.Run("accepts a definition with a name", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, UserCustomAttributes().Schema, map[string]interface{}{
+			"name":      "Employee ID",
+			"shortname": "employee_id",
+		})
+
+		if err := checkCustomAttributeDefinitionName(d); err != nil {
+			t.Fatalf("expected the definition to be accepted, got %v", err)
+		}
+	})
+
+	t.Run("rejects a definition without a name", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, UserCustomAttributes().Schema, map[string]interface{}{
+			"shortname": "employee_id",
+		})
+
+		err := checkCustomAttributeDefinitionName(d)
+		if err == nil {
+			t.Fatal("expected a definition with no name to be rejected")
+		}
+		// The shortname is the only thing identifying which resource is at
+		// fault, so it has to appear in the message.
+		if !strings.Contains(err.Error(), "employee_id") {
+			t.Fatalf("expected the shortname in the error, got %v", err)
+		}
+	})
+}
 
 // TestValidCustomAttributePosition covers the plan-time guard on position. A
 // negative one reads differently in each payload builder -- sent as-is on

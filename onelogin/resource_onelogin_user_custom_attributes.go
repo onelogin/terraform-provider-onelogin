@@ -23,6 +23,23 @@ func validCustomAttributePosition(val interface{}, key string) (warns []string, 
 	return warns, errs
 }
 
+// checkCustomAttributeDefinitionName rejects a definition that has no name. The
+// API requires one on both create and update, and the schema cannot ask for it:
+// a name is only needed for a definition, not for a value set on one user, and
+// Required applies to both shapes alike.
+//
+// This is checked at apply rather than in a CustomizeDiff because the two shapes
+// are told apart by user_id, which is commonly a reference to a user created in
+// the same run. That value is still unknown while planning, so a plan-time check
+// would read a user-value resource as a definition and demand a name it does not
+// need.
+func checkCustomAttributeDefinitionName(d *schema.ResourceData) error {
+	if d.Get("name").(string) == "" {
+		return fmt.Errorf("name is required for a custom attribute definition (shortname %q)", d.Get("shortname").(string))
+	}
+	return nil
+}
+
 // userCustomAttributeDefinitionCreateInput builds the "user_field" body handed to
 // the create endpoint.
 //
@@ -84,9 +101,15 @@ func UserCustomAttributes() *schema.Resource {
 		Importer: &schema.ResourceImporter{},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Name of the custom attribute",
+				Type:     schema.TypeString,
+				Optional: true,
+				// Optional rather than Required because this resource has two
+				// shapes: a definition, which needs a name, and a value set on
+				// one user, which does not. Requiring it forced a throwaway name
+				// onto every user-value resource, which the documented usage and
+				// the acceptance tests never supplied. Definitions are checked
+				// for it below, at apply.
+				Description: "Name of the custom attribute. Required when managing a definition, ignored when setting a value on a user",
 			},
 			"shortname": {
 				Type:        schema.TypeString,
@@ -172,6 +195,10 @@ func userCustomAttributesCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		// Otherwise, we're creating a new custom attribute definition,
 		// wrapped in a user_field object as required by API
+		if err := checkCustomAttributeDefinitionName(d); err != nil {
+			return err
+		}
+
 		payload := map[string]interface{}{
 			"user_field": userCustomAttributeDefinitionCreateInput(d),
 		}
@@ -325,6 +352,10 @@ func userCustomAttributesUpdate(d *schema.ResourceData, m interface{}) error {
 		attrId, err := strconv.Atoi(attrIdStr)
 		if err != nil {
 			return fmt.Errorf("invalid attribute ID format: %v", err)
+		}
+
+		if err := checkCustomAttributeDefinitionName(d); err != nil {
+			return err
 		}
 
 		// Update the custom attribute
