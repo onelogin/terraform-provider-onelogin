@@ -149,7 +149,10 @@ func removeRoleFromApp(ctx context.Context, client *onelogin.OneloginSDK, appID 
 		return err
 	}
 
-	tflog.Info(ctx, "[UPDATED] Removed role %d from app %d", roleID, appID)
+	tflog.Info(ctx, "[UPDATED] Removed role from app", map[string]interface{}{
+		"role_id": roleID,
+		"app_id":  appID,
+	})
 	return nil
 }
 
@@ -187,6 +190,9 @@ func attachRoleToApp(ctx context.Context, client *onelogin.OneloginSDK, appID in
 		return err
 	}
 
-	tflog.Info(ctx, "[UPDATED] Added role %d to app %d", roleID, appID)
+	tflog.Info(ctx, "[UPDATED] Added role to app", map[string]interface{}{
+		"role_id": roleID,
+		"app_id":  appID,
+	})
 	return nil
 }

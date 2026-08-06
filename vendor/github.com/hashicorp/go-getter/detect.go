@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package getter
@@ -82,7 +82,7 @@ func Detect(src string, pwd string, ds []Detector) (string, error) {
 		if subDir != "" {
 			u, err := url.Parse(result)
 			if err != nil {
-				return "", fmt.Errorf("Error parsing URL: %s", err)
+				return "", fmt.Errorf("Error parsing URL: %w", err)
 			}
 			u.Path += "//" + subDir
 

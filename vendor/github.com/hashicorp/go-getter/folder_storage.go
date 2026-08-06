@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package getter
@@ -52,7 +52,7 @@ func (s *FolderStorage) Get(key string, source string, update bool) error {
 		} else if !os.IsNotExist(err) {
 			// If the error we got wasn't a file-not-exist error, then
 			// something went wrong and we should report it.
-			return fmt.Errorf("Error reading module directory: %s", err)
+			return fmt.Errorf("Error reading module directory: %w", err)
 		}
 	}
 

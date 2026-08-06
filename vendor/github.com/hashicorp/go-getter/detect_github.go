@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package getter
@@ -35,7 +35,7 @@ func (d *GitHubDetector) detectHTTP(src string) (string, bool, error) {
 	urlStr := fmt.Sprintf("https://%s", strings.Join(parts[:3], "/"))
 	url, err := url.Parse(urlStr)
 	if err != nil {
-		return "", true, fmt.Errorf("error parsing GitHub URL: %s", err)
+		return "", true, fmt.Errorf("error parsing GitHub URL: %w", err)
 	}
 
 	if !strings.HasSuffix(url.Path, ".git") {

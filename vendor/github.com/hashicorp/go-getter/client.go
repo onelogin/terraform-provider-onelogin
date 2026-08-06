@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package getter
@@ -7,14 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	urlhelper "github.com/hashicorp/go-getter/helper/url"
-	safetemp "github.com/hashicorp/go-safetemp"
 )
 
 // ErrSymlinkCopy means that a copy of a symlink was encountered on a request with DisableSymlinks enabled.
@@ -144,7 +142,7 @@ func (c *Client) Get() error {
 			subDir = subDir[1:]
 		}
 
-		td, tdcloser, err := safetemp.Dir("", "getter")
+		td, tdcloser, err := mkdirTemp("", "getter")
 		if err != nil {
 			return err
 		}
@@ -205,10 +203,10 @@ func (c *Client) Get() error {
 	if decompressor != nil {
 		// Create a temporary directory to store our archive. We delete
 		// this at the end of everything.
-		td, err := ioutil.TempDir("", "getter")
+		td, err := os.MkdirTemp("", "getter")
 		if err != nil {
 			return fmt.Errorf(
-				"Error creating temporary directory for archive: %s", err)
+				"Error creating temporary directory for archive: %w", err)
 		}
 		defer func() { _ = os.RemoveAll(td) }()
 
@@ -223,7 +221,7 @@ func (c *Client) Get() error {
 	// Determine checksum if we have one
 	checksum, err := c.extractChecksum(u)
 	if err != nil {
-		return fmt.Errorf("invalid checksum: %s", err)
+		return fmt.Errorf("invalid checksum: %w", err)
 	}
 
 	// Delete the query parameter if we have it.
@@ -323,7 +321,7 @@ func (c *Client) Get() error {
 		// if we're specifying a subdir.
 		err := g.Get(dst, u)
 		if err != nil {
-			err = fmt.Errorf("error downloading '%s': %s", RedactURL(u), err)
+			err = fmt.Errorf("error downloading '%s': %w", RedactURL(u), err)
 			return err
 		}
 	}

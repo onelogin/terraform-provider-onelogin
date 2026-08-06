@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package getter
@@ -47,7 +47,7 @@ func (d *TarZstdDecompressor) Decompress(dst, src string, dir bool, umask os.Fil
 	// Zstd compression is second
 	zstdR, err := zstd.NewReader(f)
 	if err != nil {
-		return fmt.Errorf("Error opening a zstd reader for %s: %s", src, err)
+		return fmt.Errorf("Error opening a zstd reader for %s: %w", src, err)
 	}
 	defer zstdR.Close()
 
