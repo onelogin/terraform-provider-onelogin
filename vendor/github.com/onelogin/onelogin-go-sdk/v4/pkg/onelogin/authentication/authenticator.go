@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -26,6 +27,45 @@ func NewAuthenticator(subdomain string) *Authenticator {
 	return &Authenticator{subdomain: subdomain}
 }
 
+// BaseURL is the root every request is sent to, without a trailing slash.
+//
+// ONELOGIN_API_URL wins when it is set. Deriving the host from the subdomain
+// alone assumes every tenant lives at <subdomain>.onelogin.com, which is true
+// of production and of nothing else: a development or staging deployment, or a
+// tenant on a custom domain, cannot be reached that way. Worse, the derived
+// host is a real tenant belonging to someone, so a caller pointed elsewhere had
+// its credentials posted to production rather than being told the host was
+// unsupported.
+//
+// With no ONELOGIN_API_URL set the subdomain is used exactly as before, so
+// existing callers are unaffected.
+func BaseURL(subdomain string) string {
+	apiURL := strings.TrimSpace(os.Getenv("ONELOGIN_API_URL"))
+	if apiURL == "" {
+		return fmt.Sprintf("https://%s.onelogin.com", subdomain)
+	}
+
+	// A bare host is the likely way to get this wrong, and http.NewRequest
+	// rejects a URL with no scheme rather than assuming one.
+	if !strings.Contains(apiURL, "://") {
+		apiURL = "https://" + apiURL
+	}
+
+	// Reduced to scheme and authority. Every path this SDK builds is absolute
+	// -- /auth/oauth2/v2/token, /api/2/... -- and is appended to whatever this
+	// returns, so a value carrying a path would produce
+	// https://host/auth/auth/oauth2/v2/token rather than replacing anything.
+	// Such a value cannot work, so trimming it is the difference between one
+	// wrong URL and every wrong URL.
+	if parsed, err := url.Parse(apiURL); err == nil && parsed.Host != "" {
+		return parsed.Scheme + "://" + parsed.Host
+	}
+
+	// Unparseable: hand it back tidied rather than silently substituting a
+	// different host, which is the failure this function exists to prevent.
+	return strings.TrimRight(apiURL, "/")
+}
+
 func (a *Authenticator) GenerateToken() error {
 	// Read & Check environment variables
 	clientID := os.Getenv("ONELOGIN_CLIENT_ID")
@@ -39,7 +79,7 @@ func (a *Authenticator) GenerateToken() error {
 	}
 
 	// Construct the authentication URL
-	authURL := fmt.Sprintf("https://%s.onelogin.com%s", a.subdomain, TkPath)
+	authURL := BaseURL(a.subdomain) + TkPath
 
 	// Create authentication request payload
 	data := map[string]string{
@@ -103,8 +143,9 @@ func (a *Authenticator) RevokeToken(token *string) error {
 		return errors.New("missing client ID, client secret, or subdomain")
 	}
 
-	// Construct the revoke URL
-	revokeURL := fmt.Sprintf("%s.onelogin.com%s", a.subdomain, RevokePath)
+	// Construct the revoke URL. This previously carried no scheme at all, which
+	// http.NewRequest rejects, so revocation could not have worked.
+	revokeURL := BaseURL(a.subdomain) + RevokePath
 
 	// Create revoke request payload
 	data := struct {
