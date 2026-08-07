@@ -119,9 +119,22 @@ func privilegeRead(ctx context.Context, d *schema.ResourceData, m interface{}) d
 				}
 			}
 
+			// "Version", not "version". The API capitalises every key inside
+			// the privilege document -- Version, Statement, Effect, Action,
+			// Scope -- and the statement keys above already account for that.
+			// Reading a lower-case "version" yielded nil, so the block written
+			// to state never matched the configuration and every plan after an
+			// apply proposed replacing the whole privilege.
+			version := privilegeData["Version"]
+			if version == nil {
+				// Older responses, and anything that omits it, fall back to the
+				// schema's default rather than writing a nil into state.
+				version = "2018-05-18"
+			}
+
 			d.Set("privilege", []map[string]interface{}{
 				{
-					"version":   privilegeData["version"],
+					"version":   version,
 					"statement": statements,
 				},
 			})
