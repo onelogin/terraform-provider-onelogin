@@ -3,6 +3,16 @@ name: Release
 on:
   release:
     types: [published]
+  # Rebuild a tag that already has a release. The published event is delivered
+  # once and never again, so a release whose build failed cannot otherwise be
+  # retried: the only recourse is deleting and re-creating the release, which
+  # destroys whatever assets it does have.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build, e.g. v0.14.0'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -15,6 +25,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # A release event already points at the tag. A dispatch defaults to
+          # the branch it was started from, which would build main and stamp it
+          # with whatever version main describes to, so the tag has to be named.
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Set up Go
         uses: actions/setup-go@v4
