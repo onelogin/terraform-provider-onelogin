@@ -102,6 +102,12 @@ func statementsFromState(prior interface{}) []map[string]interface{} {
 // statementKey identifies a statement by its contents. The action and scope
 // lists are sorted for the comparison only -- the values written to state are
 // the ones the API returned, untouched.
+//
+// Untouched is safe: unlike the statements themselves, the API preserves the
+// order of the values inside one. A statement created with
+// ["users:List","users:Get","users:Update","users:Delete"] comes back in that
+// order on every read. Sorting here just means a statement is still recognised
+// if that ever stops being true.
 func statementKey(statement map[string]interface{}) string {
 	parts := []string{fmt.Sprint(statement["effect"])}
 

@@ -88,7 +88,11 @@ func stripProviderConfig(config string) string {
 	for _, line := range strings.Split(config, "\n") {
 		trimmed := strings.TrimSpace(line)
 
-		if !skipping && (strings.HasPrefix(trimmed, "terraform {") || strings.HasPrefix(trimmed, "provider ")) {
+		// `provider "` rather than `provider `: the latter also matches the
+		// provider meta-argument inside a resource, `provider = onelogin.eu`,
+		// and would silently drop that line and the resource's provider with
+		// it. A provider block always carries a quoted name.
+		if !skipping && (strings.HasPrefix(trimmed, "terraform {") || strings.HasPrefix(trimmed, "provider \"")) {
 			skipping = true
 			depth = 0
 		}

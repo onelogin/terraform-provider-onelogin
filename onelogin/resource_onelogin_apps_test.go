@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,9 +79,16 @@ func TestLogicalImplementation(t *testing.T) {
 	var _ schema.UpdateContextFunc = appRes.UpdateContext
 	var _ schema.DeleteContextFunc = appRes.DeleteContext
 
+	// Configure the provider if nothing else in this process has. Relying on
+	// another acceptance test to do it means running this one on its own
+	// skips the whole point of it, silently -- which is how the nil meta it
+	// used to pass went unnoticed for so long.
 	m := testAccProvider.Meta()
 	if m == nil {
-		t.Skip("provider is not configured: nothing has run an acceptance test in this process")
+		if diags := testAccProvider.Configure(ctx, terraform.NewResourceConfigRaw(nil)); diags.HasError() {
+			t.Fatalf("could not configure the provider from the environment: %v", diags)
+		}
+		m = testAccProvider.Meta()
 	}
 
 	defer func() {
