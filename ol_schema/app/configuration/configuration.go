@@ -158,7 +158,11 @@ func FlattenOIDC(config models.ConfigurationOpenId) map[string]interface{} {
 		tfOut["redirect_uri"] = config.RedirectURI
 	}
 
-	if config.PostLogoutRedirectURI != nil && *config.PostLogoutRedirectURI != "" {
+	// Keeps an empty value, matching Flatten below. The pointer draws the same
+	// line the type assertion draws there: nil is an app that never had URIs,
+	// while a pointer to "" is one whose URIs were cleared, and state has to
+	// keep the latter or the plan never goes quiet.
+	if config.PostLogoutRedirectURI != nil {
 		tfOut["post_logout_redirect_uri"] = *config.PostLogoutRedirectURI
 	}
 

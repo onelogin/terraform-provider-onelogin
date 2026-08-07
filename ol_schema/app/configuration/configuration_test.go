@@ -275,6 +275,24 @@ func TestFlattenConfiguration(t *testing.T) {
 				"access_token_expiration_minutes":  "2",
 			},
 		},
+		"keeps a cleared post_logout_redirect_uri so the plan converges": {
+			InputData: models.ConfigurationOpenId{
+				RedirectURI:           "test",
+				PostLogoutRedirectURI: strPtr(""),
+			},
+			ExpectedOutput: map[string]interface{}{
+				"redirect_uri":             "test",
+				"post_logout_redirect_uri": "",
+			},
+		},
+		"drops a nil post_logout_redirect_uri, which means the app never had URIs": {
+			InputData: models.ConfigurationOpenId{
+				RedirectURI: "test",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"redirect_uri": "test",
+			},
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
