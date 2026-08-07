@@ -46,17 +46,19 @@ func TestAccPreCheck(t *testing.T) {
 		t.Fatal("ONELOGIN_CLIENT_SECRET must be set for acceptance tests")
 	}
 
-	// Check for API URL or subdomain as fallback
-	apiURL := os.Getenv("ONELOGIN_API_URL")
-	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
-
-	if apiURL == "" && subdomain == "" {
-		t.Fatal("ONELOGIN_API_URL must be set for acceptance tests")
-	}
-
-	// Warn if using subdomain instead of API URL
-	if apiURL == "" && subdomain != "" {
-		t.Logf("WARNING: Using ONELOGIN_SUBDOMAIN which is deprecated. Please switch to ONELOGIN_API_URL.")
+	// ONELOGIN_API_URL, and only that. This used to accept a bare
+	// ONELOGIN_SUBDOMAIN and log that it was deprecated, which read as though
+	// the older setting still worked -- it does not. The provider's url is
+	// Required, so a run with only a subdomain set gets past this check and
+	// then fails every step with
+	//
+	//	Error: Missing required argument
+	//	The argument "url" is required, but no definition was found.
+	//
+	// and the SDK, given only a subdomain, would aim at
+	// <subdomain>.onelogin.com regardless of which tenant was meant.
+	if v := os.Getenv("ONELOGIN_API_URL"); v == "" {
+		t.Fatal("ONELOGIN_API_URL must be set for acceptance tests: the provider requires a url, and ONELOGIN_SUBDOMAIN alone cannot configure it")
 	}
 
 	// Set a longer timeout for tests (5 minutes) if not already set

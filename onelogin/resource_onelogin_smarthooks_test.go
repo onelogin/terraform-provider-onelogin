@@ -24,6 +24,11 @@ func skipIfHookTypeExists(t *testing.T, hookType string) {
 
 	// The SDK still insists on a subdomain even though every call goes to
 	// ONELOGIN_API_URL, and nothing has configured the provider this early.
+	//
+	// Derived from the URL, with no fallback to a bare ONELOGIN_SUBDOMAIN on
+	// purpose. Given only a subdomain the SDK builds <subdomain>.onelogin.com
+	// -- production -- and this would be the one thing in the run to contact
+	// it, since the provider refuses to configure without a url at all.
 	subdomain, err := subdomainFromURL(os.Getenv("ONELOGIN_API_URL"))
 	if err != nil {
 		t.Fatalf("could not work out the subdomain to check for an existing %s hook: %v", hookType, err)
