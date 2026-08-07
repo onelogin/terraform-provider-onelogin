@@ -33,10 +33,12 @@ func TestInflateDoesNotSendEmptyStringsForUnsetFields(t *testing.T) {
 	t.Run("omits notes and description when unset", func(t *testing.T) {
 		got := marshal(t, map[string]interface{}{"name": "test app"})
 
-		if strings.Contains(got, `"notes"`) {
+		// The field token rather than the bare name: a value containing the
+		// word "notes" would otherwise satisfy the check.
+		if strings.Contains(got, `"notes":`) {
 			t.Fatalf("expected notes to be omitted, got %s", got)
 		}
-		if strings.Contains(got, `"description"`) {
+		if strings.Contains(got, `"description":`) {
 			t.Fatalf("expected description to be omitted, got %s", got)
 		}
 	})
@@ -52,7 +54,7 @@ func TestInflateDoesNotSendEmptyStringsForUnsetFields(t *testing.T) {
 		if !strings.Contains(got, `"description":"a new description"`) {
 			t.Fatalf("expected the description to be sent, got %s", got)
 		}
-		if strings.Contains(got, `"notes"`) {
+		if strings.Contains(got, `"notes":`) {
 			t.Fatalf("expected notes to stay out of an unrelated update, got %s", got)
 		}
 	})
