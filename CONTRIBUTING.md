@@ -90,7 +90,7 @@ A release is created by publishing a GitHub Release:
 
 1. Go to the [Releases page](../../releases) in GitHub
 2. Click **"Draft a new release"**
-3. Click **"Choose a tag"** and create a new tag following semantic versioning (e.g., `v0.11.1`)
+3. Click **"Choose a tag"** and create a new tag following semantic versioning (e.g., `v0.14.0`)
 4. Set the release title and description (you can use "Generate release notes" for automatic changelog)
 5. **Save it as a draft while you write the notes.** A draft creates no tag and starts
    nothing, so there is no rush and no half-finished release visible to anyone.
@@ -110,7 +110,8 @@ After publishing, confirm both of these:
 
 ```bash
 # 1. the release has its artifacts: 5 platform zips, SHA256SUMS, and the .sig
-gh release view v0.14.0 --json assets --jq '.assets[].name'
+gh release view v0.14.0 --repo onelogin/terraform-provider-onelogin \
+  --json assets --jq '.assets[].name'
 
 # 2. the Terraform Registry has actually picked the version up
 curl -s https://registry.terraform.io/v1/providers/onelogin/onelogin/versions \
@@ -133,8 +134,10 @@ does not list the version, the ingest event was missed and needs to be sent agai
 Delete the release and re-create it against the same tag:
 
 ```bash
-gh release delete v0.14.0 --yes          # keeps the tag; do NOT pass --cleanup-tag
-gh release create v0.14.0 --verify-tag --title v0.14.0 --notes-file notes.md
+REPO=onelogin/terraform-provider-onelogin
+
+gh release delete v0.14.0 --repo $REPO --yes   # keeps the tag; do NOT pass --cleanup-tag
+gh release create v0.14.0 --repo $REPO --verify-tag --title v0.14.0 --notes-file notes.md
 ```
 
 Keep the notes in a file first — deleting the release deletes its body along with its
