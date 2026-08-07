@@ -20,24 +20,28 @@ func TestAccOneLoginGroup_crud(t *testing.T) {
 				Config: testAccCheckOneLoginGroupConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_groups.test", "name", "Test Group"),
-					// The API accepts reference in the payload but does not return it,
-					// so it never reaches state and a round-trip assertion cannot
-					// hold. Left as a presence check rather than deleted, so the
-					// attribute stays covered if the API starts honouring it.
-					resource.TestCheckResourceAttrSet("onelogin_groups.test", "name"),
+					// The API drops reference rather than storing it, so this
+					// holds only because the read leaves a configured value
+					// alone instead of writing the null back over it.
+					resource.TestCheckResourceAttr("onelogin_groups.test", "reference", "test-group-ref"),
 				),
 			},
 			{
 				Config: testAccCheckOneLoginGroupConfigUpdated,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_groups.test", "name", "Updated Test Group"),
-					resource.TestCheckResourceAttrSet("onelogin_groups.test", "name"),
+					resource.TestCheckResourceAttr("onelogin_groups.test", "reference", "updated-group-ref"),
 				),
 			},
 			{
 				ResourceName:      "onelogin_groups.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// reference cannot survive an import: the API never returns
+				// it, and an import has no prior state to preserve it from.
+				// An imported group needs the attribute written back into the
+				// configuration by hand, which is the best the API allows.
+				ImportStateVerifyIgnore: []string{"reference"},
 			},
 		},
 	})
@@ -64,11 +68,13 @@ func testAccCheckOneLoginGroupDestroyed(s *terraform.State) error {
 const testAccCheckOneLoginGroupConfig = `
 resource "onelogin_groups" "test" {
   name      = "Test Group"
+  reference = "test-group-ref"
 }
 `
 
 const testAccCheckOneLoginGroupConfigUpdated = `
 resource "onelogin_groups" "test" {
   name      = "Updated Test Group"
+  reference = "updated-group-ref"
 }
 `
