@@ -12,12 +12,13 @@ import (
 // omitting timeout fields when they are not explicitly set, to avoid overriding
 // API defaults with 0 values during updates.
 type CustomConfigurationOpenId struct {
-	RedirectURI                   string `json:"redirect_uri,omitempty"`
-	LoginURL                      string `json:"login_url,omitempty"`
-	OidcApplicationType           int    `json:"oidc_application_type,omitempty"`
-	TokenEndpointAuthMethod       int    `json:"token_endpoint_auth_method,omitempty"`
-	AccessTokenExpirationMinutes  *int   `json:"access_token_expiration_minutes,omitempty"`
-	RefreshTokenExpirationMinutes *int   `json:"refresh_token_expiration_minutes,omitempty"`
+	RedirectURI                   string  `json:"redirect_uri,omitempty"`
+	PostLogoutRedirectURI         *string `json:"post_logout_redirect_uri,omitempty"`
+	LoginURL                      string  `json:"login_url,omitempty"`
+	OidcApplicationType           int     `json:"oidc_application_type,omitempty"`
+	TokenEndpointAuthMethod       int     `json:"token_endpoint_auth_method,omitempty"`
+	AccessTokenExpirationMinutes  *int    `json:"access_token_expiration_minutes,omitempty"`
+	RefreshTokenExpirationMinutes *int    `json:"refresh_token_expiration_minutes,omitempty"`
 }
 
 func validSignatureAlgorithm(val interface{}, key string) (warns []string, errs []error) {
@@ -89,6 +90,14 @@ func Inflate(s map[string]interface{}) (interface{}, error) {
 		customOidc.RedirectURI = getString(s["redirect_uri"])
 		customOidc.LoginURL = getString(s["login_url"])
 
+		// Present-but-empty means "remove every URI", which is a different
+		// request from leaving the attribute out and is why the field is a
+		// pointer. Only an absent key leaves the app's URIs alone.
+		if val, exists := s["post_logout_redirect_uri"]; exists {
+			uris := getString(val)
+			customOidc.PostLogoutRedirectURI = &uris
+		}
+
 		// Handle timeout fields specially - only set them if explicitly provided and non-empty
 		// This prevents overriding existing API values with 0 when fields are not specified
 		if customOidc.RefreshTokenExpirationMinutes, err = handleTimeoutField(s, "refresh_token_expiration_minutes"); err != nil {
@@ -147,6 +156,14 @@ func FlattenOIDC(config models.ConfigurationOpenId) map[string]interface{} {
 	// Add non-empty fields
 	if config.RedirectURI != "" {
 		tfOut["redirect_uri"] = config.RedirectURI
+	}
+
+	// Keeps an empty value, matching Flatten below. The pointer draws the same
+	// line the type assertion draws there: nil is an app that never had URIs,
+	// while a pointer to "" is one whose URIs were cleared, and state has to
+	// keep the latter or the plan never goes quiet.
+	if config.PostLogoutRedirectURI != nil {
+		tfOut["post_logout_redirect_uri"] = *config.PostLogoutRedirectURI
 	}
 
 	if config.LoginURL != "" {
@@ -208,6 +225,16 @@ func Flatten(config map[string]interface{}) map[string]interface{} {
 		// Handle OIDC fields
 		if val, ok := config["redirect_uri"].(string); ok && val != "" {
 			tfOut["redirect_uri"] = val
+		}
+
+		// Deliberately keeps an empty value, unlike the fields around it. The
+		// API returns null for an app that never had URIs and "" for one whose
+		// URIs were cleared, and the type assertion already separates the two:
+		// null fails it. Dropping "" as well would leave state without a key
+		// the practitioner's configuration still has, and the plan would never
+		// go quiet.
+		if val, ok := config["post_logout_redirect_uri"].(string); ok {
+			tfOut["post_logout_redirect_uri"] = val
 		}
 
 		if val, ok := config["login_url"].(string); ok && val != "" {

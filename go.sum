@@ -378,6 +378,10 @@ github.com/onelogin/onelogin-go-sdk v1.1.22 h1:6EQkQLY3TVfRwS25zkIk7i069qTEbe6MC
 github.com/onelogin/onelogin-go-sdk v1.1.22/go.mod h1:GM0+ziS1fhnPnxC2fLzVloxn+VzBwzXKkIaDOPoE5GU=
 github.com/onelogin/onelogin-go-sdk/v4 v4.10.0 h1:vNONzH89TtLcfXpjJXwXy5iA4ztBzifB9hkDZSKbggs=
 github.com/onelogin/onelogin-go-sdk/v4 v4.10.0/go.mod h1:2F3mvTga3mVU4HJNH6OQ00OjJDY3JmLcumJIeMNYwNg=
+github.com/onelogin/onelogin-go-sdk/v4 v4.11.0 h1:X1zBmZctLsd/TWPDZuQ1Bsq4hOII7528cJz1Exek0LI=
+github.com/onelogin/onelogin-go-sdk/v4 v4.11.0/go.mod h1:2F3mvTga3mVU4HJNH6OQ00OjJDY3JmLcumJIeMNYwNg=
+github.com/onelogin/onelogin-go-sdk/v4 v4.12.0 h1:wZYM1h1VO0mAcF6x2Ud1HkgENii1ViIHgWXtbiI7eto=
+github.com/onelogin/onelogin-go-sdk/v4 v4.12.0/go.mod h1:2F3mvTga3mVU4HJNH6OQ00OjJDY3JmLcumJIeMNYwNg=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.12.0/go.mod h1:oUhWkIvk5aDxtKvDDuw8gItl8pKl42LzjC9KZE0HfGg=
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
