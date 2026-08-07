@@ -35,3 +35,7 @@ terraform.tfvars
 *.swp
 *.swo
 __pycache__/
+
+# Dependencies are resolved from the module cache. go.sum pins them by hash,
+# and committing the tree made every bump an unreviewable diff.
+vendor/
