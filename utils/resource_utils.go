@@ -85,12 +85,17 @@ func SetResourceFields(d *schema.ResourceData, data map[string]interface{}, fiel
 	}
 }
 
-// setIfDeclared sets a field, turning the panic d.Set raises for an undeclared
-// key into an error the caller can log.
+// setIfDeclared sets a field, turning a panic from d.Set into an error the
+// caller can log rather than a crash.
+//
+// The panic is reported verbatim rather than being attributed. An undeclared
+// key is the reason it was written -- d.Set raises "Invalid address to set" --
+// but recover() catches everything, and naming a cause the panic may not have
+// would mislabel the next one and hide whatever it really was.
 func setIfDeclared(d *schema.ResourceData, field string, value interface{}) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("%q is not in this resource's schema: %v", field, r)
+			err = fmt.Errorf("setting %q panicked: %v", field, r)
 		}
 	}()
 	return d.Set(field, value)

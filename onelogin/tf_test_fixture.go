@@ -2,7 +2,6 @@ package onelogin
 
 import (
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -49,7 +48,7 @@ func getFixtureWithSuffix(name, suffix string, t *testing.T) string {
 	t.Helper()
 
 	_, filename, _, _ := runtime.Caller(0)
-	p := path.Join(filepath.Dir(filename), "../examples", name)
+	p := filepath.Join(filepath.Dir(filename), "..", "examples", name)
 
 	rawFile, err := os.ReadFile(p)
 	if err != nil {
