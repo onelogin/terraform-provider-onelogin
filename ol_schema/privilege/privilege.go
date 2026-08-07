@@ -8,6 +8,11 @@ import (
 )
 
 // Schema returns a key/value map of the various fields that make up a Privilege at OneLogin.
+// DefaultVersion is the privilege document version used when a configuration
+// does not name one, and when a response omits it. Defined here so the schema
+// default and privilegeRead's fallback cannot drift apart.
+const DefaultVersion = "2018-05-18"
+
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": &schema.Schema{
@@ -36,7 +41,7 @@ func Schema() map[string]*schema.Schema {
 					"version": &schema.Schema{
 						Type:     schema.TypeString,
 						Optional: true,
-						Default:  "2018-05-18",
+						Default:  DefaultVersion,
 					},
 					"statement": &schema.Schema{
 						Type:     schema.TypeList,

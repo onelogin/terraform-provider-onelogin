@@ -128,8 +128,9 @@ func privilegeRead(ctx context.Context, d *schema.ResourceData, m interface{}) d
 			version := privilegeData["Version"]
 			if version == nil {
 				// Older responses, and anything that omits it, fall back to the
-				// schema's default rather than writing a nil into state.
-				version = "2018-05-18"
+				// schema's default rather than writing a nil into state. Taken
+				// from the schema package so the two cannot drift.
+				version = privilegeschema.DefaultVersion
 			}
 
 			d.Set("privilege", []map[string]interface{}{
