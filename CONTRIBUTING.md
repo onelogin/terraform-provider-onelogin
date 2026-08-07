@@ -90,10 +90,12 @@ A release is created by publishing a GitHub Release:
 
 1. Go to the [Releases page](../../releases) in GitHub
 2. Click **"Draft a new release"**
-3. Click **"Choose a tag"** and create a new tag following semantic versioning (e.g., `v0.14.0`)
+3. Click **"Choose a tag"** and give the new tag a name, following semantic
+   versioning (e.g., `v0.14.0`). Naming it here does not create it — GitHub
+   creates the tag when the release is published.
 4. Set the release title and description (you can use "Generate release notes" for automatic changelog)
-5. **Save it as a draft while you write the notes.** A draft creates no tag and starts
-   nothing, so there is no rush and no half-finished release visible to anyone.
+5. **Save it as a draft while you write the notes.** A draft creates nothing and
+   starts nothing, so there is no rush and no half-finished release on display.
 6. Click **"Publish release"** when the notes are ready
 
 Publishing starts the Release workflow, which builds the binaries with GoReleaser,
