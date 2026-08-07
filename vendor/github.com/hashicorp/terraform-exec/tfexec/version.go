@@ -1,21 +1,44 @@
+// Copyright IBM Corp. 2020, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package tfexec
 
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-version"
+	tfjson "github.com/hashicorp/terraform-json"
 )
 
 var (
+	tf0_4_1  = version.Must(version.NewVersion("0.4.1"))
+	tf0_5_0  = version.Must(version.NewVersion("0.5.0"))
+	tf0_6_13 = version.Must(version.NewVersion("0.6.13"))
 	tf0_7_7  = version.Must(version.NewVersion("0.7.7"))
+	tf0_8_0  = version.Must(version.NewVersion("0.8.0"))
+	tf0_9_2  = version.Must(version.NewVersion("0.9.2"))
+	tf0_10_0 = version.Must(version.NewVersion("0.10.0"))
 	tf0_12_0 = version.Must(version.NewVersion("0.12.0"))
 	tf0_13_0 = version.Must(version.NewVersion("0.13.0"))
+	tf0_14_0 = version.Must(version.NewVersion("0.14.0"))
 	tf0_15_0 = version.Must(version.NewVersion("0.15.0"))
+	tf0_15_2 = version.Must(version.NewVersion("0.15.2"))
+	tf0_15_3 = version.Must(version.NewVersion("0.15.3"))
+	tf0_15_4 = version.Must(version.NewVersion("0.15.4"))
+	tf1_1_0  = version.Must(version.NewVersion("1.1.0"))
+	tf1_4_0  = version.Must(version.NewVersion("1.4.0"))
+	tf1_5_0  = version.Must(version.NewVersion("1.5.0"))
+	tf1_6_0  = version.Must(version.NewVersion("1.6.0"))
+	tf1_9_0  = version.Must(version.NewVersion("1.9.0"))
+	tf1_10_0 = version.Must(version.NewVersion("1.10.0"))
+	tf1_13_0 = version.Must(version.NewVersion("1.13.0"))
+	tf1_14_0 = version.Must(version.NewVersion("1.14.0"))
 )
 
 // Version returns structured output from the terraform version command including both the Terraform CLI version
@@ -37,10 +60,7 @@ func (tf *Terraform) Version(ctx context.Context, skipCache bool) (tfVersion *ve
 
 // version does not use the locking on the Terraform instance and should probably not be used directly, prefer Version.
 func (tf *Terraform) version(ctx context.Context) (*version.Version, map[string]*version.Version, error) {
-	// TODO: 0.13.0-beta2? and above supports a `-json` on the version command, should add support
-	// for that here and fallback to string parsing
-
-	versionCmd := tf.buildTerraformCmd(ctx, nil, "version")
+	versionCmd := tf.buildTerraformCmd(ctx, nil, "version", "-json")
 
 	var outBuf bytes.Buffer
 	versionCmd.Stdout = &outBuf
@@ -50,7 +70,53 @@ func (tf *Terraform) version(ctx context.Context) (*version.Version, map[string]
 		return nil, nil, err
 	}
 
-	tfVersion, providerVersions, err := parseVersionOutput(outBuf.String())
+	tfVersion, providerVersions, err := parseJsonVersionOutput(outBuf.Bytes())
+	if err != nil {
+		if _, ok := err.(*json.SyntaxError); ok {
+			return tf.versionFromPlaintext(ctx)
+		}
+	}
+
+	return tfVersion, providerVersions, err
+}
+
+func parseJsonVersionOutput(stdout []byte) (*version.Version, map[string]*version.Version, error) {
+	var out tfjson.VersionOutput
+	err := json.Unmarshal(stdout, &out)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tfVersion, err := version.NewVersion(out.Version)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to parse version %q: %w", out.Version, err)
+	}
+
+	providerVersions := make(map[string]*version.Version, 0)
+	for provider, versionStr := range out.ProviderSelections {
+		v, err := version.NewVersion(versionStr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("unable to parse %q version %q: %w",
+				provider, versionStr, err)
+		}
+		providerVersions[provider] = v
+	}
+
+	return tfVersion, providerVersions, nil
+}
+
+func (tf *Terraform) versionFromPlaintext(ctx context.Context) (*version.Version, map[string]*version.Version, error) {
+	versionCmd := tf.buildTerraformCmd(ctx, nil, "version")
+
+	var outBuf strings.Builder
+	versionCmd.Stdout = &outBuf
+
+	err := tf.runTerraformCmd(ctx, versionCmd)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tfVersion, providerVersions, err := parsePlaintextVersionOutput(outBuf.String())
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to parse version: %w", err)
 	}
@@ -65,7 +131,7 @@ var (
 	providerVersionOutputRe = regexp.MustCompile(`(\n\+ provider[\. ](?P<name>\S+) ` + simpleVersionRe + `)`)
 )
 
-func parseVersionOutput(stdout string) (*version.Version, map[string]*version.Version, error) {
+func parsePlaintextVersionOutput(stdout string) (*version.Version, map[string]*version.Version, error) {
 	stdout = strings.TrimSpace(stdout)
 
 	submatches := versionOutputRe.FindStringSubmatch(stdout)
@@ -103,7 +169,14 @@ func errorVersionString(v *version.Version) string {
 	return v.String()
 }
 
-// compatible asserts compatibility of the cached terraform version with the executable, and returns a well known error if not.
+// compatible asserts compatibility of the cached Terraform version with a set of constraints, and returns a well known error if not.
+//
+// Each command implementation with compatibility constraints will use this method to check that the available version of Terraform
+// is compatible with a given command, e.g. detect if a project consuming this library is attempting to use a flag that isn't present
+// in the Terraform binary it supplied. A common example is checking whether the version is sufficient to use the `-json` flag.
+//
+// Remember, terraform-exec is invoked with a path to an executable and has no way to know which version of Terraform it represents
+// until the executable is used.
 func (tf *Terraform) compatible(ctx context.Context, minInclusive *version.Version, maxExclusive *version.Version) error {
 	tfv, _, err := tf.Version(ctx, false)
 	if err != nil {
@@ -118,6 +191,22 @@ func (tf *Terraform) compatible(ctx context.Context, minInclusive *version.Versi
 	}
 
 	return nil
+}
+
+// experimentsEnabled asserts the cached terraform version has experiments enabled in the executable,
+// and returns a well known error if not. Experiments are enabled in alpha and (potentially) dev builds of Terraform.
+func (tf *Terraform) experimentsEnabled(ctx context.Context) error {
+	tfv, _, err := tf.Version(ctx, false)
+	if err != nil {
+		return err
+	}
+
+	preRelease := tfv.Prerelease()
+	if preRelease == "dev" || strings.Contains(preRelease, "alpha") {
+		return nil
+	}
+
+	return fmt.Errorf("experiments are not enabled in version %s, as it's not an alpha or dev build", errorVersionString(tfv))
 }
 
 func stripPrereleaseAndMeta(v *version.Version) *version.Version {

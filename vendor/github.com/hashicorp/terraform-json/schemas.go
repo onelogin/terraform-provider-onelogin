@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package tfjson
 
 import (
@@ -5,18 +8,19 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/hashicorp/go-version"
 	"github.com/zclconf/go-cty/cty"
 )
 
-// ProviderSchemasFormatVersion is the version of the JSON provider
-// schema format that is supported by this package.
-const ProviderSchemasFormatVersion = "0.1"
+// ProviderSchemasFormatVersionConstraints defines the versions of the JSON
+// provider schema format that are supported by this package.
+var ProviderSchemasFormatVersionConstraints = ">= 0.1, < 2.0"
 
 // ProviderSchemas represents the schemas of all providers and
 // resources in use by the configuration.
 type ProviderSchemas struct {
-	// The version of the plan format. This should always match the
-	// ProviderSchemasFormatVersion constant in this package, or else
+	// The version of the plan format. This should always match one of
+	// ProviderSchemasFormatVersions in this package, or else
 	// an unmarshal will be unstable.
 	FormatVersion string `json:"format_version,omitempty"`
 
@@ -38,8 +42,19 @@ func (p *ProviderSchemas) Validate() error {
 		return errors.New("unexpected provider schema data, format version is missing")
 	}
 
-	if ProviderSchemasFormatVersion != p.FormatVersion {
-		return fmt.Errorf("unsupported provider schema data format version: expected %q, got %q", PlanFormatVersion, p.FormatVersion)
+	constraint, err := version.NewConstraint(ProviderSchemasFormatVersionConstraints)
+	if err != nil {
+		return fmt.Errorf("invalid version constraint: %w", err)
+	}
+
+	version, err := version.NewVersion(p.FormatVersion)
+	if err != nil {
+		return fmt.Errorf("invalid format version %q: %w", p.FormatVersion, err)
+	}
+
+	if !constraint.Check(version) {
+		return fmt.Errorf("unsupported provider schema format version: %q does not satisfy %q",
+			version, constraint)
 	}
 
 	return nil
@@ -71,6 +86,21 @@ type ProviderSchema struct {
 
 	// The schemas for any data sources in this provider.
 	DataSourceSchemas map[string]*Schema `json:"data_source_schemas,omitempty"`
+
+	// The schemas for any ephemeral resources in this provider.
+	EphemeralResourceSchemas map[string]*Schema `json:"ephemeral_resource_schemas,omitempty"`
+
+	// The schemas for any actions in this provider.
+	ActionSchemas map[string]*ActionSchema `json:"action_schemas,omitempty"`
+
+	// The definitions for any functions in this provider.
+	Functions map[string]*FunctionSignature `json:"functions,omitempty"`
+
+	// The schemas for resources identities in this provider.
+	ResourceIdentitySchemas map[string]*IdentitySchema `json:"resource_identity_schemas,omitempty"`
+
+	// The schemas for any list resources in this provider.
+	ListResourceSchemas map[string]*Schema `json:"list_resource_schemas,omitempty"`
 }
 
 // Schema is the JSON representation of a particular schema
@@ -123,6 +153,20 @@ const (
 	// with a single-element constraint.
 	SchemaNestingModeSingle SchemaNestingMode = "single"
 
+	// SchemaNestingModeGroup is similar to SchemaNestingModeSingle in that it
+	// calls for only a single instance of a given block type with no labels,
+	// but it additonally guarantees that its result will never be null,
+	// even if the block is absent, and instead the nested attributes
+	// and blocks will be treated as absent in that case.
+	//
+	// This is useful for the situation where a remote API has a feature that
+	// is always enabled but has a group of settings related to that feature
+	// that themselves have default values. By using SchemaNestingModeGroup
+	// instead of SchemaNestingModeSingle in that case, generated plans will
+	// show the block as present even when not present in configuration,
+	// thus allowing any default values within to be displayed to the user.
+	SchemaNestingModeGroup SchemaNestingMode = "group"
+
 	// SchemaNestingModeList denotes list block nesting mode, which
 	// allows an ordered list of blocks where duplicates are allowed.
 	SchemaNestingModeList SchemaNestingMode = "list"
@@ -162,8 +206,13 @@ type SchemaBlockType struct {
 
 // SchemaAttribute describes an attribute within a schema block.
 type SchemaAttribute struct {
-	// The attribute type.
+	// The attribute type
+	// Either AttributeType or AttributeNestedType is set, never both.
 	AttributeType cty.Type `json:"type,omitempty"`
+
+	// Details about a nested attribute type
+	// Either AttributeType or AttributeNestedType is set, never both.
+	AttributeNestedType *SchemaNestedAttributeType `json:"nested_type,omitempty"`
 
 	// The description field for this attribute. If no kind is
 	// provided, it can be assumed to be plain text.
@@ -190,4 +239,101 @@ type SchemaAttribute struct {
 	// in logs. Future versions of Terraform may encrypt or otherwise
 	// treat these values with greater care than non-sensitive fields.
 	Sensitive bool `json:"sensitive,omitempty"`
+
+	// If true, this attribute is write only and its value will not be
+	// persisted in artifacts such as plan files or state.
+	WriteOnly bool `json:"write_only,omitempty"`
+}
+
+// jsonSchemaAttribute describes an attribute within a schema block
+// in a middle-step internal representation before marshalled into
+// a more useful SchemaAttribute with cty.Type.
+//
+// This avoid panic on marshalling cty.NilType (from cty upstream)
+// which the default Go marshaller cannot ignore because it's a
+// not nil-able struct.
+type jsonSchemaAttribute struct {
+	AttributeType       json.RawMessage            `json:"type,omitempty"`
+	AttributeNestedType *SchemaNestedAttributeType `json:"nested_type,omitempty"`
+	Description         string                     `json:"description,omitempty"`
+	DescriptionKind     SchemaDescriptionKind      `json:"description_kind,omitempty"`
+	Deprecated          bool                       `json:"deprecated,omitempty"`
+	Required            bool                       `json:"required,omitempty"`
+	Optional            bool                       `json:"optional,omitempty"`
+	Computed            bool                       `json:"computed,omitempty"`
+	Sensitive           bool                       `json:"sensitive,omitempty"`
+	WriteOnly           bool                       `json:"write_only,omitempty"`
+}
+
+func (as *SchemaAttribute) MarshalJSON() ([]byte, error) {
+	jsonSa := &jsonSchemaAttribute{
+		AttributeNestedType: as.AttributeNestedType,
+		Description:         as.Description,
+		DescriptionKind:     as.DescriptionKind,
+		Deprecated:          as.Deprecated,
+		Required:            as.Required,
+		Optional:            as.Optional,
+		Computed:            as.Computed,
+		Sensitive:           as.Sensitive,
+		WriteOnly:           as.WriteOnly,
+	}
+	if as.AttributeType != cty.NilType {
+		attrTy, _ := as.AttributeType.MarshalJSON()
+		jsonSa.AttributeType = attrTy
+	}
+	return json.Marshal(jsonSa)
+}
+
+// SchemaNestedAttributeType describes a nested attribute
+// which could also be just expressed simply as cty.Object(...),
+// cty.List(cty.Object(...)) etc. but this allows tracking additional
+// metadata which can help interpreting or validating the data.
+type SchemaNestedAttributeType struct {
+	// A map of nested attributes
+	Attributes map[string]*SchemaAttribute `json:"attributes,omitempty"`
+
+	// The nesting mode for this attribute.
+	NestingMode SchemaNestingMode `json:"nesting_mode,omitempty"`
+
+	// The lower limit on number of items that can be declared
+	// of this attribute type (not applicable to single nesting mode).
+	MinItems uint64 `json:"min_items,omitempty"`
+
+	// The upper limit on number of items that can be declared
+	// of this attribute type (not applicable to single nesting mode).
+	MaxItems uint64 `json:"max_items,omitempty"`
+}
+
+// IdentitySchema is the JSON representation of a particular
+// resource identity schema
+type IdentitySchema struct {
+	// The version of the particular resource identity schema.
+	Version uint64 `json:"version"`
+
+	// Map of identity attributes
+	Attributes map[string]*IdentityAttribute `json:"attributes,omitempty"`
+}
+
+// IdentityAttribute describes an identity attribute
+type IdentityAttribute struct {
+	// The identity attribute type
+	IdentityType cty.Type `json:"type,omitempty"`
+
+	// The description of the identity attribute
+	Description string `json:"description,omitempty"`
+
+	// RequiredForImport when enabled signifies that this attribute must be
+	// specified in the configuration during import
+	RequiredForImport bool `json:"required_for_import,omitempty"`
+
+	// OptionalForImport when enabled signifies that this attribute is not
+	// required to be specified during import, because it can be supplied by the
+	// provider
+	OptionalForImport bool `json:"optional_for_import,omitempty"`
+}
+
+// ActionSchema is the JSON representation of an action schema
+type ActionSchema struct {
+	// The root-level block of configuration values.
+	Block *SchemaBlock `json:"block,omitempty"`
 }

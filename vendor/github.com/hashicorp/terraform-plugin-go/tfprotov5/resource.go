@@ -1,10 +1,20 @@
+// Copyright IBM Corp. 2020, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package tfprotov5
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+// ResourceMetadata describes metadata for a managed resource in the GetMetadata
+// RPC.
+type ResourceMetadata struct {
+	// TypeName is the name of the managed resource.
+	TypeName string
+}
 
 // ResourceServer is an interface containing the methods a resource
 // implementation needs to fill.
@@ -42,6 +52,32 @@ type ResourceServer interface {
 	// specified by the passed ID and return it as one or more resource
 	// states for Terraform to assume control of.
 	ImportResourceState(context.Context, *ImportResourceStateRequest) (*ImportResourceStateResponse, error)
+
+	// MoveResourceState is called when Terraform is asked to change a resource
+	// type for an existing resource. The provider must accept the change as
+	// valid by ensuring the source resource type, schema version, and provider
+	// address are compatible to convert the source state into the target
+	// resource type and latest state version.
+	//
+	// This functionality is only supported in Terraform 1.8 and later. The
+	// provider must have enabled the MoveResourceState server capability to
+	// enable these requests.
+	MoveResourceState(context.Context, *MoveResourceStateRequest) (*MoveResourceStateResponse, error)
+
+	// UpgradeResourceIdentity is called when Terraform has encountered a
+	// resource with an identity state in a schema that doesn't match the schema's
+	// current version. It is the provider's responsibility to modify the
+	// identity state to upgrade it to the latest state schema.
+	UpgradeResourceIdentity(context.Context, *UpgradeResourceIdentityRequest) (*UpgradeResourceIdentityResponse, error)
+
+	// GenerateResourceConfig is called when Terraform wants to generate a resource
+	// configuration for importing to a resource address that doesn't exist yet.
+	// It is called during a plan when the -generate-config-out flag is provided.
+	//
+	// This functionality is only supported in Terraform 1.14 and later. The
+	// provider must have enabled the GenerateResourceConfig server capability to
+	// enable these requests.
+	GenerateResourceConfig(context.Context, *GenerateResourceConfigRequest) (*GenerateResourceConfigResponse, error)
 }
 
 // ValidateResourceTypeConfigRequest is the request Terraform sends when it
@@ -62,6 +98,10 @@ type ValidateResourceTypeConfigRequest struct {
 	// from knowing the value at request time. Any attributes not directly
 	// set in the configuration will be null.
 	Config *DynamicValue
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ValidateResourceTypeConfig RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities *ValidateResourceTypeConfigClientCapabilities
 }
 
 // ValidateResourceTypeConfigResponse is the response from the provider about
@@ -98,10 +138,38 @@ type UpgradeResourceStateResponse struct {
 	//
 	// The state should be represented as a tftypes.Object, with each
 	// attribute and nested block getting its own key and value.
+	//
+	// Terraform CLI 0.12 through 0.14 require the Msgpack field to be
+	// populated or an EOF error will be returned.
 	UpgradedState *DynamicValue
 
 	// Diagnostics report errors or warnings related to upgrading the
 	// state of the requested resource. Returning an empty slice indicates
+	// a successful validation with no warnings or errors generated.
+	Diagnostics []*Diagnostic
+}
+
+type UpgradeResourceIdentityRequest struct {
+	// TypeName is the type of resource that Terraform needs to upgrade the
+	// identity state for.
+	TypeName string
+
+	// Version is the version of the identity state the resource currently has.
+	Version int64
+
+	// RawIdentity is the identity state as Terraform sees it right now. See the
+	// documentation for `RawIdentity` for information on how to work with the
+	// data it contains.
+	RawIdentity *RawState
+}
+
+type UpgradeResourceIdentityResponse struct {
+	// UpgradedIdentity is the upgraded identity for the resource, represented as
+	// a `ResourceIdentityData`.
+	UpgradedIdentity *ResourceIdentityData
+
+	// Diagnostics report errors or warnings related to upgrading the
+	// identity of the requested resource. Returning an empty slice indicates
 	// a successful validation with no warnings or errors generated.
 	Diagnostics []*Diagnostic
 }
@@ -125,6 +193,9 @@ type ReadResourceRequest struct {
 	// Private is any provider-defined private state stored with the
 	// resource. It is used for keeping state with the resource that is not
 	// meant to be included when calculating diffs.
+	//
+	// To ensure private state data is preserved, copy any necessary data to
+	// the ReadResourceResponse type Private field.
 	Private []byte
 
 	// ProviderMeta supplies the provider metadata configuration for the
@@ -140,6 +211,14 @@ type ReadResourceRequest struct {
 	//
 	// This configuration will have known values for all fields.
 	ProviderMeta *DynamicValue
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ReadResource RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities *ReadResourceClientCapabilities
+
+	// CurrentIdentity is the current identity of the resource as far as
+	// Terraform knows, represented as a `ResourceIdentityData`.
+	CurrentIdentity *ResourceIdentityData
 }
 
 // ReadResourceResponse is the response from the provider about the current
@@ -164,6 +243,14 @@ type ReadResourceResponse struct {
 	// with requests for this resource. This state will be associated with
 	// the resource, but will not be considered when calculating diffs.
 	Private []byte
+
+	// Deferred is used to indicate to Terraform that the ReadResource operation
+	// needs to be deferred for a reason.
+	Deferred *Deferred
+
+	// NewIdentity is the current identity of the resource according to the
+	// provider, represented as a `ResourceIdentityData`.
+	NewIdentity *ResourceIdentityData
 }
 
 // PlanResourceChangeRequest is the request Terraform sends when it is
@@ -212,6 +299,9 @@ type PlanResourceChangeRequest struct {
 	// PriorPrivate is any provider-defined private state stored with the
 	// resource. It is used for keeping state with the resource that is not
 	// meant to be included when calculating diffs.
+	//
+	// To ensure private state data is preserved, copy any necessary data to
+	// the PlanResourceChangeResponse type PlannedPrivate field.
 	PriorPrivate []byte
 
 	// ProviderMeta supplies the provider metadata configuration for the
@@ -227,6 +317,14 @@ type PlanResourceChangeRequest struct {
 	//
 	// This configuration will have known values for all fields.
 	ProviderMeta *DynamicValue
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// PlanResourceChange RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities *PlanResourceChangeClientCapabilities
+
+	// PriorIdentity is the identity of the resource before the plan is
+	// applied, represented as a `ResourceIdentityData`.
+	PriorIdentity *ResourceIdentityData
 }
 
 // PlanResourceChangeResponse is the response from the provider about what the
@@ -280,6 +378,10 @@ type PlanResourceChangeResponse struct {
 	// like sent with requests for this resource. This state will be
 	// associated with the resource, but will not be considered when
 	// calculating diffs.
+	//
+	// This private state data will be sent in the ApplyResourceChange RPC, in
+	// relation to the types of this package, the ApplyResourceChangeRequest
+	// type PlannedPrivate field.
 	PlannedPrivate []byte
 
 	// Diagnostics report errors or warnings related to determining the
@@ -301,6 +403,14 @@ type PlanResourceChangeResponse struct {
 	//
 	// Deprecated: Really, just don't use this, you don't need it.
 	UnsafeToUseLegacyTypeSystem bool
+
+	// Deferred is used to indicate to Terraform that the PlanResourceChange operation
+	// needs to be deferred for a reason.
+	Deferred *Deferred
+
+	// PlannedIdentity is the provider's indication of what the identity for the
+	// resource should be after apply, represented as a `ResourceIdentityData`
+	PlannedIdentity *ResourceIdentityData
 }
 
 // ApplyResourceChangeRequest is the request Terraform sends when it needs to
@@ -341,6 +451,13 @@ type ApplyResourceChangeRequest struct {
 	// PlannedPrivate is any provider-defined private state stored with the
 	// resource. It is used for keeping state with the resource that is not
 	// meant to be included when calculating diffs.
+	//
+	// This private state data is sourced from the PlanResourceChange RPC, in
+	// relation to the types in this package, the PlanResourceChangeResponse
+	// type PlannedPrivate field.
+	//
+	// To ensure private state data is preserved, copy any necessary data to
+	// the ApplyResourceChangeResponse type Private field.
 	PlannedPrivate []byte
 
 	// ProviderMeta supplies the provider metadata configuration for the
@@ -356,6 +473,10 @@ type ApplyResourceChangeRequest struct {
 	//
 	// This configuration will have known values for all fields.
 	ProviderMeta *DynamicValue
+
+	// PlannedIdentity is Terraform's plan for what the resource identity should look like
+	// after the changes are applied, represented as a `ResourceIdentityData`.
+	PlannedIdentity *ResourceIdentityData
 }
 
 // ApplyResourceChangeResponse is the response from the provider about what the
@@ -401,6 +522,10 @@ type ApplyResourceChangeResponse struct {
 	//
 	// Deprecated: Really, just don't use this, you don't need it.
 	UnsafeToUseLegacyTypeSystem bool
+
+	// NewIdentity is the provider's understanding of what the resource's
+	// identity is after changes are applied, represented as a `ResourceIdentityData`.
+	NewIdentity *ResourceIdentityData
 }
 
 // ImportResourceStateRequest is the request Terraform sends when it wants a
@@ -413,7 +538,17 @@ type ImportResourceStateRequest struct {
 	// or resources. Providers decide and communicate to users the format
 	// for the ID, and use it to determine what resource or resources to
 	// import.
+	// ID is mutually exclusive with Identity
 	ID string
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ImportResourceState RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities *ImportResourceStateClientCapabilities
+
+	// Identity is the user-supplied identifying information about the resource
+	// in the form of a `ResourceIdentityData`.
+	// Identity is mutually exclusive with ID.
+	Identity *ResourceIdentityData
 }
 
 // ImportResourceStateResponse is the response from the provider about the
@@ -427,6 +562,10 @@ type ImportResourceStateResponse struct {
 	// requested resource or resources. Returning an empty slice indicates
 	// a successful validation with no warnings or errors generated.
 	Diagnostics []*Diagnostic
+
+	// Deferred is used to indicate to Terraform that the ImportResourceState operation
+	// needs to be deferred for a reason.
+	Deferred *Deferred
 }
 
 // ImportedResource represents a single resource that a provider has
@@ -448,4 +587,63 @@ type ImportedResource struct {
 	// with requests for this resource. This state will be associated with
 	// the resource, but will not be considered when calculating diffs.
 	Private []byte
+
+	// Identity is the identity of the imported resource in the form
+	// of a `ResourceIdentityData`.
+	Identity *ResourceIdentityData
+}
+
+// MoveResourceStateRequest is the request Terraform sends when it requests a
+// provider to move the state of a source resource into the target resource.
+// Target resource types generally must opt into accepting each source resource
+// type since any transformation logic requires knowledge of the source state.
+//
+// This functionality is only supported in Terraform 1.8 and later. The provider
+// must have enabled the MoveResourceState server capability to enable these
+// requests.
+type MoveResourceStateRequest struct {
+	// SourcePrivate is the private state of the source resource.
+	SourcePrivate []byte
+
+	// SourceProviderAddress is the address of the provider for the source
+	// resource type.
+	SourceProviderAddress string
+
+	// SourceSchemaVersion is the version of the source resource state.
+	SourceSchemaVersion int64
+
+	// SourceState is the raw state of the source resource.
+	//
+	// Only the underlying JSON field is populated.
+	SourceState *RawState
+
+	// SourceTypeName is the source resource type for the move request.
+	SourceTypeName string
+
+	// TargetTypeName is the target resource type for the move request.
+	TargetTypeName string
+
+	// SourceIdentity is the identity of the source resource.
+	//
+	// Only the underlying JSON field is populated.
+	SourceIdentity *RawState
+
+	// SourceIdentitySchemaVersion is the version of the source resource state.
+	SourceIdentitySchemaVersion int64
+}
+
+// MoveResourceStateResponse is the response from the provider containing
+// the moved state for the given resource.
+type MoveResourceStateResponse struct {
+	// TargetPrivate is the target resource private state after the move.
+	TargetPrivate []byte
+
+	// TargetState is the target resource state after the move.
+	TargetState *DynamicValue
+
+	// Diagnostics report any warnings or errors related to moving the state.
+	Diagnostics []*Diagnostic
+
+	// TargetIdentity is the identity of the target resource.
+	TargetIdentity *ResourceIdentityData
 }
