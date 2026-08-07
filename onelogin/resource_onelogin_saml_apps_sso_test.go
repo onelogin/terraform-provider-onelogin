@@ -2,28 +2,42 @@ package onelogin
 
 import "testing"
 
-// TestSamlAppSSOStaysConfigurableUntilTheNextMajor pins the deferral of #236.
+// TestSamlAppSSOStaysConfigurable pins sso as Optional until a major release.
 //
-// sso should be Computed: OneLogin documents every app sso attribute as
-// read-only, and appschema.Inflate has never sent the field, so configuring it
-// writes something the provider silently discards.
+// The distinction that matters is Computed-only, not Computed. Three schemas
+// are possible and only one of them breaks anyone:
 //
-// Making it Computed rejects any configuration that sets it, which fails a plan
-// that previously succeeded. It is held for the next major so it arrives
-// alongside the other breaking change rather than on its own, and this test
-// exists so the deferral is deliberate rather than forgotten.
+//	Optional only          samlAppRead populates sso from the API, so a
+//	                       configuration that omits it has an empty value
+//	                       against populated state: a diff on every plan.
+//	Optional and Computed  configuration is still accepted, and an omitted
+//	                       attribute keeps what the API returned.
+//	Computed only          configuration that sets sso is rejected, so a plan
+//	                       that used to succeed now fails.
 //
-// When that major comes: invert this test, and re-close #236.
-func TestSamlAppSSOStaysConfigurableUntilTheNextMajor(t *testing.T) {
+// #236 asks for the last, because sso is read-only at the API and
+// appschema.Inflate has never sent it. That is breaking and waits for the next
+// major. Until then Optional must hold, so this test guards the one property
+// that would break a practitioner — not Computed, which is wanted.
+//
+// When the major comes: drop Optional, set Computed only, invert this test,
+// and re-close #236.
+func TestSamlAppSSOStaysConfigurable(t *testing.T) {
 	sso := SAMLApps().Schema["sso"]
 
 	if sso == nil {
 		t.Fatal("expected the saml app schema to have an sso attribute")
 	}
+
+	// The whole guarantee. Optional false with Computed true is the breaking
+	// shape; Computed on its own is not.
 	if !sso.Optional {
-		t.Fatal("expected sso to still be Optional; making it Computed is a breaking change held for the next major (#236)")
+		t.Fatal("sso stopped being Optional, which rejects any configuration that sets it — that belongs in a major release (#236)")
 	}
-	if sso.Computed {
-		t.Fatal("sso became Computed, which fails any plan that configures it — that belongs in a major release (#236)")
+
+	// Not a breaking change, and wanted: without it, a configuration that omits
+	// sso diffs against the value samlAppRead writes into state.
+	if !sso.Computed {
+		t.Fatal("expected sso to be Computed alongside Optional, so omitting it does not diff against what read populates")
 	}
 }
