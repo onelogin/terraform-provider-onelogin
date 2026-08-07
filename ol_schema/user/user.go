@@ -125,15 +125,48 @@ func Schema() map[string]*schema.Schema {
 			Computed: true,
 			Optional: true,
 		},
+		// Read-only timestamps the API returns. userRead has always named these
+		// in the list it hands to SetResourceFields, and d.Set panics on a key
+		// the schema does not declare -- so every create panicked the provider
+		// the moment the API returned one.
+		"created_at": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"updated_at": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"activated_at": &schema.Schema{
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		// Computed only. userRead has always set this and userCreate has always
+		// passed it to Inflate, but nothing declared it and Inflate ignores it,
+		// so it was a panic on read and a no-op on write. Exposing it read-only
+		// makes the read work without claiming an assignment path that does not
+		// exist -- roles are assigned through onelogin_roles.users.
+		"role_ids": &schema.Schema{
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem:     &schema.Schema{Type: schema.TypeInt},
+		},
 		"password": &schema.Schema{
 			Type:        schema.TypeString,
 			Optional:    true,
 			Sensitive:   true,
 			Description: "The user's password. This field is sensitive and will not be displayed in logs or output.",
 		},
+		// Computed as well as Optional. userRead populates this from the API,
+		// which returns every custom attribute defined on the tenant -- with a
+		// null value for the ones this user has not set. Against a
+		// configuration that names none, Optional alone means an empty map
+		// versus a populated one, so every plan proposes removing attributes
+		// nobody asked about and no apply settles it.
 		"custom_attributes": &schema.Schema{
 			Type:        schema.TypeMap,
 			Optional:    true,
+			Computed:    true,
 			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "Map of custom attribute key/value pairs. This field is being deprecated in favor of the onelogin_user_custom_attributes resource.",
 		},
