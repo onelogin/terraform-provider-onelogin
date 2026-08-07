@@ -14,6 +14,7 @@ import (
 type CustomConfigurationOpenId struct {
 	RedirectURI                   string  `json:"redirect_uri,omitempty"`
 	PostLogoutRedirectURI         *string `json:"post_logout_redirect_uri,omitempty"`
+	IncludeAmrClaims              *bool   `json:"include_amr_claims,omitempty"`
 	LoginURL                      string  `json:"login_url,omitempty"`
 	OidcApplicationType           int     `json:"oidc_application_type,omitempty"`
 	TokenEndpointAuthMethod       int     `json:"token_endpoint_auth_method,omitempty"`
@@ -98,6 +99,18 @@ func Inflate(s map[string]interface{}) (interface{}, error) {
 			customOidc.PostLogoutRedirectURI = &uris
 		}
 
+		// A pointer for the same reason: only an absent key leaves the app's
+		// setting alone, so a configuration that turns the claim off sends
+		// false rather than being indistinguishable from not mentioning it.
+		// The configuration block is a map of strings, so this arrives as
+		// "true" or "false"; anything else is not a boolean and is left out
+		// rather than silently read as false.
+		if val, exists := s["include_amr_claims"]; exists {
+			if parsed, err := strconv.ParseBool(getString(val)); err == nil {
+				customOidc.IncludeAmrClaims = &parsed
+			}
+		}
+
 		// Handle timeout fields specially - only set them if explicitly provided and non-empty
 		// This prevents overriding existing API values with 0 when fields are not specified
 		if customOidc.RefreshTokenExpirationMinutes, err = handleTimeoutField(s, "refresh_token_expiration_minutes"); err != nil {
@@ -164,6 +177,13 @@ func FlattenOIDC(config models.ConfigurationOpenId) map[string]interface{} {
 	// keep the latter or the plan never goes quiet.
 	if config.PostLogoutRedirectURI != nil {
 		tfOut["post_logout_redirect_uri"] = *config.PostLogoutRedirectURI
+	}
+
+	// The configuration block is a map of strings, so the bool is rendered as
+	// one. Absent stays absent: a nil pointer is an app the API said nothing
+	// about, which is not the same as one that has the claim switched off.
+	if config.IncludeAmrClaims != nil {
+		tfOut["include_amr_claims"] = strconv.FormatBool(*config.IncludeAmrClaims)
 	}
 
 	if config.LoginURL != "" {
@@ -235,6 +255,13 @@ func Flatten(config map[string]interface{}) map[string]interface{} {
 		// go quiet.
 		if val, ok := config["post_logout_redirect_uri"].(string); ok {
 			tfOut["post_logout_redirect_uri"] = val
+		}
+
+		// JSON gives a bool here, while the configuration block is a map of
+		// strings, so it is rendered as one. A null fails the assertion and is
+		// left out, which is the distinction the pointer keeps everywhere else.
+		if val, ok := config["include_amr_claims"].(bool); ok {
+			tfOut["include_amr_claims"] = strconv.FormatBool(val)
 		}
 
 		if val, ok := config["login_url"].(string); ok && val != "" {

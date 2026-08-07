@@ -27,9 +27,14 @@ func SAMLApps() *schema.Resource {
 		Optional: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
+	// Computed rather than Optional. OneLogin documents every sso attribute as
+	// read-only, and appschema.Inflate has never sent this field, so a
+	// practitioner configuring it was writing something the provider silently
+	// discarded. Accepting configuration the API cannot be told about is worse
+	// than refusing it.
 	appSchema["sso"] = &schema.Schema{
 		Type:     schema.TypeMap,
-		Optional: true,
+		Computed: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
 	return &schema.Resource{

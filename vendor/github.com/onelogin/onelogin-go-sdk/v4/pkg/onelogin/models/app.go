@@ -62,6 +62,7 @@ type Certificate struct {
 type ConfigurationOpenId struct {
 	RedirectURI                   string  `json:"redirect_uri"`
 	PostLogoutRedirectURI         *string `json:"post_logout_redirect_uri,omitempty"`
+	IncludeAmrClaims              *bool   `json:"include_amr_claims,omitempty"`
 	LoginURL                      string  `json:"login_url"`
 	OidcApplicationType           int     `json:"oidc_application_type"`
 	TokenEndpointAuthMethod       int     `json:"token_endpoint_auth_method"`
@@ -86,6 +87,10 @@ type Parameter struct {
 	Label                     string      `json:"label,omitempty"`
 	UserAttributeMacros       interface{} `json:"user_attribute_macros,omitempty"`
 	IncludeInSamlAssertion    bool        `json:"include_in_saml_assertion,omitempty"`
+	// A pointer, unlike the bools above it. With `bool,omitempty` a false is
+	// indistinguishable from unset and never reaches the API, so the field
+	// could be turned on and never off again.
+	SafeEntitlementsEnabled *bool `json:"safe_entitlements_enabled,omitempty"`
 }
 
 type EnforcementPoint struct {

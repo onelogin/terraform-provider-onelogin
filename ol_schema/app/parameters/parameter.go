@@ -124,6 +124,15 @@ func Inflate(s map[string]interface{}) models.Parameter {
 		out.IncludeInSamlAssertion = b
 	}
 
+	// A pointer on the model, unlike the flags above it, so a false is sent
+	// rather than dropped by omitempty. The schema has declared this field for
+	// some time, but nothing carried it: the value was discarded on the way
+	// out and never came back on read.
+	if b, notNil = s["safe_entitlements_enabled"].(bool); notNil {
+		enabled := b
+		out.SafeEntitlementsEnabled = &enabled
+	}
+
 	if d, notNil = s["param_id"].(int); d != 0 && notNil {
 		out.ID = d
 	}
@@ -146,6 +155,12 @@ func Flatten(params map[string]models.Parameter) []map[string]interface{} {
 			"default_values":             v.DefaultValues,
 			"provisioned_entitlements":   v.ProvisionedEntitlements,
 			"include_in_saml_assertion":  v.IncludeInSamlAssertion,
+		}
+
+		// Absent stays absent: nil is a parameter the API said nothing about,
+		// which is not the same as one with the setting switched off.
+		if v.SafeEntitlementsEnabled != nil {
+			param["safe_entitlements_enabled"] = *v.SafeEntitlementsEnabled
 		}
 		out = append(out, param)
 	}
@@ -199,6 +214,12 @@ func FlattenV4(params map[string]interface{}) []map[string]interface{} {
 
 			if val, ok := paramMap["include_in_saml_assertion"].(bool); ok {
 				param["include_in_saml_assertion"] = val
+			}
+
+			// A null fails the assertion and is left out, keeping "unset"
+			// distinct from "switched off".
+			if val, ok := paramMap["safe_entitlements_enabled"].(bool); ok {
+				param["safe_entitlements_enabled"] = val
 			}
 
 			out = append(out, param)
