@@ -39,8 +39,16 @@ func TestAccUserMapping_crud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "name", "Updated Domain Mapping"),
 					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "enabled", "true"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "match", "all"),
+					// "any", not "all". Switching the two is what the updated
+					// fixture is demonstrating, and the assertion had been
+					// asserting that the change did not happen.
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "match", "any"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "conditions.#", "2"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "actions.1.action", "set_userprincipalname"),
 					resource.TestCheckResourceAttr("onelogin_user_mappings.department_mapping", "name", "Engineering Team Mapping"),
+					// One role per action: the API rejects two values in a
+					// single add_role.
+					resource.TestCheckResourceAttr("onelogin_user_mappings.department_mapping", "actions.#", "2"),
 				),
 			},
 		},

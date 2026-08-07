@@ -8,6 +8,14 @@ resource onelogin_saml_apps saml{
   }
 }
 
+# has_role takes a role ID. The example creates the role it checks for rather
+# than naming an ID from somebody else's account: the rules endpoint rejects an
+# ID it does not recognise with a bare 422 and no indication of which value it
+# objected to.
+resource onelogin_roles rule_role{
+  name = "App Rule Example Role acctest"
+}
+
 resource onelogin_app_rules test{
   app_id = onelogin_saml_apps.saml.id
   enabled = true
@@ -32,7 +40,7 @@ resource onelogin_app_rules check{
   conditions {
     operator = "ri"
     source = "has_role"
-    value = "340475"
+    value = onelogin_roles.rule_role.id
   }
   actions {
     action = "set_amazonusername"

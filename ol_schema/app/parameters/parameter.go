@@ -70,6 +70,66 @@ func Schema() map[string]*schema.Schema {
 	}
 }
 
+// HashByKeyName identifies a parameter in the set by its key name alone.
+//
+// The default set hash covers every attribute, and all but param_key_name are
+// Computed. A parameter whose values or user_attribute_macros the practitioner
+// has not written is unknown at plan time, so the element hashes to something
+// Terraform cannot match against the one already in state, and every plan
+// proposes replacing the whole set. Hashing the key name is knowable from the
+// configuration alone, so the element matches and the Computed attributes are
+// then compared one at a time, which is what Optional+Computed is for.
+//
+// param_key_name is the API's own identity for a parameter: the endpoint
+// returns parameters as an object keyed by it, and Inflate builds that object
+// back, so two parameters cannot share one.
+func HashByKeyName(v interface{}) int {
+	param, ok := v.(map[string]interface{})
+	if !ok {
+		return 0
+	}
+	name, _ := param["param_key_name"].(string)
+	return schema.HashString(name)
+}
+
+// RetainManaged narrows flattened parameters to the ones the practitioner is
+// managing.
+//
+// A connector brings its own parameters -- the AWS connector alone adds
+// saml_username, Role and RoleSessionName -- and the app endpoint returns them
+// alongside the configured ones. Recording them puts elements in state that
+// are in no configuration, which every plan then proposes removing and no
+// apply can settle: the PUT merges rather than replaces, so they come straight
+// back.
+//
+// The prior state's key names are the practitioner's. On create they are the
+// planned set, on update the new one, and on refresh whatever the last apply
+// wrote. An empty prior state is an import, where there is no configuration to
+// respect yet and everything the app has is written.
+func RetainManaged(prior interface{}, flattened []map[string]interface{}) []map[string]interface{} {
+	set, ok := prior.(*schema.Set)
+	if !ok || set.Len() == 0 {
+		return flattened
+	}
+
+	managed := make(map[string]bool, set.Len())
+	for _, raw := range set.List() {
+		if param, ok := raw.(map[string]interface{}); ok {
+			if name, ok := param["param_key_name"].(string); ok {
+				managed[name] = true
+			}
+		}
+	}
+
+	out := make([]map[string]interface{}, 0, len(managed))
+	for _, param := range flattened {
+		if name, ok := param["param_key_name"].(string); ok && managed[name] {
+			out = append(out, param)
+		}
+	}
+	return out
+}
+
 // Inflate takes a map of interfaces and uses the fields to construct
 // a Parameter instance.
 func Inflate(s map[string]interface{}) models.Parameter {

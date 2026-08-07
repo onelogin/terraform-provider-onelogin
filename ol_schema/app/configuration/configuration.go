@@ -167,6 +167,41 @@ func Inflate(s map[string]interface{}) (interface{}, error) {
 	return map[string]interface{}{}, nil
 }
 
+// RetainManaged narrows a flattened configuration to the keys the practitioner
+// is actually managing.
+//
+// configuration is a TypeMap, and a map has no way to mark an individual key
+// Computed. A key that is in state and not in the configuration is a removal
+// every plan proposes and no apply can settle, because the next read puts it
+// straight back. The API returns its own defaults regardless of what was sent:
+// an OIDC app always comes back with include_amr_claims false and
+// oidc_application_type 0, and a SAML app comes back with a few dozen keys, so
+// recording everything it sends leaves anyone who did not spell out the whole
+// object with a permanent diff.
+//
+// The prior state's key set is the practitioner's. On create it is the planned
+// configuration, on update it is the new one, and on refresh it is whatever the
+// last apply wrote. A key outside it is not managed by this resource, so its
+// value is not recorded and drift in it is not drift in anything the
+// configuration declares. An empty prior state is an import, where there is no
+// configuration to respect yet and the whole object is written.
+func RetainManaged(prior interface{}, flattened map[string]interface{}) map[string]interface{} {
+	managed, ok := prior.(map[string]interface{})
+	if !ok || len(managed) == 0 {
+		return flattened
+	}
+
+	out := make(map[string]interface{}, len(managed))
+	for key := range managed {
+		// Absent from the response rather than nil: a key the API does not
+		// report back is one this provider cannot claim a value for.
+		if val, found := flattened[key]; found {
+			out[key] = val
+		}
+	}
+	return out
+}
+
 // FlattenOIDC takes an instance of ConfigurationOpenId and returns a map of interface{}
 func FlattenOIDC(config models.ConfigurationOpenId) map[string]interface{} {
 	tfOut := map[string]interface{}{}

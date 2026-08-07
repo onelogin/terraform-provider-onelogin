@@ -8,9 +8,14 @@ import (
 // Schema returns a key/value map of the various fields that make up the Environment Variables for a OneLogin SmartHook.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		// ForceNew because the API has no way to rename one. The update
+		// endpoint accepts a body of nothing but "value" -- it rejects a name
+		// outright -- so a changed name could only ever be silently dropped,
+		// leaving the configuration and the variable permanently disagreeing.
 		"name": &schema.Schema{
 			Type:     schema.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 		"value": &schema.Schema{
 			Type:     schema.TypeString,

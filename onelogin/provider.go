@@ -3,6 +3,7 @@ package onelogin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -72,6 +73,29 @@ func Provider() *schema.Provider {
 	}
 }
 
+// subdomainFromURL pulls the tenant subdomain out of the configured API URL.
+//
+// The SDK still asks for ONELOGIN_SUBDOMAIN even though every call goes to
+// ONELOGIN_API_URL, so this exists to satisfy it. A regional API host has no
+// tenant subdomain in it at all, hence the placeholder.
+func subdomainFromURL(url string) (string, error) {
+	parts := strings.Split(strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://"), ".")
+
+	switch {
+	case len(parts) > 0 && parts[0] != "" && parts[0] != "api":
+		// Direct subdomain URL (e.g., company.onelogin.com)
+		return parts[0], nil
+	case len(parts) > 1 && parts[0] == "api":
+		// API URL format (e.g., api.us.onelogin.com or api.eu.onelogin.com)
+		if region := parts[1]; region != "us" && region != "eu" {
+			return "", fmt.Errorf("invalid API URL format, expected api.us.onelogin.com or api.eu.onelogin.com, got %q", url)
+		}
+		return "dummy", nil
+	default:
+		return "", fmt.Errorf("could not extract a subdomain from %q, please provide a valid OneLogin URL", url)
+	}
+}
+
 // configProvider configures the provider, and if successful, it returns
 // an interface containing the api client.
 func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -99,24 +123,11 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 
 	// Extract subdomain from URL for backward compatibility with SDK's internals
 	// Most SDK functions still use the subdomain internally
-	urlParts := strings.Split(strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://"), ".")
-	if len(urlParts) > 0 && urlParts[0] != "api" {
-		// Direct subdomain URL (e.g., company.onelogin.com)
-		extractedSubdomain := urlParts[0]
-		os.Setenv("ONELOGIN_SUBDOMAIN", extractedSubdomain)
-	} else if len(urlParts) > 1 && urlParts[0] == "api" {
-		// API URL format (e.g., api.us.onelogin.com or api.eu.onelogin.com)
-		region := urlParts[1]
-		if region == "us" || region == "eu" {
-			// This is a valid API URL, but we need to set a dummy subdomain
-			// as the SDK still requires ONELOGIN_SUBDOMAIN to be set
-			os.Setenv("ONELOGIN_SUBDOMAIN", "dummy")
-		} else {
-			return nil, diag.Errorf("Invalid API URL format. Expected api.us.onelogin.com or api.eu.onelogin.com")
-		}
-	} else {
-		return nil, diag.Errorf("Could not extract subdomain from URL. Please provide a valid OneLogin URL.")
+	subdomain, err := subdomainFromURL(url)
+	if err != nil {
+		return nil, diag.FromErr(err)
 	}
+	os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
 
 	// Initialize the SDK
 	client, err := ol.NewOneloginSDK()
