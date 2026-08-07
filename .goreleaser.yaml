@@ -35,10 +35,14 @@ signs:
     args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
 release:
-  # A rebuild uploads artifacts a release may already hold, which is an error
-  # otherwise. Replacing them is safe: builds are reproducible here, pinned by
-  # mod_timestamp to the commit and built with -trimpath.
-  mode: replace
+  # A rebuild uploads artifacts the release may already hold, which fails with
+  # a 422. This deletes the conflicting asset and retries, and only on that
+  # 422, so a first release pays nothing for it. Replacing is safe here:
+  # mod_timestamp pins to the commit and builds use -trimpath.
+  #
+  # Not "mode: replace" — that governs the release *notes*, and would overwrite
+  # a hand-written body with the generated changelog on every rebuild.
+  replace_existing_artifacts: true
 
 changelog:
   sort: asc
