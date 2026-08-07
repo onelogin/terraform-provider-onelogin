@@ -116,11 +116,25 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 
 	app := models.App{
 		Name:               &name,
-		Description:        &description,
-		Notes:              &notes,
 		ConnectorID:        &connectorID,
 		Visible:            &visible,
 		AllowAssumedSignin: &allowAssumedSignin,
+	}
+
+	// Left nil when empty rather than pointed at "". Both fields are tagged
+	// omitempty, but a pointer to an empty string is not empty -- only a nil
+	// pointer is -- so taking the address unconditionally sent `"notes": ""`
+	// for a field the API had returned as null, and the API stores what it is
+	// sent. An update touching only the description rewrote them.
+	//
+	// Omitting a field leaves it alone: the app endpoint takes a PUT but
+	// merges it, which is what makes leaving them out the right repair rather
+	// than reading the app first and echoing every field back.
+	if description != "" {
+		app.Description = &description
+	}
+	if notes != "" {
+		app.Notes = &notes
 	}
 
 	// Set optional fields
