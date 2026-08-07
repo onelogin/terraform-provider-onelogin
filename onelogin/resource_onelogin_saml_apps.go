@@ -27,13 +27,28 @@ func SAMLApps() *schema.Resource {
 		Optional: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
-	// Computed rather than Optional. OneLogin documents every sso attribute as
-	// read-only, and appschema.Inflate has never sent this field, so a
-	// practitioner configuring it was writing something the provider silently
-	// discarded. Accepting configuration the API cannot be told about is worse
-	// than refusing it.
+	// Optional *and* Computed, which are three different schemas and only one
+	// of them breaks anyone:
+	//
+	//   Optional only          — samlAppRead populates sso from the API, so a
+	//                            configuration that omits it has an empty value
+	//                            against populated state: a diff on every plan.
+	//   Optional and Computed  — configuration is still accepted, and an
+	//                            omitted attribute keeps whatever the API
+	//                            returned instead of planning its removal.
+	//   Computed only          — configuration that sets sso is rejected, so a
+	//                            plan that used to succeed now fails.
+	//
+	// The last is what #236 actually asks for: OneLogin documents every sso
+	// attribute as read-only and appschema.Inflate has never sent the field, so
+	// configuring it writes something the provider discards. It is breaking, so
+	// it waits for the next major.
+	//
+	// This is the middle one. It fixes the perpetual diff now, without
+	// rejecting anybody's configuration.
 	appSchema["sso"] = &schema.Schema{
 		Type:     schema.TypeMap,
+		Optional: true,
 		Computed: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
