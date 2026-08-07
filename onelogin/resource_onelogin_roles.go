@@ -160,7 +160,21 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		}},
 	}
 
+	skip := skippedMembershipAttrs(d)
+
 	for _, member := range memberAttrs {
+		// Skipping means not calling the endpoint at all, which is the point:
+		// the cost is the page walk, not the diff. State keeps whatever it
+		// already held rather than being blanked, so a skipped attribute does
+		// not read as "membership was removed".
+		if skip[member.attr] {
+			tflog.Debug(ctx, "[READ] Skipping role membership refresh", map[string]interface{}{
+				"id":        rid,
+				"attribute": member.attr,
+			})
+			continue
+		}
+
 		ids, err := fetchAllMemberIDs(ctx, member.fetch)
 		if err != nil {
 			// A 404 here means the role was deleted between the base fetch and now.
@@ -182,6 +196,30 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	}
 
 	return nil
+}
+
+// skippedMembershipAttrs reports which membership sub-endpoints the read should
+// leave alone.
+//
+// Terraform does not send configuration to the refresh RPC — ResourceData is
+// built from prior state only — so the read cannot tell whether the
+// configuration mentions users, and ignore_changes is applied to the diff long
+// after these calls have been made. An attribute in state is the one signal
+// available, which is why this is a stored attribute rather than something
+// inferred.
+func skippedMembershipAttrs(d *schema.ResourceData) map[string]bool {
+	skip := make(map[string]bool, len(roleschema.MembershipAttrs))
+
+	raw, ok := d.Get("skip_membership_refresh").(*schema.Set)
+	if !ok {
+		return skip
+	}
+	for _, v := range raw.List() {
+		if attr, ok := v.(string); ok {
+			skip[attr] = true
+		}
+	}
+	return skip
 }
 
 // memberFetcher retrieves one page of a role sub-endpoint (apps, users or admins).

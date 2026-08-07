@@ -41,6 +41,37 @@ The following arguments are supported:
 
 * `admins` - (Optional) A list of user IDs who will be administrators for this role. These users can manage the role settings. If not specified, no admins will be assigned to the role.
 
+* `skip_membership_refresh` - (Optional) A list of membership attributes to leave
+  un-refreshed: any of `apps`, `users`, `admins`. Their sub-endpoints are not
+  queried during read, and whatever state already holds is kept.
+
+  Membership lives on three separate paginated endpoints, so a role with
+  thousands of users costs a page walk on every `plan` or `refresh` — whether or
+  not your configuration manages that membership. `lifecycle { ignore_changes }`
+  cannot prevent it, because it is applied to the diff, after the read has
+  already made the calls.
+
+  Use this where membership is managed outside Terraform, for example by
+  mappings, alongside `ignore_changes` for the same attribute:
+
+  ```hcl
+  resource onelogin_roles engineering {
+    name = "Engineering"
+
+    # Membership comes from a mapping, so do not read it and do not diff it.
+    skip_membership_refresh = ["users"]
+
+    lifecycle {
+      ignore_changes = [users]
+    }
+  }
+  ```
+
+  The two do different jobs and are both needed: `skip_membership_refresh` stops
+  the API calls, `ignore_changes` stops the diff. Listing an attribute here
+  without ignoring changes to it will leave whatever state already held, which
+  the plan will then compare against your configuration.
+
 ## Attribute Reference
 
 In addition to the arguments listed above, the following attributes are exported:
