@@ -86,21 +86,64 @@ go mod -u ./...
 
 ## Release Process
 
-To create a new release, simply publish a GitHub Release:
+A release is created by publishing a GitHub Release:
 
 1. Go to the [Releases page](../../releases) in GitHub
 2. Click **"Draft a new release"**
 3. Click **"Choose a tag"** and create a new tag following semantic versioning (e.g., `v0.11.1`)
 4. Set the release title and description (you can use "Generate release notes" for automatic changelog)
-5. Click **"Publish release"**
+5. **Save it as a draft while you write the notes.** A draft creates no tag and starts
+   nothing, so there is no rush and no half-finished release visible to anyone.
+6. Click **"Publish release"** when the notes are ready
 
-The Release workflow will automatically:
-- Build the provider binaries with GoReleaser (using the tag version)
-- Generate checksums and sign them with GPG
-- Attach binaries and checksums to the GitHub release
-- Publish to the Terraform Registry
+Publishing starts the Release workflow, which builds the binaries with GoReleaser,
+signs the checksums with GPG, and attaches everything to the release.
 
-**That's it!** The entire release process is automated from a single GitHub Release creation.
+### Always verify a release before considering it done
+
+Publishing is what starts the build, so a release necessarily exists for a minute or
+two before it has any binaries. That is normal. What is not normal is it staying that
+way, and a release with no binaries looks perfectly healthy on GitHub while being
+uninstallable.
+
+After publishing, confirm both of these:
+
+```bash
+# 1. the release has its artifacts: 5 platform zips, SHA256SUMS, and the .sig
+gh release view v0.14.0 --json assets --jq '.assets[].name'
+
+# 2. the Terraform Registry has actually picked the version up
+curl -s https://registry.terraform.io/v1/providers/onelogin/onelogin/versions \
+  | jq -r '.versions[].version' | sort -V | tail -3
+```
+
+The Registry ingests from the release-published event and does not keep retrying
+indefinitely. If the build is slow or fails, the Registry can conclude there is
+nothing to publish and never look again — so step 2 is not redundant with step 1.
+
+### If a release ends up with no binaries
+
+Rebuild the tag without touching the release:
+
+**Actions → Release → Run workflow**, and give it the tag (e.g. `v0.14.0`). The tag is
+a required input because a dispatch otherwise builds the branch it was started from.
+
+Then re-check the Registry. If the release now has its artifacts but the Registry still
+does not list the version, the ingest event was missed and needs to be sent again.
+Delete the release and re-create it against the same tag:
+
+```bash
+gh release delete v0.14.0 --yes          # keeps the tag; do NOT pass --cleanup-tag
+gh release create v0.14.0 --verify-tag --title v0.14.0 --notes-file notes.md
+```
+
+Keep the notes in a file first — deleting the release deletes its body along with its
+assets. Re-creating fires a fresh event, the workflow rebuilds, and the Registry picks
+it up a few minutes later.
+
+*(Both situations occurred on 2026-08-06 during a GitHub Actions incident: v0.13.0
+published, its build was cancelled, and the release sat with no binaries — invisible to
+`terraform init` — for nine hours.)*
 
 ## Code Quality
 
