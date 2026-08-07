@@ -1,26 +1,26 @@
 resource onelogin_roles role1 {
-    name = "role_1"
+    name = "role_1_acctest"
 }
 
 resource onelogin_roles role2 {
-    name = "role_1"
+    name = "role_2_acctest"
 }
 
 resource onelogin_users user1 {
-    username = "testy.mctesterson"
-    email = "testy.mctesterson@onelogin.com"
+    username = "testy.mctesterson.acctest"
+    email = "testy.mctesterson.acctest@example.com"
 }
 
 resource onelogin_users user2 {
-    username = "boaty.mcboatface"
-    email = "boaty.mcboatface@onelogin.com"
+    username = "boaty.mcboatface.acctest"
+    email = "boaty.mcboatface.acctest@example.com"
 }
 
 resource onelogin_privileges super_admin {
-  name = "super admin"
+  name = "super duper admin"
   description = "description"
-  user_ids = [user1.id]
-  role_ids = [role2.id]
+  user_ids = [tonumber(onelogin_users.user1.id)]
+  role_ids = [tonumber(onelogin_roles.role2.id)]
   privilege {
 	statement {
 		effect = "Allow"

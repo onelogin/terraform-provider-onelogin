@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -61,13 +62,43 @@ func StandardDeleteFunc(
 	return nil
 }
 
-// SetResourceFields sets multiple fields from a map to ResourceData
+// SetResourceFields sets multiple fields from a map to ResourceData.
+//
+// A field the schema does not declare is skipped rather than set. d.Set panics
+// on an unknown key -- "Invalid address to set" -- so a name in a caller's list
+// that is not in its schema crashes the provider process rather than reporting
+// anything, and it does so on the read path, which create calls. That is how
+// onelogin_users panicked on every create: its list named created_at,
+// updated_at and activated_at, none of which the schema had.
+//
+// Skipping is the safe direction. The alternative is a panic in somebody's
+// pipeline over a field they never asked for.
 func SetResourceFields(d *schema.ResourceData, data map[string]interface{}, fields []string) {
 	for _, field := range fields {
-		if value, exists := data[field]; exists {
-			d.Set(field, value)
+		value, exists := data[field]
+		if !exists {
+			continue
+		}
+		if err := setIfDeclared(d, field, value); err != nil {
+			log.Printf("[WARN] could not set %q: %v", field, err)
 		}
 	}
+}
+
+// setIfDeclared sets a field, turning a panic from d.Set into an error the
+// caller can log rather than a crash.
+//
+// The panic is reported verbatim rather than being attributed. An undeclared
+// key is the reason it was written -- d.Set raises "Invalid address to set" --
+// but recover() catches everything, and naming a cause the panic may not have
+// would mislabel the next one and hide whatever it really was.
+func setIfDeclared(d *schema.ResourceData, field string, value interface{}) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("setting %q panicked: %v", field, r)
+		}
+	}()
+	return d.Set(field, value)
 }
 
 // SetNestedFields sets multiple nested fields from a map

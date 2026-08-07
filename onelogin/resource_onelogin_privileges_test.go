@@ -7,8 +7,13 @@ import (
 )
 
 func TestAccPrivilege_crud(t *testing.T) {
-	base := GetFixture("onelogin_privilege_example.tf", t)
-	update := GetFixture("onelogin_privilege_updated_example.tf", t)
+	// One suffix across both steps: loaded separately, step 2 would get a
+	// different one and replace every resource instead of updating them.
+	fixtures := GetFixtures([]string{
+		"onelogin_privilege_example.tf",
+		"onelogin_privilege_updated_example.tf",
+	}, t)
+	base, update := fixtures[0], fixtures[1]
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -19,8 +24,14 @@ func TestAccPrivilege_crud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "name", "super admin"),
 					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "description", "description"),
-					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "privilege.statement.0.action.0", "apps:List"),
-					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "privilege.statement.0.action.1", "users:List"),
+					// privilege is a TypeSet, so its members are keyed by hash
+					// rather than index: "privilege.statement.0..." can never
+					// match. TestCheckTypeSetElemNestedAttrs searches the set.
+					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "privilege.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("onelogin_privileges.super_admin", "privilege.*", map[string]string{
+						"statement.0.action.0": "apps:List",
+						"statement.1.action.0": "users:List",
+					}),
 				),
 			},
 			{
@@ -28,8 +39,11 @@ func TestAccPrivilege_crud(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "name", "super duper admin"),
 					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "description", "description"),
-					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "privilege.statement.0.action.0", "apps:List"),
-					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "privilege.statement.0.action.1", "users:List"),
+					resource.TestCheckResourceAttr("onelogin_privileges.super_admin", "privilege.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs("onelogin_privileges.super_admin", "privilege.*", map[string]string{
+						"statement.0.action.0": "apps:List",
+						"statement.1.action.0": "users:List",
+					}),
 				),
 			},
 		},
