@@ -1,6 +1,7 @@
 package appconfigurationschema
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"testing"
@@ -31,6 +32,20 @@ func TestInflateConfiguration(t *testing.T) {
 				OidcApplicationType:           2,
 				TokenEndpointAuthMethod:       2,
 				AccessTokenExpirationMinutes:  intPtr(2),
+			},
+		},
+		"carries post_logout_redirect_uri through to the request body": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":               "https://example.com/callback",
+				"post_logout_redirect_uri":   "https://example.com/logout\nhttps://example.com/bye",
+				"oidc_application_type":      "0",
+				"token_endpoint_auth_method": "1",
+			},
+			ExpectedOutput: CustomConfigurationOpenId{
+				RedirectURI:             "https://example.com/callback",
+				PostLogoutRedirectURI:   strPtr("https://example.com/logout\nhttps://example.com/bye"),
+				OidcApplicationType:     0,
+				TokenEndpointAuthMethod: 1,
 			},
 		},
 		"handles OIDC app config with only redirect_uri (no timeout fields)": {
@@ -198,6 +213,7 @@ func TestInflateConfiguration(t *testing.T) {
 				} else if customOidcConfig, ok := test.ExpectedOutput.(CustomConfigurationOpenId); ok {
 					if customOidcResult, ok := subj.(CustomConfigurationOpenId); ok {
 						assert.Equal(t, customOidcConfig.RedirectURI, customOidcResult.RedirectURI)
+						assert.Equal(t, customOidcConfig.PostLogoutRedirectURI, customOidcResult.PostLogoutRedirectURI)
 						assert.Equal(t, customOidcConfig.LoginURL, customOidcResult.LoginURL)
 						assert.Equal(t, customOidcConfig.OidcApplicationType, customOidcResult.OidcApplicationType)
 						assert.Equal(t, customOidcConfig.TokenEndpointAuthMethod, customOidcResult.TokenEndpointAuthMethod)
@@ -242,6 +258,7 @@ func TestFlattenConfiguration(t *testing.T) {
 		"creates and returns the address of an AppConfiguration struct for a OIDC app": {
 			InputData: models.ConfigurationOpenId{
 				RedirectURI:                   "test",
+				PostLogoutRedirectURI:         strPtr("https://example.com/logout"),
 				RefreshTokenExpirationMinutes: 2,
 				LoginURL:                      "test",
 				OidcApplicationType:           2,
@@ -250,6 +267,7 @@ func TestFlattenConfiguration(t *testing.T) {
 			},
 			ExpectedOutput: map[string]interface{}{
 				"redirect_uri":                     "test",
+				"post_logout_redirect_uri":         "https://example.com/logout",
 				"refresh_token_expiration_minutes": "2",
 				"login_url":                        "test",
 				"oidc_application_type":            "2",
@@ -271,6 +289,45 @@ func TestFlattenGenericConfiguration(t *testing.T) {
 		InputData      map[string]interface{}
 		ExpectedOutput map[string]interface{}
 	}{
+		"flattens OIDC configuration from API response": {
+			InputData: map[string]interface{}{
+				"redirect_uri":                     "https://example.com/callback",
+				"post_logout_redirect_uri":         "https://example.com/logout",
+				"login_url":                        "https://example.com/login",
+				"oidc_application_type":            float64(0), // JSON unmarshaling makes numbers float64
+				"token_endpoint_auth_method":       float64(1),
+				"access_token_expiration_minutes":  float64(10),
+				"refresh_token_expiration_minutes": float64(20),
+			},
+			ExpectedOutput: map[string]interface{}{
+				"redirect_uri":                     "https://example.com/callback",
+				"post_logout_redirect_uri":         "https://example.com/logout",
+				"login_url":                        "https://example.com/login",
+				"token_endpoint_auth_method":       "1",
+				"access_token_expiration_minutes":  "10",
+				"refresh_token_expiration_minutes": "20",
+				// oidc_application_type is 0, which Flatten drops as a zero value
+			},
+		},
+		"keeps a cleared post_logout_redirect_uri so the plan converges": {
+			InputData: map[string]interface{}{
+				"redirect_uri":             "https://example.com/callback",
+				"post_logout_redirect_uri": "",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"redirect_uri":             "https://example.com/callback",
+				"post_logout_redirect_uri": "",
+			},
+		},
+		"drops a null post_logout_redirect_uri, which means the app never had URIs": {
+			InputData: map[string]interface{}{
+				"redirect_uri":             "https://example.com/callback",
+				"post_logout_redirect_uri": nil,
+			},
+			ExpectedOutput: map[string]interface{}{
+				"redirect_uri": "https://example.com/callback",
+			},
+		},
 		"flattens comprehensive SAML configuration from API response": {
 			InputData: map[string]interface{}{
 				"signature_algorithm": "SHA-256",
@@ -387,4 +444,62 @@ func TestValidSignatureAlgorithm(t *testing.T) {
 			assert.Equal(t, test.ExpectedOutput, errs)
 		})
 	}
+}
+
+// TestInflateOIDCPostLogoutSerialization locks the wire contract for
+// post_logout_redirect_uri. The API treats a present key as an assignment, so
+// the three states have to stay distinct on the way out: an attribute the
+// practitioner never wrote must stay off the request body entirely rather than
+// clearing what the app already has, while one they deliberately blanked has to
+// reach the API as "" so the URIs are removed.
+func TestInflateOIDCPostLogoutSerialization(t *testing.T) {
+	tests := map[string]struct {
+		ResourceData map[string]interface{}
+		ExpectKey    bool
+		ExpectValue  string
+	}{
+		"omits the key when the practitioner does not set it": {
+			ResourceData: map[string]interface{}{"redirect_uri": "https://example.com/callback"},
+			ExpectKey:    false,
+		},
+		"sends an empty value when the practitioner blanks it, to clear the URIs": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":             "https://example.com/callback",
+				"post_logout_redirect_uri": "",
+			},
+			ExpectKey:   true,
+			ExpectValue: "",
+		},
+		"sends the key when the practitioner sets a value": {
+			ResourceData: map[string]interface{}{
+				"redirect_uri":             "https://example.com/callback",
+				"post_logout_redirect_uri": "https://example.com/logout",
+			},
+			ExpectKey:   true,
+			ExpectValue: "https://example.com/logout",
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			subj, err := Inflate(test.ResourceData)
+			assert.NoError(t, err)
+
+			body, err := json.Marshal(subj)
+			assert.NoError(t, err)
+
+			var got map[string]interface{}
+			assert.NoError(t, json.Unmarshal(body, &got))
+
+			val, present := got["post_logout_redirect_uri"]
+			assert.Equal(t, test.ExpectKey, present, "request body was %s", body)
+			if test.ExpectKey {
+				assert.Equal(t, test.ExpectValue, val)
+			}
+		})
+	}
+}
+
+// strPtr mirrors intPtr for the pointer-valued string fields.
+func strPtr(val string) *string {
+	return &val
 }

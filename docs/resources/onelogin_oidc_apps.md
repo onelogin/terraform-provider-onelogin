@@ -24,7 +24,7 @@ resource onelogin_oidc_apps my_oidc_app {
   description = "example OIDC app"
 
   configuration = {
-    post_logout_redirect_uri = ""
+    post_logout_redirect_uri = "https://www.example.com/logout"
     login_url = "https://www.example.com"
     oidc_application_type = 0
     redirect_uri = "https://example.com/example"
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 
 * `configuration` - OIDC settings that control the authentication flow e.g. redirect urls and token settings.
-  * `post_logout_redirect_uri` - (Optional) The redirect_uri for the app to send the user to after logout.
+  * `post_logout_redirect_uri` - (Optional) The redirect_uri for the app to send the user to after logout. To allow more than one, give a single string with the URIs separated by newlines or commas. Set it to `""` to remove every URI from the app. Omitting the attribute entirely leaves whatever the app already has in place, so that removing it from your configuration is not the same as clearing it.
 
   * `redirect_uri` - (Optional) The redirect_uri for the OIDC flow. Will be computed by API if not given.
 
