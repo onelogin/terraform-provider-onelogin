@@ -14,9 +14,14 @@ import (
 // somebody's pipeline. Walking the live schema means this covers validators
 // that do not exist yet.
 func TestValidatorsDoNotPanicOnUnexpectedTypes(t *testing.T) {
-	// Deliberately includes a value of the type each validator expects to
-	// reject as well as types it could never receive.
-	unexpected := []interface{}{nil, 42, true, 3.14, []string{"x"}, map[string]string{}, struct{}{}}
+	// Types a validator should never receive, plus a string that is simply not
+	// an allowed value. The string exercises the ordinary rejection path: a
+	// guard that returned early on every input would satisfy the rest of this
+	// list while breaking validation entirely.
+	unexpected := []interface{}{
+		nil, 42, true, 3.14, []string{"x"}, map[string]string{}, struct{}{},
+		"definitely-not-an-allowed-value",
+	}
 
 	var walk func(t *testing.T, path string, s map[string]*schema.Schema)
 	walk = func(t *testing.T, path string, s map[string]*schema.Schema) {
@@ -59,6 +64,12 @@ func TestValidatorsDoNotPanicOnUnexpectedTypes(t *testing.T) {
 	if len(p.ResourcesMap) == 0 {
 		t.Fatal("expected the provider to expose resources")
 	}
+
+	// The provider configuration block too, not only resources and data
+	// sources. Its attributes take a ValidateFunc like any others, and a panic
+	// there is worse than most: it happens before anything can be configured.
+	walk(t, "provider.", p.Schema)
+
 	for name, res := range p.ResourcesMap {
 		walk(t, name+".", res.Schema)
 	}
