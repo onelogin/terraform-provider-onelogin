@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2019, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package schema
 
 import (
@@ -7,6 +10,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-cty/cty"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -112,6 +118,9 @@ type ResourceDiff struct {
 	// The schema for the resource being worked on.
 	schema map[string]*Schema
 
+	// The identity schema for the resource being worked on.
+	identitySchema map[string]*Schema
+
 	// The current config for this resource.
 	config *terraform.ResourceConfig
 
@@ -139,15 +148,18 @@ type ResourceDiff struct {
 	// Tracks which keys were flagged as forceNew. These keys are not saved in
 	// newWriter, but we need to track them so that they can be re-diffed later.
 	forcedNewKeys map[string]bool
+
+	newIdentity *IdentityData
 }
 
 // newResourceDiff creates a new ResourceDiff instance.
-func newResourceDiff(schema map[string]*Schema, config *terraform.ResourceConfig, state *terraform.InstanceState, diff *terraform.InstanceDiff) *ResourceDiff {
+func newResourceDiff(schema schemaMapWithIdentity, config *terraform.ResourceConfig, state *terraform.InstanceState, diff *terraform.InstanceDiff) *ResourceDiff {
 	d := &ResourceDiff{
-		config: config,
-		state:  state,
-		diff:   diff,
-		schema: schema,
+		config:         config,
+		state:          state,
+		diff:           diff,
+		schema:         schema.schemaMap,
+		identitySchema: schema.identitySchema,
 	}
 
 	d.newWriter = &newValueWriter{
@@ -246,20 +258,20 @@ func (d *ResourceDiff) clear(key string) error {
 	}
 
 	for k := range d.diff.Attributes {
-		if strings.HasPrefix(k, key) {
+		if k == key || childAddrOf(k, key) {
 			delete(d.diff.Attributes, k)
 		}
 	}
 	return nil
 }
 
-// GetChangedKeysPrefix helps to implement Resource.CustomizeDiff
-// where we need to act on all nested fields
-// without calling out each one separately
+// GetChangedKeysPrefix helps to implement Resource.CustomizeDiff where we need to act
+// on all nested fields without calling out each one separately.
+// An empty prefix is supported, returning all changed keys.
 func (d *ResourceDiff) GetChangedKeysPrefix(prefix string) []string {
 	keys := make([]string, 0)
 	for k := range d.diff.Attributes {
-		if strings.HasPrefix(k, prefix) {
+		if k == prefix || childAddrOf(k, prefix) || prefix == "" {
 			keys = append(keys, k)
 		}
 	}
@@ -269,16 +281,16 @@ func (d *ResourceDiff) GetChangedKeysPrefix(prefix string) []string {
 // diffChange helps to implement resourceDiffer and derives its change values
 // from ResourceDiff's own change data, in addition to existing diff, config, and state.
 func (d *ResourceDiff) diffChange(key string) (interface{}, interface{}, bool, bool, bool) {
-	old, new, customized := d.getChange(key)
+	oldValue, newValue, customized := d.getChange(key)
 
-	if !old.Exists {
-		old.Value = nil
+	if !oldValue.Exists {
+		oldValue.Value = nil
 	}
-	if !new.Exists || d.removed(key) {
-		new.Value = nil
+	if !newValue.Exists || d.removed(key) {
+		newValue.Value = nil
 	}
 
-	return old.Value, new.Value, !reflect.DeepEqual(old.Value, new.Value), new.Computed, customized
+	return oldValue.Value, newValue.Value, !reflect.DeepEqual(oldValue.Value, newValue.Value), newValue.Computed, customized
 }
 
 // SetNew is used to set a new diff value for the mentioned key. The value must
@@ -307,12 +319,12 @@ func (d *ResourceDiff) SetNewComputed(key string) error {
 }
 
 // setDiff performs common diff setting behaviour.
-func (d *ResourceDiff) setDiff(key string, new interface{}, computed bool) error {
+func (d *ResourceDiff) setDiff(key string, newValue interface{}, computed bool) error {
 	if err := d.clear(key); err != nil {
 		return err
 	}
 
-	if err := d.newWriter.WriteField(strings.Split(key, "."), new, computed); err != nil {
+	if err := d.newWriter.WriteField(strings.Split(key, "."), newValue, computed); err != nil {
 		return fmt.Errorf("Cannot set new diff value for key %s: %s", key, err)
 	}
 
@@ -373,8 +385,8 @@ func (d *ResourceDiff) Get(key string) interface{} {
 // results from the exact levels for the new diff, then from state and diff as
 // per normal.
 func (d *ResourceDiff) GetChange(key string) (interface{}, interface{}) {
-	old, new, _ := d.getChange(key)
-	return old.Value, new.Value
+	oldValue, newValue, _ := d.getChange(key)
+	return oldValue.Value, newValue.Value
 }
 
 // GetOk functions the same way as ResourceData.GetOk, but it also checks the
@@ -421,19 +433,29 @@ func (d *ResourceDiff) NewValueKnown(key string) bool {
 	return !r.Computed
 }
 
+// HasChanges returns whether or not any of the given keys has been changed.
+func (d *ResourceDiff) HasChanges(keys ...string) bool {
+	for _, key := range keys {
+		if d.HasChange(key) {
+			return true
+		}
+	}
+	return false
+}
+
 // HasChange checks to see if there is a change between state and the diff, or
 // in the overridden diff.
 func (d *ResourceDiff) HasChange(key string) bool {
-	old, new := d.GetChange(key)
+	oldValue, newValue := d.GetChange(key)
 
 	// If the type implements the Equal interface, then call that
 	// instead of just doing a reflect.DeepEqual. An example where this is
 	// needed is *Set
-	if eq, ok := old.(Equal); ok {
-		return !eq.Equal(new)
+	if eq, ok := oldValue.(Equal); ok {
+		return !eq.Equal(newValue)
 	}
 
-	return !reflect.DeepEqual(old, new)
+	return !reflect.DeepEqual(oldValue, newValue)
 }
 
 // Id returns the ID of this resource.
@@ -450,6 +472,115 @@ func (d *ResourceDiff) Id() string {
 	return result
 }
 
+// GetRawConfig returns the cty.Value that Terraform sent the SDK for the
+// config. If no value was sent, or if a null value was sent, the value will be
+// a null value of the resource's type.
+//
+// GetRawConfig is considered experimental and advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceDiff) GetRawConfig() cty.Value {
+	if d.diff != nil {
+		return d.diff.RawConfig
+	}
+	if d.state != nil {
+		return d.state.RawConfig
+	}
+	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// GetRawConfigAt is a helper method for retrieving specific values
+// from the RawConfig returned from GetRawConfig. It returns the cty.Value
+// for a given cty.Path or an error diagnostic if the value at the given path does not exist.
+//
+// GetRawConfigAt is considered advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceDiff) GetRawConfigAt(valPath cty.Path) (cty.Value, diag.Diagnostics) {
+	rawConfig := d.GetRawConfig()
+	configVal := cty.DynamicVal
+
+	if rawConfig.IsNull() {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Empty Raw Config",
+				Detail: "The Terraform Provider unexpectedly received an empty configuration. " +
+					"This is almost always an issue with the Terraform Plugin SDK used to create providers. " +
+					"Please report this to the provider developers. \n\n" +
+					"The RawConfig is empty.",
+				AttributePath: valPath,
+			},
+		}
+	}
+	err := cty.Walk(rawConfig, func(path cty.Path, value cty.Value) (bool, error) {
+		if path.Equals(valPath) {
+			configVal = value
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Invalid config path",
+				Detail: "The Terraform Provider unexpectedly provided a path that does not match the current schema. " +
+					"This can happen if the path does not correctly follow the schema in structure or types. " +
+					"Please report this to the provider developers. \n\n" +
+					fmt.Sprintf("Encountered error while retrieving config value %s", err.Error()),
+				AttributePath: valPath,
+			},
+		}
+	}
+
+	if configVal.RawEquals(cty.DynamicVal) {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Invalid config path",
+				Detail: "The Terraform Provider unexpectedly provided a path that does not match the current schema. " +
+					"This can happen if the path does not correctly follow the schema in structure or types. " +
+					"Please report this to the provider developers. \n\n" +
+					"Cannot find config value for given path.",
+				AttributePath: valPath,
+			},
+		}
+	}
+
+	return configVal, nil
+}
+
+// GetRawState returns the cty.Value that Terraform sent the SDK for the state.
+// If no value was sent, or if a null value was sent, the value will be a null
+// value of the resource's type.
+//
+// GetRawState is considered experimental and advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceDiff) GetRawState() cty.Value {
+	if d.diff != nil {
+		return d.diff.RawState
+	}
+	if d.state != nil {
+		return d.state.RawState
+	}
+	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// GetRawPlan returns the cty.Value that Terraform sent the SDK for the plan.
+// If no value was sent, or if a null value was sent, the value will be a null
+// value of the resource's type.
+//
+// GetRawPlan is considered experimental and advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceDiff) GetRawPlan() cty.Value {
+	if d.diff != nil {
+		return d.diff.RawPlan
+	}
+	if d.state != nil {
+		return d.state.RawPlan
+	}
+	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
 // getChange gets values from two different levels, designed for use in
 // diffChange, HasChange, and GetChange.
 //
@@ -457,16 +588,16 @@ func (d *ResourceDiff) Id() string {
 // results from the exact levels for the new diff, then from state and diff as
 // per normal.
 func (d *ResourceDiff) getChange(key string) (getResult, getResult, bool) {
-	old := d.get(strings.Split(key, "."), "state")
-	var new getResult
+	oldValue := d.get(strings.Split(key, "."), "state")
+	var newValue getResult
 	for p := range d.updatedKeys {
 		if childAddrOf(key, p) {
-			new = d.getExact(strings.Split(key, "."), "newDiff")
-			return old, new, true
+			newValue = d.getExact(strings.Split(key, "."), "newDiff")
+			return oldValue, newValue, true
 		}
 	}
-	new = d.get(strings.Split(key, "."), "newDiff")
-	return old, new, false
+	newValue = d.get(strings.Split(key, "."), "newDiff")
+	return oldValue, newValue, false
 }
 
 // removed checks to see if the key is present in the existing, pre-customized
@@ -556,4 +687,23 @@ func (d *ResourceDiff) checkKey(key, caller string, nested bool) error {
 		return fmt.Errorf("%s only operates on computed keys - %s is not one", caller, key)
 	}
 	return nil
+}
+
+func (d *ResourceDiff) Identity() (*IdentityData, error) {
+	// return memoized value if available
+	if d.newIdentity != nil {
+		return d.newIdentity, nil
+	}
+
+	identity := map[string]string{}
+	if d.state != nil && d.state.Identity != nil {
+		identity = d.state.Identity
+	}
+
+	d.newIdentity = &IdentityData{
+		schema: d.identitySchema,
+		raw:    identity,
+	}
+
+	return d.newIdentity, nil
 }

@@ -1,9 +1,13 @@
+// Copyright IBM Corp. 2019, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package terraform
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -14,8 +18,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-cty/cty"
-	multierror "github.com/hashicorp/go-multierror"
-	uuid "github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/go-uuid"
 	"github.com/mitchellh/copystructure"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/addrs"
@@ -26,6 +29,13 @@ const (
 	// StateVersion is the current version for our state file
 	stateVersion = 3
 )
+
+// ImportBeforeReadMetaKey is an internal private field used to indicate that the current resource state and identity
+// were provided most recently by the ImportResourceState RPC. This indicates that the state is an import stub and identity
+// has not been stored in state yet.
+//
+// When detected, this key should be cleared before returning from the ReadResource RPC.
+var ImportBeforeReadMetaKey = ".import_before_read"
 
 // rootModulePath is the path of the root module
 var rootModulePath = []string{"root"}
@@ -43,7 +53,7 @@ var rootModulePath = []string{"root"}
 // normalizeModulePath takes a raw module path and returns a path that
 // has the rootModulePath prepended to it. If I could go back in time I
 // would've never had a rootModulePath (empty path would be root). We can
-// still fix this but thats a big refactor that my branch doesn't make sense
+// still fix this but that's a big refactor that my branch doesn't make sense
 // for. Instead, this function normalizes paths.
 func normalizeModulePath(p []string) addrs.ModuleInstance {
 	// FIXME: Remove this once everyone is using addrs.ModuleInstance.
@@ -284,7 +294,7 @@ func (s *State) Validate() error {
 	s.Lock()
 	defer s.Unlock()
 
-	var result error
+	var result []error
 
 	// !!!! FOR DEVELOPERS !!!!
 	//
@@ -306,7 +316,7 @@ func (s *State) Validate() error {
 
 			key := strings.Join(ms.Path, ".")
 			if _, ok := found[key]; ok {
-				result = multierror.Append(result, fmt.Errorf(
+				result = append(result, fmt.Errorf(
 					strings.TrimSpace(stateValidateErrMultiModule), key))
 				continue
 			}
@@ -315,7 +325,7 @@ func (s *State) Validate() error {
 		}
 	}
 
-	return result
+	return errors.Join(result...)
 }
 
 // Remove removes the item in the state at the given address, returning
@@ -366,11 +376,11 @@ func (s *State) Remove(addr ...string) error {
 
 		switch v := r.Value.(type) {
 		case *ModuleState:
-			s.removeModule(path, v)
+			s.removeModule(v)
 		case *ResourceState:
 			s.removeResource(path, v)
 		case *InstanceState:
-			s.removeInstance(path, r.Parent.Value.(*ResourceState), v)
+			s.removeInstance(r.Parent.Value.(*ResourceState), v)
 		default:
 			return fmt.Errorf("unknown type to delete: %T", r.Value)
 		}
@@ -384,7 +394,7 @@ func (s *State) Remove(addr ...string) error {
 	return nil
 }
 
-func (s *State) removeModule(path []string, v *ModuleState) {
+func (s *State) removeModule(v *ModuleState) {
 	for i, m := range s.Modules {
 		if m == v {
 			s.Modules, s.Modules[len(s.Modules)-1] = append(s.Modules[:i], s.Modules[i+1:]...), nil
@@ -412,7 +422,7 @@ func (s *State) removeResource(path []string, v *ResourceState) {
 	}
 }
 
-func (s *State) removeInstance(path []string, r *ResourceState, v *InstanceState) {
+func (s *State) removeInstance(r *ResourceState, v *InstanceState) {
 	// Go through the resource and find the instance that matches this
 	// (if any) and remove it.
 
@@ -420,20 +430,6 @@ func (s *State) removeInstance(path []string, r *ResourceState, v *InstanceState
 	if r.Primary == v {
 		r.Primary = nil
 		return
-	}
-
-	// Check lists
-	lists := [][]*InstanceState{r.Deposed}
-	for _, is := range lists {
-		for i, instance := range is {
-			if instance == v {
-				// Found it, remove it
-				is, is[len(is)-1] = append(is[:i], is[i+1:]...), nil
-
-				// Done
-				return
-			}
-		}
 	}
 }
 
@@ -562,12 +558,12 @@ func (s *State) DeepCopy() *State {
 		return nil
 	}
 
-	copy, err := copystructure.Config{Lock: true}.Copy(s)
+	copiedState, err := copystructure.Config{Lock: true}.Copy(s)
 	if err != nil {
 		panic(err)
 	}
 
-	return copy.(*State)
+	return copiedState.(*State)
 }
 
 func (s *State) Init() {
@@ -697,7 +693,7 @@ func (s *State) String() string {
 			continue
 		}
 
-		buf.WriteString(fmt.Sprintf("module.%s:\n", strings.Join(m.Path[1:], ".")))
+		fmt.Fprintf(&buf, "module.%s:\n", strings.Join(m.Path[1:], "."))
 
 		s := bufio.NewScanner(strings.NewReader(mStr))
 		for s.Scan() {
@@ -706,7 +702,7 @@ func (s *State) String() string {
 				text = "  " + text
 			}
 
-			buf.WriteString(fmt.Sprintf("%s\n", text))
+			fmt.Fprintf(&buf, "%s\n", text)
 		}
 	}
 
@@ -810,7 +806,7 @@ func (s *OutputState) Equal(other *OutputState) bool {
 // module.
 type ModuleState struct {
 	// Path is the import path from the root module. Modules imports are
-	// always disjoint, so the path represents amodule tree
+	// always disjoint, so the path represents a module tree
 	Path []string `json:"path"`
 
 	// Locals are kept only transiently in-memory, because we can always
@@ -988,10 +984,10 @@ func (m *ModuleState) String() string {
 			deposedStr = fmt.Sprintf(" (%d deposed)", len(rs.Deposed))
 		}
 
-		buf.WriteString(fmt.Sprintf("%s:%s%s\n", k, taintStr, deposedStr))
-		buf.WriteString(fmt.Sprintf("  ID = %s\n", id))
+		fmt.Fprintf(&buf, "%s:%s%s\n", k, taintStr, deposedStr)
+		fmt.Fprintf(&buf, "  ID = %s\n", id)
 		if rs.Provider != "" {
-			buf.WriteString(fmt.Sprintf("  provider = %s\n", rs.Provider))
+			fmt.Fprintf(&buf, "  provider = %s\n", rs.Provider)
 		}
 
 		var attributes map[string]string
@@ -1011,7 +1007,7 @@ func (m *ModuleState) String() string {
 
 		for _, ak := range attrKeys {
 			av := attributes[ak]
-			buf.WriteString(fmt.Sprintf("  %s = %s\n", ak, av))
+			fmt.Fprintf(&buf, "  %s = %s\n", ak, av)
 		}
 
 		for idx, t := range rs.Deposed {
@@ -1019,13 +1015,13 @@ func (m *ModuleState) String() string {
 			if t.Tainted {
 				taintStr = " (tainted)"
 			}
-			buf.WriteString(fmt.Sprintf("  Deposed ID %d = %s%s\n", idx+1, t.ID, taintStr))
+			fmt.Fprintf(&buf, "  Deposed ID %d = %s%s\n", idx+1, t.ID, taintStr)
 		}
 
 		if len(rs.Dependencies) > 0 {
-			buf.WriteString(fmt.Sprintf("\n  Dependencies:\n"))
+			buf.WriteString("\n  Dependencies:\n")
 			for _, dep := range rs.Dependencies {
-				buf.WriteString(fmt.Sprintf("    %s\n", dep))
+				fmt.Fprintf(&buf, "    %s\n", dep)
 			}
 		}
 	}
@@ -1044,9 +1040,9 @@ func (m *ModuleState) String() string {
 			v := m.Outputs[k]
 			switch vTyped := v.Value.(type) {
 			case string:
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
+				fmt.Fprintf(&buf, "%s = %s\n", k, vTyped)
 			case []interface{}:
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
+				fmt.Fprintf(&buf, "%s = %s\n", k, vTyped)
 			case map[string]interface{}:
 				var mapKeys []string
 				for key := range vTyped {
@@ -1057,11 +1053,11 @@ func (m *ModuleState) String() string {
 				var mapBuf bytes.Buffer
 				mapBuf.WriteString("{")
 				for _, key := range mapKeys {
-					mapBuf.WriteString(fmt.Sprintf("%s:%s ", key, vTyped[key]))
+					fmt.Fprintf(&mapBuf, "%s:%s ", key, vTyped[key])
 				}
 				mapBuf.WriteString("}")
 
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, mapBuf.String()))
+				fmt.Fprintf(&buf, "%s = %s\n", k, mapBuf.String())
 			}
 		}
 	}
@@ -1159,7 +1155,6 @@ func parseResourceStateKey(k string) (*ResourceStateKey, error) {
 //
 // Extra is just extra data that a provider can return that we store
 // for later, but is not exposed in any way to the user.
-//
 type ResourceState struct {
 	// This is filled in and managed by Terraform, and is the resource
 	// type itself such as "mycloud_instance". If a resource provider sets
@@ -1237,31 +1232,7 @@ func (s *ResourceState) Equal(other *ResourceState) bool {
 	}
 
 	// States must be equal
-	if !s.Primary.Equal(other.Primary) {
-		return false
-	}
-
-	return true
-}
-
-// Taint marks a resource as tainted.
-func (s *ResourceState) Taint() {
-	s.Lock()
-	defer s.Unlock()
-
-	if s.Primary != nil {
-		s.Primary.Tainted = true
-	}
-}
-
-// Untaint unmarks a resource as tainted.
-func (s *ResourceState) Untaint() {
-	s.Lock()
-	defer s.Unlock()
-
-	if s.Primary != nil {
-		s.Primary.Tainted = false
-	}
+	return s.Primary.Equal(other.Primary)
 }
 
 func (s *ResourceState) init() {
@@ -1314,7 +1285,7 @@ func (s *ResourceState) String() string {
 	defer s.Unlock()
 
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("Type = %s", s.Type))
+	fmt.Fprintf(&buf, "Type = %s", s.Type)
 	return buf.String()
 }
 
@@ -1341,7 +1312,15 @@ type InstanceState struct {
 	// and collections.
 	Meta map[string]interface{} `json:"meta"`
 
+	// Identity is the identity data used to track resource identity
+	// starting in Terraform 1.12+
+	Identity map[string]string `json:"identity"`
+
 	ProviderMeta cty.Value
+
+	RawConfig cty.Value
+	RawState  cty.Value
+	RawPlan   cty.Value
 
 	// Tainted is used to mark a resource for recreation.
 	Tainted bool `json:"tainted"`
@@ -1361,6 +1340,9 @@ func (s *InstanceState) init() {
 	}
 	if s.Meta == nil {
 		s.Meta = make(map[string]interface{})
+	}
+	if s.Identity == nil {
+		s.Identity = make(map[string]string)
 	}
 	s.Ephemeral.init()
 }
@@ -1423,15 +1405,16 @@ func (s *InstanceState) Set(from *InstanceState) {
 	s.Ephemeral = from.Ephemeral
 	s.Meta = from.Meta
 	s.Tainted = from.Tainted
+	s.Identity = from.Identity
 }
 
 func (s *InstanceState) DeepCopy() *InstanceState {
-	copy, err := copystructure.Config{Lock: true}.Copy(s)
+	copiedState, err := copystructure.Config{Lock: true}.Copy(s)
 	if err != nil {
 		panic(err)
 	}
 
-	return copy.(*InstanceState)
+	return copiedState.(*InstanceState)
 }
 
 func (s *InstanceState) Empty() bool {
@@ -1502,6 +1485,8 @@ func (s *InstanceState) Equal(other *InstanceState) bool {
 		return false
 	}
 
+	// TODO: compare identity
+
 	return true
 }
 
@@ -1561,7 +1546,7 @@ func (s *InstanceState) String() string {
 		return notCreated
 	}
 
-	buf.WriteString(fmt.Sprintf("ID = %s\n", s.ID))
+	fmt.Fprintf(&buf, "ID = %s\n", s.ID)
 
 	attributes := s.Attributes
 	attrKeys := make([]string, 0, len(attributes))
@@ -1576,10 +1561,12 @@ func (s *InstanceState) String() string {
 
 	for _, ak := range attrKeys {
 		av := attributes[ak]
-		buf.WriteString(fmt.Sprintf("%s = %s\n", ak, av))
+		fmt.Fprintf(&buf, "%s = %s\n", ak, av)
 	}
 
-	buf.WriteString(fmt.Sprintf("Tainted = %t\n", s.Tainted))
+	// TODO: add identity
+
+	fmt.Fprintf(&buf, "Tainted = %t\n", s.Tainted)
 
 	return buf.String()
 }

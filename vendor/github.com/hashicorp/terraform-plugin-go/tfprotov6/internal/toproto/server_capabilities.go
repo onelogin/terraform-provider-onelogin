@@ -1,0 +1,36 @@
+// Copyright IBM Corp. 2020, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package toproto
+
+import (
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tfplugin6"
+)
+
+func ServerCapabilities(in *tfprotov6.ServerCapabilities) *tfplugin6.ServerCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfplugin6.ServerCapabilities{
+		GetProviderSchemaOptional: in.GetProviderSchemaOptional,
+		MoveResourceState:         in.MoveResourceState,
+		PlanDestroy:               in.PlanDestroy,
+		GenerateResourceConfig:    in.GenerateResourceConfig,
+	}
+
+	return resp
+}
+
+func StateStoreServerCapabilities(in *tfprotov6.StateStoreServerCapabilities) *tfplugin6.StateStoreServerCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfplugin6.StateStoreServerCapabilities{
+		ChunkSize: in.ChunkSize,
+	}
+
+	return resp
+}
