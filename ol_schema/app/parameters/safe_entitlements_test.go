@@ -14,33 +14,41 @@ import (
 // carried it: the SDK model had no such field, so the value was discarded on
 // the way out and never came back on read.
 func TestSafeEntitlementsEnabled(t *testing.T) {
-	t.Run("sends true", func(t *testing.T) {
-		b, _ := json.Marshal(Inflate(map[string]interface{}{
-			"label": "Groups", "safe_entitlements_enabled": true,
-		}))
+	// Fails on the marshal error rather than asserting against an empty
+	// string, which would report a missing key when the real fault was the
+	// encoding.
+	marshal := func(t *testing.T, s map[string]interface{}) string {
+		t.Helper()
+		b, err := json.Marshal(Inflate(s))
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+		return string(b)
+	}
 
-		if !strings.Contains(string(b), `"safe_entitlements_enabled":true`) {
-			t.Fatalf("expected true to be sent, got %s", b)
+	t.Run("sends true", func(t *testing.T) {
+		got := marshal(t, map[string]interface{}{"label": "Groups", "safe_entitlements_enabled": true})
+
+		if !strings.Contains(got, `"safe_entitlements_enabled":true`) {
+			t.Fatalf("expected true to be sent, got %s", got)
 		}
 	})
 
 	t.Run("sends false rather than dropping it", func(t *testing.T) {
 		// The model field is a pointer for exactly this: the flags beside it
 		// are bare bools and omitempty makes their false unsendable.
-		b, _ := json.Marshal(Inflate(map[string]interface{}{
-			"label": "Groups", "safe_entitlements_enabled": false,
-		}))
+		got := marshal(t, map[string]interface{}{"label": "Groups", "safe_entitlements_enabled": false})
 
-		if !strings.Contains(string(b), `"safe_entitlements_enabled":false`) {
-			t.Fatalf("expected false to be sent, got %s", b)
+		if !strings.Contains(got, `"safe_entitlements_enabled":false`) {
+			t.Fatalf("expected false to be sent, got %s", got)
 		}
 	})
 
 	t.Run("omitted when absent", func(t *testing.T) {
-		b, _ := json.Marshal(Inflate(map[string]interface{}{"label": "Groups"}))
+		got := marshal(t, map[string]interface{}{"label": "Groups"})
 
-		if strings.Contains(string(b), "safe_entitlements_enabled") {
-			t.Fatalf("expected the key to be absent, got %s", b)
+		if strings.Contains(got, `"safe_entitlements_enabled":`) {
+			t.Fatalf("expected the key to be absent, got %s", got)
 		}
 	})
 

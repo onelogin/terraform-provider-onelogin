@@ -36,7 +36,7 @@ func TestIncludeAmrClaims(t *testing.T) {
 	}
 
 	t.Run("omitted when the key is absent", func(t *testing.T) {
-		if got := inflate(t, base(nil)); strings.Contains(got, "include_amr_claims") {
+		if got := inflate(t, base(nil)); strings.Contains(got, `"include_amr_claims":`) {
 			t.Fatalf("expected the key to be absent, got %s", got)
 		}
 	})
@@ -58,7 +58,7 @@ func TestIncludeAmrClaims(t *testing.T) {
 	t.Run("ignores a value that is not a boolean", func(t *testing.T) {
 		// Better left out than silently read as false, which would switch the
 		// claim off on the strength of a typo.
-		if got := inflate(t, base(map[string]interface{}{"include_amr_claims": "yes please"})); strings.Contains(got, "include_amr_claims") {
+		if got := inflate(t, base(map[string]interface{}{"include_amr_claims": "yes please"})); strings.Contains(got, `"include_amr_claims":`) {
 			t.Fatalf("expected an unparseable value to be omitted, got %s", got)
 		}
 	})
