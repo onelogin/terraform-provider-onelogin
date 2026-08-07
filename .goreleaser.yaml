@@ -34,6 +34,12 @@ signs:
   - artifacts: checksum
     args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
+release:
+  # A rebuild uploads artifacts a release may already hold, which is an error
+  # otherwise. Replacing them is safe: builds are reproducible here, pinned by
+  # mod_timestamp to the commit and built with -trimpath.
+  mode: replace
+
 changelog:
   sort: asc
   filters:
