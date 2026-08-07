@@ -47,6 +47,7 @@ func Schema() map[string]*schema.Schema {
 		"options": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: smarthookoptions.Schema(),
 			},
@@ -156,7 +157,9 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 	}
 
 	// options is a TypeSet of a nested resource, so Terraform hands this over
-	// as a *schema.Set holding one element. The old code asserted a map, which
+	// as a *schema.Set. The model holds a single Options struct, so the schema
+	// sets MaxItems: 1 and a second block is refused at plan time rather than
+	// being dropped here. The old code asserted a map, which
 	// panicked the moment anybody set the block -- nothing noticed because the
 	// fixture that would have exercised it used pre-0.12 syntax and never
 	// reached the provider.
