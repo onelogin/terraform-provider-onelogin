@@ -21,6 +21,22 @@ func OneOf(key string, v string, opts []string) (warns []string, errs []error) {
 	return
 }
 
+// OneOfValue is OneOf for a value arriving from a schema.SchemaValidateFunc,
+// where it is an interface{} and asserting the string bare would panic.
+//
+// Terraform should only ever hand a string to a TypeString attribute, so the
+// assertion "cannot" fail. But a panic inside a validator takes the whole
+// provider process down and reports a stack trace rather than the bad value,
+// which is a poor trade against one type check. Corrupted state and schema
+// changes are the realistic routes in.
+func OneOfValue(key string, val interface{}, opts []string) (warns []string, errs []error) {
+	v, ok := val.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("%s: expected a string, got %T", key, val)}
+	}
+	return OneOf(key, v, opts)
+}
+
 func ParseNestedResourceImportId(id string) (string, string, error) {
 	parts := strings.SplitN(id, ":", 2)
 

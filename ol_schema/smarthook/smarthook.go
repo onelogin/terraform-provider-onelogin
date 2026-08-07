@@ -84,7 +84,7 @@ func Schema() map[string]*schema.Schema {
 }
 
 func validTypes(val interface{}, key string) (warns []string, errs []error) {
-	return utils.OneOf(key, val.(string), []string{"pre-authentication", "user-migration"})
+	return utils.OneOfValue(key, val, []string{"pre-authentication", "user-migration"})
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct

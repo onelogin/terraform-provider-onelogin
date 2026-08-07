@@ -1,7 +1,6 @@
 package roleschema
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -14,15 +13,7 @@ import (
 var MembershipAttrs = []string{"apps", "users", "admins"}
 
 func validMembershipAttr(val interface{}, key string) (warns []string, errs []error) {
-	// Guarded rather than asserted. Terraform should only ever hand a string
-	// to a TypeString element, but a bare assertion turns "should" into a
-	// panic, and a panic here takes the whole provider process down rather
-	// than reporting a bad value.
-	attr, ok := val.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("%s: expected a string, got %T", key, val)}
-	}
-	return utils.OneOf(key, attr, MembershipAttrs)
+	return utils.OneOfValue(key, val, MembershipAttrs)
 }
 
 // RoleQuery implements the Queryable interface for role queries.

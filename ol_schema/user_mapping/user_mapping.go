@@ -50,7 +50,7 @@ func Schema() map[string]*schema.Schema {
 }
 
 func validMatch(val interface{}, key string) (warns []string, errs []error) {
-	return utils.OneOf(key, val.(string), []string{"all", "any"})
+	return utils.OneOfValue(key, val, []string{"all", "any"})
 }
 
 // Inflate takes a key/value map of interfaces and uses the fields to construct a user mapping struct
