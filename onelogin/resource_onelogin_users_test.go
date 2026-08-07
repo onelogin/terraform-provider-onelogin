@@ -7,8 +7,14 @@ import (
 )
 
 func TestAccUser_crud(t *testing.T) {
-	base := GetFixture("onelogin_user_example.tf", t)
-	update := GetFixture("onelogin_user_updated_example.tf", t)
+	// One suffix across both steps, and known here so the assertions can
+	// include it: the fixtures carry a per-run token because OneLogin enforces
+	// unique usernames and emails within a tenant.
+	fixtures, suffix := GetFixturesWithSuffix([]string{
+		"onelogin_user_example.tf",
+		"onelogin_user_updated_example.tf",
+	}, t)
+	base, update := fixtures[0], fixtures[1]
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -17,15 +23,15 @@ func TestAccUser_crud(t *testing.T) {
 			{
 				Config: base,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_users.basic_test", "username", "testy.mctesterson"),
-					resource.TestCheckResourceAttr("onelogin_users.basic_test", "email", "testy.mctesterson@onelogin.com"),
+					resource.TestCheckResourceAttr("onelogin_users.basic_test", "username", "testy.mctesterson."+suffix),
+					resource.TestCheckResourceAttr("onelogin_users.basic_test", "email", "testy.mctesterson."+suffix+"@example.com"),
 				),
 			},
 			{
 				Config: update,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_users.basic_test", "username", "boaty.mcboatface"),
-					resource.TestCheckResourceAttr("onelogin_users.basic_test", "email", "boaty.mcboatface@onelogin.com"),
+					resource.TestCheckResourceAttr("onelogin_users.basic_test", "username", "boaty.mcboatface."+suffix),
+					resource.TestCheckResourceAttr("onelogin_users.basic_test", "email", "boaty.mcboatface."+suffix+"@example.com"),
 				),
 			},
 		},
@@ -33,8 +39,11 @@ func TestAccUser_crud(t *testing.T) {
 }
 
 func TestAccUser_trustedIdp(t *testing.T) {
-	withIdp := GetFixture("onelogin_user_with_trusted_idp_example.tf", t)
-	withoutIdp := GetFixture("onelogin_user_without_trusted_idp_example.tf", t)
+	fixtures, suffix := GetFixturesWithSuffix([]string{
+		"onelogin_user_with_trusted_idp_example.tf",
+		"onelogin_user_without_trusted_idp_example.tf",
+	}, t)
+	withIdp, withoutIdp := fixtures[0], fixtures[1]
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -43,17 +52,23 @@ func TestAccUser_trustedIdp(t *testing.T) {
 			{
 				Config: withIdp,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "username", "trusted.idp.test"),
-					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "email", "trusted.idp.test@onelogin.com"),
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "username", "trusted.idp.test."+suffix),
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "email", "trusted.idp.test."+suffix+"@example.com"),
 					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "trusted_idp_id", "123456"),
 				),
 			},
 			{
 				Config: withoutIdp,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "username", "trusted.idp.test"),
-					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "email", "trusted.idp.test@onelogin.com"),
-					resource.TestCheckNoResourceAttr("onelogin_users.trusted_idp_test", "trusted_idp_id"),
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "username", "trusted.idp.test."+suffix),
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "email", "trusted.idp.test."+suffix+"@example.com"),
+					// trusted_idp_id is Optional and Computed, so dropping it
+					// from the configuration means "keep whatever the API has"
+					// rather than "clear it" — Terraform cannot tell an omitted
+					// Computed attribute from an unset one. The old assertion
+					// of absence could never have held. Clearing it needs an
+					// explicit 0.
+					resource.TestCheckResourceAttr("onelogin_users.trusted_idp_test", "trusted_idp_id", "123456"),
 				),
 			},
 		},

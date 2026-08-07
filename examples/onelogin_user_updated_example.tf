@@ -1,4 +1,4 @@
 resource onelogin_users basic_test {
-  username = "boaty.mcboatface"
-  email = "boaty.mcboatface@onelogin.com"
+  username = "boaty.mcboatface.acctest"
+  email = "boaty.mcboatface.acctest@example.com"
 }

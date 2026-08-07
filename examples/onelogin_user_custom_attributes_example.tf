@@ -1,7 +1,7 @@
 # Create a user
 resource onelogin_users test_user {
-  username = "test.user"
-  email    = "test.user@example.com"
+  username = "test.user.acctest"
+  email    = "test.user.acctest@example.com"
 }
 
 # Create a custom attribute definition (schema)

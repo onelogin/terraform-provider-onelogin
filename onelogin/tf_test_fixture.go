@@ -29,6 +29,19 @@ func GetFixture(name string, t *testing.T) string {
 	return getFixtureWithSuffix(name, acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum), t)
 }
 
+// GetFixturesWithSuffix returns several fixtures sharing one suffix, and the
+// suffix itself, for tests that assert on a value the token appears in.
+func GetFixturesWithSuffix(names []string, t *testing.T) ([]string, string) {
+	t.Helper()
+	suffix := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
+
+	out := make([]string, 0, len(names))
+	for _, name := range names {
+		out = append(out, getFixtureWithSuffix(name, suffix, t))
+	}
+	return out, suffix
+}
+
 // GetFixtures returns several fixtures sharing one suffix, for a test whose
 // steps must refer to the same resources. Loading them separately would give
 // each step a different suffix, and the second step would replace every
@@ -55,5 +68,41 @@ func getFixtureWithSuffix(name, suffix string, t *testing.T) string {
 		t.Fatalf("failed to load fixture %s for acceptance test: %v", name, err)
 	}
 
-	return strings.ReplaceAll(string(rawFile), fixtureUniqueToken, suffix)
+	return stripProviderConfig(strings.ReplaceAll(string(rawFile), fixtureUniqueToken, suffix))
+}
+
+// stripProviderConfig removes terraform{} and provider{} blocks from a fixture.
+//
+// They belong in examples/ — a reader copying one needs to know which provider
+// it wants — but an acceptance test is given the provider under test, and a
+// required_providers block asking the registry for a version makes Terraform
+// try to resolve it instead:
+//
+//	Error: Inconsistent dependency lock file
+//	  provider registry.terraform.io/onelogin/onelogin: required by this
+//	  configuration but no version is selected
+func stripProviderConfig(config string) string {
+	var out strings.Builder
+	depth, skipping := 0, false
+
+	for _, line := range strings.Split(config, "\n") {
+		trimmed := strings.TrimSpace(line)
+
+		if !skipping && (strings.HasPrefix(trimmed, "terraform {") || strings.HasPrefix(trimmed, "provider ")) {
+			skipping = true
+			depth = 0
+		}
+		if !skipping {
+			out.WriteString(line + "\n")
+			continue
+		}
+
+		// Counting braces rather than looking for a closing line on its own:
+		// these blocks nest, and required_providers is two deep.
+		depth += strings.Count(line, "{") - strings.Count(line, "}")
+		if depth <= 0 {
+			skipping = false
+		}
+	}
+	return out.String()
 }

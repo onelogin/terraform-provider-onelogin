@@ -13,58 +13,52 @@ provider "onelogin" {
 }
 
 # Basic user mapping that applies a role to users with email domain @example.com
-resource "onelogin_user_mapping" "example_mapping" {
+resource "onelogin_user_mappings" "example_mapping" {
   name     = "Example Domain Mapping"
   match    = "all"                  # Match all conditions
   enabled  = true
-  position = 1                      # Order in which mappings are evaluated
 
   # Condition to check if user's email contains @example.com
   conditions {
     source   = "email"              # User attribute to check
-    operator = "contains"           # Operator for comparison
+    operator = "~"           # Operator for comparison
     value    = "@example.com"       # Value to compare against
   }
 
   # Action to assign a role to matching users
   # Note: Replace 12345 with actual role ID from your OneLogin account
   actions {
-    action = "set_role"
-    value  = ["12345"]
+    action = "add_role"
+    value  = ["380586"]
   }
 }
 
 # More complex user mapping with multiple conditions and actions
-resource "onelogin_user_mapping" "department_mapping" {
+resource "onelogin_user_mappings" "department_mapping" {
   name     = "Department Based Mapping"
   match    = "all"                  # Match all conditions
   enabled  = true
-  position = 2                      # Processed after the first mapping
 
   # Check if user belongs to IT department
   conditions {
     source   = "department"
-    operator = "equals"
+    operator = "="
     value    = "IT"
   }
 
   # Check if user's title contains "Engineer"
   conditions {
     source   = "title"
-    operator = "contains"
+    operator = "~"
     value    = "Engineer"
   }
 
   # Assign multiple roles to matching users
   # Note: Replace IDs with actual role IDs from your OneLogin account
   actions {
-    action = "set_role"
-    value  = ["23456", "34567"]
+    action = "add_role"
+    value  = ["380586"]
   }
 
   # Set the user's group memberships
-  actions {
-    action = "set_groups"
-    value  = ["Engineers", "IT Staff"]
-  }
 }
