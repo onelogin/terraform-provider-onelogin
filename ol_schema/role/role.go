@@ -1,11 +1,29 @@
 package roleschema
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
+
+// MembershipAttrs are the role sub-resources that live on their own paginated
+// endpoints, and so are the ones worth being able to leave un-refreshed.
+var MembershipAttrs = []string{"apps", "users", "admins"}
+
+func validMembershipAttr(val interface{}, key string) (warns []string, errs []error) {
+	// Guarded rather than asserted. Terraform should only ever hand a string
+	// to a TypeString element, but a bare assertion turns "should" into a
+	// panic, and a panic here takes the whole provider process down rather
+	// than reporting a bad value.
+	attr, ok := val.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("%s: expected a string, got %T", key, val)}
+	}
+	return utils.OneOf(key, attr, MembershipAttrs)
+}
 
 // RoleQuery implements the Queryable interface for role queries.
 //
@@ -54,6 +72,24 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
+		},
+		// Membership lives on three paginated sub-endpoints, and a role with
+		// thousands of users costs a page walk on every refresh whether or not
+		// the configuration manages them. ignore_changes cannot help: it is
+		// applied to the diff, long after the read has made the calls.
+		//
+		// Naming this as what to skip rather than what to manage is deliberate.
+		// A "manage_users" flag defaulting to true would read as false on an
+		// imported resource, whose state carries no value for it, and silently
+		// skip the very fetch import needs.
+		"skip_membership_refresh": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validMembershipAttr,
+			},
+			Description: "Membership attributes to leave un-refreshed: any of apps, users, admins. Their sub-endpoints are not queried during read, and state keeps whatever it already held. Use for membership managed outside Terraform, alongside a lifecycle ignore_changes block for the same attribute.",
 		},
 	}
 }
