@@ -28,6 +28,19 @@ func skipIfHookTypeExists(t *testing.T, hookType string) {
 	if err != nil {
 		t.Fatalf("could not work out the subdomain to check for an existing %s hook: %v", hookType, err)
 	}
+
+	// Put back whatever was there. configProvider sets this from the same URL
+	// moments later, so the value is not in dispute -- but a precheck leaving
+	// the process environment changed makes what a later test sees depend on
+	// whether this one ran, and that is worth not doing.
+	previous, wasSet := os.LookupEnv("ONELOGIN_SUBDOMAIN")
+	t.Cleanup(func() {
+		if wasSet {
+			os.Setenv("ONELOGIN_SUBDOMAIN", previous)
+			return
+		}
+		os.Unsetenv("ONELOGIN_SUBDOMAIN")
+	})
 	os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
 
 	client, err := ol.NewOneloginSDK()
