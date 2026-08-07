@@ -83,6 +83,27 @@ func Schema() map[string]*schema.Schema {
 	}
 }
 
+// inflateOptions reads the options block from either shape it can arrive in:
+// the *schema.Set Terraform produces for a TypeSet, or the element map a
+// caller building the input by hand would pass.
+func inflateOptions(raw interface{}) (smarthooks.Options, bool) {
+	switch v := raw.(type) {
+	case *schema.Set:
+		if v.Len() == 0 {
+			return smarthooks.Options{}, false
+		}
+		first, ok := v.List()[0].(map[string]interface{})
+		if !ok {
+			return smarthooks.Options{}, false
+		}
+		return smarthookoptions.Inflate(first), true
+	case map[string]interface{}:
+		return smarthookoptions.Inflate(v), true
+	default:
+		return smarthooks.Options{}, false
+	}
+}
+
 func validTypes(val interface{}, key string) (warns []string, errs []error) {
 	return utils.OneOfValue(key, val, []string{"pre-authentication", "user-migration"})
 }
@@ -134,8 +155,15 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 		}
 	}
 
-	if s["options"] != nil {
-		opts := smarthookoptions.Inflate(s["options"].(map[string]interface{}))
+	// options is a TypeSet of a nested resource, so Terraform hands this over
+	// as a *schema.Set holding one element. The old code asserted a map, which
+	// panicked the moment anybody set the block -- nothing noticed because the
+	// fixture that would have exercised it used pre-0.12 syntax and never
+	// reached the provider.
+	//
+	// A bare map is still accepted: callers that build the input themselves,
+	// the unit tests among them, pass the element directly.
+	if opts, ok := inflateOptions(s["options"]); ok {
 		out.Options = &opts
 	}
 
