@@ -49,13 +49,24 @@ type Certificate struct {
 	Value string `json:"value"`
 }
 
+// ConfigurationOpenId holds the OIDC settings on an app's Configuration tab.
+//
+// PostLogoutRedirectURI carries one or more URIs as a single newline- or
+// comma-separated string, matching how the API stores the connector's
+// post_logout_redirect_uri parameter. It is a pointer because the API treats a
+// present key as an assignment, giving three distinct requests:
+//
+//	nil            omit the key; leave the app's existing URIs alone
+//	pointer to ""  send ""; clear every URI configured on the app
+//	pointer to "…" send the value; replace the app's URIs
 type ConfigurationOpenId struct {
-	RedirectURI                   string `json:"redirect_uri"`
-	LoginURL                      string `json:"login_url"`
-	OidcApplicationType           int    `json:"oidc_application_type"`
-	TokenEndpointAuthMethod       int    `json:"token_endpoint_auth_method"`
-	AccessTokenExpirationMinutes  int    `json:"access_token_expiration_minutes"`
-	RefreshTokenExpirationMinutes int    `json:"refresh_token_expiration_minutes"`
+	RedirectURI                   string  `json:"redirect_uri"`
+	PostLogoutRedirectURI         *string `json:"post_logout_redirect_uri,omitempty"`
+	LoginURL                      string  `json:"login_url"`
+	OidcApplicationType           int     `json:"oidc_application_type"`
+	TokenEndpointAuthMethod       int     `json:"token_endpoint_auth_method"`
+	AccessTokenExpirationMinutes  int     `json:"access_token_expiration_minutes"`
+	RefreshTokenExpirationMinutes int     `json:"refresh_token_expiration_minutes"`
 }
 
 type ConfigurationSAML struct {
