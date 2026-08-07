@@ -55,11 +55,30 @@ func TestIncludeAmrClaims(t *testing.T) {
 		}
 	})
 
-	t.Run("ignores a value that is not a boolean", func(t *testing.T) {
-		// Better left out than silently read as false, which would switch the
-		// claim off on the strength of a typo.
-		if got := inflate(t, base(map[string]interface{}{"include_amr_claims": "yes please"})); strings.Contains(got, `"include_amr_claims":`) {
-			t.Fatalf("expected an unparseable value to be omitted, got %s", got)
+	t.Run("rejects a value that is not a boolean", func(t *testing.T) {
+		// Dropping it would leave the key in the configuration and out of
+		// state: a diff every plan reports and no apply can settle. Erroring
+		// says so once, and names the offending value.
+		_, err := Inflate(base(map[string]interface{}{"include_amr_claims": "yes please"}))
+
+		if err == nil {
+			t.Fatal("expected an unparseable value to be rejected")
+		}
+		if !strings.Contains(err.Error(), "include_amr_claims") {
+			t.Fatalf("expected the field name in the error, got %v", err)
+		}
+		if !strings.Contains(err.Error(), "yes please") {
+			t.Fatalf("expected the offending value in the error, got %v", err)
+		}
+	})
+
+	t.Run("accepts the spellings ParseBool takes", func(t *testing.T) {
+		// Terraform renders a bool into a string map as "true"/"false", but a
+		// practitioner may well write "1" or "TRUE" by hand.
+		for _, in := range []string{"true", "TRUE", "True", "1", "t"} {
+			if _, err := Inflate(base(map[string]interface{}{"include_amr_claims": in})); err != nil {
+				t.Fatalf("expected %q to be accepted, got %v", in, err)
+			}
 		}
 	})
 
