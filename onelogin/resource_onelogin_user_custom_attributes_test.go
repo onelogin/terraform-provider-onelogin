@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -168,28 +169,33 @@ func TestUserCustomAttributeDefinitionUpdateInput(t *testing.T) {
 }
 
 func TestAccUserCustomAttributes_basic(t *testing.T) {
+	// Inline rather than a fixture, so the token is substituted here. Custom
+	// attribute shortnames are unique per tenant, and a definition left behind
+	// by an earlier run would otherwise collide.
+	suffix := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckUserCustomAttributesConfig(),
+				Config: testAccCheckUserCustomAttributesConfig(suffix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("onelogin_user_custom_attributes.test_attr", "name", "Test Attribute"),
-					resource.TestCheckResourceAttr("onelogin_user_custom_attributes.test_attr", "shortname", "test_attr"),
+					resource.TestCheckResourceAttr("onelogin_user_custom_attributes.test_attr", "shortname", "test_attr_"+suffix),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckUserCustomAttributesConfig() string {
-	return `
+func testAccCheckUserCustomAttributesConfig(suffix string) string {
+	return strings.ReplaceAll(`
 resource onelogin_user_custom_attributes test_attr {
   name      = "Test Attribute"
-  shortname = "test_attr"
+  shortname = "test_attr_acctest"
 }
-`
+`, fixtureUniqueToken, suffix)
 }
 
 // TestAccUserCustomAttributes_position walks a definition through the lifecycle
@@ -238,16 +244,20 @@ resource onelogin_user_custom_attributes positioned_attr {
 }
 
 func TestAccUserCustomAttributesWithUser_basic(t *testing.T) {
+	// This config is inline rather than a fixture, so it needs the token
+	// substituted here: OneLogin enforces unique usernames per tenant.
+	suffix := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckUserCustomAttributesWithUserConfig(),
+				Config: testAccCheckUserCustomAttributesWithUserConfig(suffix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_users.test_user", "username", "test.user.for.attrs"),
+					resource.TestCheckResourceAttrSet("onelogin_users.test_user", "username"),
 					resource.TestCheckResourceAttr("onelogin_user_custom_attributes.test_attr", "name", "Test Attribute"),
-					resource.TestCheckResourceAttr("onelogin_user_custom_attributes.test_attr", "shortname", "test_attr"),
+					resource.TestCheckResourceAttr("onelogin_user_custom_attributes.test_attr", "shortname", "test_attr_"+suffix),
 					resource.TestCheckResourceAttrSet("onelogin_user_custom_attributes.user_attr_value", "user_id"),
 					resource.TestCheckResourceAttr("onelogin_user_custom_attributes.user_attr_value", "value", "test_value"),
 				),
@@ -256,16 +266,16 @@ func TestAccUserCustomAttributesWithUser_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckUserCustomAttributesWithUserConfig() string {
-	return `
+func testAccCheckUserCustomAttributesWithUserConfig(suffix string) string {
+	return strings.ReplaceAll(`
 resource onelogin_users test_user {
-  username = "test.user.for.attrs"
-  email    = "test.user.attrs@example.com"
+  username = "test.user.for.attrs.acctest"
+  email    = "test.user.attrs.acctest@example.com"
 }
 
 resource onelogin_user_custom_attributes test_attr {
   name      = "Test Attribute"
-  shortname = "test_attr"
+  shortname = "test_attr_acctest"
 }
 
 resource onelogin_user_custom_attributes user_attr_value {
@@ -273,5 +283,5 @@ resource onelogin_user_custom_attributes user_attr_value {
   shortname = onelogin_user_custom_attributes.test_attr.shortname
   value     = "test_value"
 }
-`
+`, fixtureUniqueToken, suffix)
 }

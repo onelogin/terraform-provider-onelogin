@@ -200,13 +200,12 @@ func FlattenOIDC(config models.ConfigurationOpenId) map[string]interface{} {
 		tfOut["refresh_token_expiration_minutes"] = strconv.FormatInt(int64(config.RefreshTokenExpirationMinutes), 10)
 	}
 
-	if config.OidcApplicationType != 0 {
-		tfOut["oidc_application_type"] = strconv.FormatInt(int64(config.OidcApplicationType), 10)
-	}
-
-	if config.TokenEndpointAuthMethod != 0 {
-		tfOut["token_endpoint_auth_method"] = strconv.FormatInt(int64(config.TokenEndpointAuthMethod), 10)
-	}
+	// Always written, unlike the timeouts below. Zero is a real value for both
+	// of these -- application type 0 is Web and auth method 0 is basic -- so
+	// skipping it kept the most common configuration out of state entirely,
+	// and the plan never settled.
+	tfOut["oidc_application_type"] = strconv.FormatInt(int64(config.OidcApplicationType), 10)
+	tfOut["token_endpoint_auth_method"] = strconv.FormatInt(int64(config.TokenEndpointAuthMethod), 10)
 
 	if config.AccessTokenExpirationMinutes != 0 {
 		tfOut["access_token_expiration_minutes"] = strconv.FormatInt(int64(config.AccessTokenExpirationMinutes), 10)
@@ -278,11 +277,18 @@ func Flatten(config map[string]interface{}) map[string]interface{} {
 			tfOut["refresh_token_expiration_minutes"] = strconv.FormatInt(int64(val), 10)
 		}
 
-		if val, ok := config["oidc_application_type"].(float64); ok && val != 0 {
+		// Zero is a real value for both of these -- application type 0 is Web,
+		// auth method 0 is basic -- and the API omits them at zero rather than
+		// returning it. Defaulting to "0" is what an OIDC app without them
+		// actually is, and skipping them kept the commonest configuration out
+		// of state entirely, so the plan never settled.
+		tfOut["oidc_application_type"] = "0"
+		if val, ok := config["oidc_application_type"].(float64); ok {
 			tfOut["oidc_application_type"] = strconv.FormatInt(int64(val), 10)
 		}
 
-		if val, ok := config["token_endpoint_auth_method"].(float64); ok && val != 0 {
+		tfOut["token_endpoint_auth_method"] = "0"
+		if val, ok := config["token_endpoint_auth_method"].(float64); ok {
 			tfOut["token_endpoint_auth_method"] = strconv.FormatInt(int64(val), 10)
 		}
 

@@ -32,6 +32,12 @@ func resourceOneLoginGroups() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			// The API accepts reference in a create or update payload and
+			// then neither stores nor returns it, so a configuration setting
+			// it plans the same change on every run. Computed keeps an omitted
+			// value from diffing; a set one still will. Whether this attribute
+			// should exist at all is a question for the next major, alongside
+			// the sso change held in #236.
 			"reference": {
 				Type:     schema.TypeString,
 				Optional: true,
