@@ -82,23 +82,33 @@ func Inflate(s map[string]interface{}) models.Parameter {
 		out.Label = st
 	}
 
-	if st, notNil = s["user_attribute_mappings"].(string); notNil {
+	// These are interface{} on the model, and an interface holding "" is not
+	// empty for encoding/json -- only a nil interface is. Assigning whatever
+	// Terraform reports therefore sent `"values": ""` for a parameter the API
+	// had returned as null, and the API stores what it is sent. An update
+	// touching only the app description rewrote all four.
+	//
+	// Leaving them nil omits them, and the app endpoint merges its PUT rather
+	// than replacing, so an untouched field keeps whatever it already had.
+	// default_values carries no omitempty and so goes out as an explicit null,
+	// which the API also treats as "no value" -- the state it was already in.
+	if st, notNil = s["user_attribute_mappings"].(string); notNil && st != "" {
 		out.UserAttributeMappings = st
 	}
 
-	if st, notNil = s["user_attribute_macros"].(string); notNil {
+	if st, notNil = s["user_attribute_macros"].(string); notNil && st != "" {
 		out.UserAttributeMacros = st
 	}
 
-	if st, notNil = s["attributes_transformations"].(string); notNil {
+	if st, notNil = s["attributes_transformations"].(string); notNil && st != "" {
 		out.AttributesTransformations = st
 	}
 
-	if st, notNil = s["values"].(string); notNil {
+	if st, notNil = s["values"].(string); notNil && st != "" {
 		out.Values = st
 	}
 
-	if st, notNil = s["default_values"].(string); notNil {
+	if st, notNil = s["default_values"].(string); notNil && st != "" {
 		out.DefaultValues = st
 	}
 
