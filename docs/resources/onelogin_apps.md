@@ -27,18 +27,18 @@ resource onelogin_apps my_app {
     enabled = false
   }
 
-  parameters = {
+  parameters {
     safe_entitlements_enabled = false
     user_attribute_mappings = ""
     provisioned_entitlements = false
     skip_if_blank = false
     user_attribute_macros = ""
     attributes_transformations = ""
-    default_values = ""
+    default_values = ["default"]
     include_in_saml_assertion = false
     label = "username"
     param_key_name = "user name"
-    values = ""
+    values = ["user.email"]
   }
 }
 ```
@@ -77,13 +77,13 @@ The following arguments are supported:
 
   * `attributes_transformations` - (Optional) Describes how the app's attributes should be transformed.
 
-  * `default_values` - (Optional) Default Parameter values.
+  * `default_values` - (Optional) A list of default parameter values. A single value is sent to OneLogin as a plain string and several as an array, matching how the API stores them.
 
   * `include_in_saml_assertion` - (Optional) When true, this parameter will be included in a SAML assertion payload.
 
   * `label` - (Optional) The can only be set when creating a new parameter. It can not be updated.
 
-  * `values` - (Optional) Parameter values.
+  * `values` - (Optional) A list of parameter values. A single value is sent to OneLogin as a plain string and several as an array, matching how the API stores them.
 
 ## Attributes Reference
 
@@ -116,7 +116,7 @@ The following arguments are supported:
 * `parameters` - The parameters section contains parameterized attributes that have defined at the connector level as well as custom attributes that have been defined specifically for this app. Regardless of how they are defined, all parameters have the following attributes.
     * `attributes_transformations` - Describes how the app's attributes should be transformed.
 
-    * `default_values` -  Default Parameter values.
+    * `default_values` - The list of default parameter values.
 
     * `include_in_saml_assertion` - Dictates if the parameter needs to be included in a SAML assertion
 
@@ -136,7 +136,7 @@ The following arguments are supported:
 
     * `user_attribute_mappings` - A user attribute to map values from. For custom attributes the name of the attribute is prefixed with `custom_attribute_`.
 
-    * `values` - Parameter values.
+    * `values` - The list of parameter values.
 
 * `provisioning` -  Settings regarding the app's provisioning ability.
     * `enabled` - Indicates if provisioning is enabled for this app.
