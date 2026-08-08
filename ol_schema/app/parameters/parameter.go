@@ -1,6 +1,9 @@
 package appparametersschema
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
@@ -37,10 +40,14 @@ func Schema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		// A list, because the API can hold several values here and a string
+		// cannot say so. See SchemaV0 for what this used to be and
+		// UpgradeParameterValuesV0 for how old state is carried across.
 		"default_values": &schema.Schema{
-			Type:     schema.TypeString,
+			Type:     schema.TypeList,
 			Optional: true,
 			Computed: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"skip_if_blank": &schema.Schema{
 			Type:     schema.TypeBool,
@@ -48,9 +55,10 @@ func Schema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"values": &schema.Schema{
-			Type:     schema.TypeString,
+			Type:     schema.TypeList,
 			Optional: true,
 			Computed: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"provisioned_entitlements": &schema.Schema{
 			Type:     schema.TypeBool,
@@ -130,6 +138,56 @@ func RetainManaged(prior interface{}, flattened []map[string]interface{}) []map[
 	return out
 }
 
+// parameterValues turns the list the schema declares into the shape the API
+// takes: nil for nothing, a bare string for one value, an array for several.
+func parameterValues(raw interface{}) interface{} {
+	values, ok := raw.([]interface{})
+	if !ok {
+		return nil
+	}
+
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if str, ok := value.(string); ok {
+			out = append(out, str)
+		}
+	}
+
+	switch len(out) {
+	case 0:
+		// Nothing at all, which is not the same as [""] -- the API keeps an
+		// empty string as a value and returns it.
+		return nil
+	case 1:
+		return out[0]
+	default:
+		return out
+	}
+}
+
+// parameterValueList turns whatever the API reported into the list the schema
+// declares. The same field is a string on one parameter and an array on
+// another, decided by nothing but what was last written to it.
+func parameterValueList(raw interface{}) []interface{} {
+	switch typed := raw.(type) {
+	case string:
+		return []interface{}{typed}
+	case []interface{}:
+		out := make([]interface{}, 0, len(typed))
+		for _, item := range typed {
+			out = append(out, fmt.Sprint(item))
+		}
+		return out
+	case []string:
+		out := make([]interface{}, 0, len(typed))
+		for _, item := range typed {
+			out = append(out, item)
+		}
+		return out
+	}
+	return nil
+}
+
 // Inflate takes a map of interfaces and uses the fields to construct
 // a Parameter instance.
 func Inflate(s map[string]interface{}) models.Parameter {
@@ -164,13 +222,16 @@ func Inflate(s map[string]interface{}) models.Parameter {
 		out.AttributesTransformations = st
 	}
 
-	if st, notNil = s["values"].(string); notNil && st != "" {
-		out.Values = st
-	}
-
-	if st, notNil = s["default_values"].(string); notNil && st != "" {
-		out.DefaultValues = st
-	}
+	// One value goes out as a bare string, several as an array.
+	//
+	// The API stores exactly what it is sent and hands it back unchanged --
+	// "x" stays "x" and ["x"] stays ["x"], neither is normalised into the
+	// other. Sending a single value as a one-element array would therefore
+	// rewrite the stored shape of every parameter that has been a string until
+	// now, which is all of them, for no gain. An array is used only where a
+	// string cannot express the value.
+	out.Values = parameterValues(s["values"])
+	out.DefaultValues = parameterValues(s["default_values"])
 
 	if b, notNil = s["skip_if_blank"].(bool); notNil {
 		out.SkipIfBlank = b
@@ -211,10 +272,20 @@ func Flatten(params map[string]models.Parameter) []map[string]interface{} {
 			"user_attribute_macros":      v.UserAttributeMacros,
 			"attributes_transformations": v.AttributesTransformations,
 			"skip_if_blank":              v.SkipIfBlank,
-			"values":                     v.Values,
-			"default_values":             v.DefaultValues,
 			"provisioned_entitlements":   v.ProvisionedEntitlements,
 			"include_in_saml_assertion":  v.IncludeInSamlAssertion,
+		}
+
+		// Absent stays absent, the same rule FlattenV4 follows: a field the
+		// API said nothing about is left out rather than written as an empty
+		// list. Both functions flatten the same parameters for different
+		// resources -- Flatten for onelogin_apps, FlattenV4 for the oidc and
+		// saml ones -- so they have no business shaping state differently.
+		if values := parameterValueList(v.Values); values != nil {
+			param["values"] = values
+		}
+		if values := parameterValueList(v.DefaultValues); values != nil {
+			param["default_values"] = values
 		}
 
 		// Absent stays absent: nil is a parameter the API said nothing about,
@@ -260,11 +331,14 @@ func FlattenV4(params map[string]interface{}) []map[string]interface{} {
 				param["skip_if_blank"] = val
 			}
 
-			if val, ok := paramMap["values"].(string); ok {
+			// Both shapes, because the API returns whichever was last
+			// written. A null is left out entirely, keeping "never set"
+			// distinct from "set to nothing".
+			if val := parameterValueList(paramMap["values"]); val != nil {
 				param["values"] = val
 			}
 
-			if val, ok := paramMap["default_values"].(string); ok {
+			if val := parameterValueList(paramMap["default_values"]); val != nil {
 				param["default_values"] = val
 			}
 
@@ -286,4 +360,73 @@ func FlattenV4(params map[string]interface{}) []map[string]interface{} {
 		}
 	}
 	return out
+}
+
+// SchemaV0 is the parameter schema as it was before default_values and values
+// became lists. The state upgrader needs it to decode state written by an
+// earlier provider version -- without it Terraform tries to read a string as a
+// list and the resource cannot be refreshed at all.
+//
+// Derived from the current schema rather than restated, so a field added later
+// appears here too and only the two that actually changed are described twice.
+func SchemaV0() map[string]*schema.Schema {
+	v0 := Schema()
+	for _, field := range []string{"values", "default_values"} {
+		v0[field] = &schema.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		}
+	}
+	return v0
+}
+
+// UpgradeParameterValuesV0 rewrites a parameter's values and default_values
+// from the string they used to be into the list they are now.
+//
+// The rules come from what the API does rather than what the string looks like:
+// it stores exactly what it is given and returns it unchanged, so a stored
+// "a,b" is one value containing a comma, not two values.
+//
+//	""     -> []        nothing. Inflate has always skipped an empty string, so
+//	                    turning it into [""] would start sending a value where
+//	                    none was sent before -- and [""] is a value the API
+//	                    keeps and returns.
+//	"a,b"  -> ["a,b"]   one value. Splitting on the comma would change what the
+//	                    app sends to its service provider, silently, during an
+//	                    upgrade nobody asked to be creative.
+//	absent -> absent    nothing to say.
+func UpgradeParameterValuesV0(ctx context.Context, state map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	parameters, ok := state["parameters"].([]interface{})
+	if !ok {
+		return state, nil
+	}
+
+	for _, raw := range parameters {
+		parameter, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		for _, field := range []string{"values", "default_values"} {
+			value, present := parameter[field]
+			if !present || value == nil {
+				continue
+			}
+
+			str, ok := value.(string)
+			if !ok {
+				// Already a list, so this state has been through the upgrade
+				// or was written by a newer version. Leave it be.
+				continue
+			}
+			if str == "" {
+				parameter[field] = []interface{}{}
+				continue
+			}
+			parameter[field] = []interface{}{str}
+		}
+	}
+
+	return state, nil
 }

@@ -3,6 +3,8 @@ package onelogin
 import (
 	"fmt"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -28,6 +30,7 @@ func TestAccSAMLApp_crud(t *testing.T) {
 					checkParameterExists("onelogin_saml_apps.saml", "firstname"),
 					checkParameterExists("onelogin_saml_apps.saml", "lastname"),
 					checkParameterExists("onelogin_saml_apps.saml", "department"),
+					checkParameterValues("onelogin_saml_apps.saml", "multivalued", "one", "two"),
 				),
 			},
 			{
@@ -42,6 +45,7 @@ func TestAccSAMLApp_crud(t *testing.T) {
 					checkParameterExists("onelogin_saml_apps.saml", "lastname"),
 					checkParameterExists("onelogin_saml_apps.saml", "department"),
 					checkParameterExists("onelogin_saml_apps.saml", "title"),
+					checkParameterValues("onelogin_saml_apps.saml", "multivalued", "one", "two", "three"),
 				),
 			},
 		},
@@ -69,6 +73,37 @@ func checkParameterExists(resourceName, keyName string) resource.TestCheckFunc {
 			if paramKeyName.MatchString(k) && v == keyName {
 				return nil
 			}
+		}
+
+		return fmt.Errorf("Parameter with key_name %s not found in %s", keyName, resourceName)
+	}
+}
+
+// checkParameterValues asserts a parameter's default_values, which is the list
+// #239 reported the provider could not represent. Parameters are a set, so the
+// element has to be found by key name rather than addressed by index.
+func checkParameterValues(resourceName, keyName string, want ...string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Resource %s not found", resourceName)
+		}
+
+		for k, v := range rs.Primary.Attributes {
+			if !paramKeyName.MatchString(k) || v != keyName {
+				continue
+			}
+
+			prefix := strings.TrimSuffix(k, "param_key_name") + "default_values"
+			if got := rs.Primary.Attributes[prefix+".#"]; got != strconv.Itoa(len(want)) {
+				return fmt.Errorf("expected %d default_values on %s, got %q", len(want), keyName, got)
+			}
+			for i, value := range want {
+				if got := rs.Primary.Attributes[fmt.Sprintf("%s.%d", prefix, i)]; got != value {
+					return fmt.Errorf("expected default_values[%d] of %s to be %q, got %q", i, keyName, value, got)
+				}
+			}
+			return nil
 		}
 
 		return fmt.Errorf("Parameter with key_name %s not found in %s", keyName, resourceName)

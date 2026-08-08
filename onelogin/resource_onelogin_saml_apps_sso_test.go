@@ -2,42 +2,41 @@ package onelogin
 
 import "testing"
 
-// TestSamlAppSSOStaysConfigurable pins sso as Optional until a major release.
+// TestSamlAppSSOIsReadOnly pins sso as Computed only.
 //
-// The distinction that matters is Computed-only, not Computed. Three schemas
-// are possible and only one of them breaks anyone:
+// This inverts the guard that held the change back. Three schemas are possible
+// and the difference between them is who wins when a configuration sets sso:
 //
 //	Optional only          samlAppRead populates sso from the API, so a
 //	                       configuration that omits it has an empty value
 //	                       against populated state: a diff on every plan.
-//	Optional and Computed  configuration is still accepted, and an omitted
-//	                       attribute keeps what the API returned.
-//	Computed only          configuration that sets sso is rejected, so a plan
-//	                       that used to succeed now fails.
+//	Optional and Computed  configuration is accepted and then quietly ignored,
+//	                       because appschema.Inflate never sends it. What was
+//	                       written and what the app has can disagree forever
+//	                       with nothing to show for it.
+//	Computed only          configuration that sets sso is rejected outright.
 //
-// #236 asks for the last, because sso is read-only at the API and
-// appschema.Inflate has never sent it. That is breaking and waits for the next
-// major. Until then Optional must hold, so this test guards the one property
-// that would break a practitioner — not Computed, which is wanted.
+// #236 asked for the last, and this is the release that can take it. Every sso
+// attribute is read-only at the API -- the certificate, the ACS and metadata
+// URLs, the issuer -- so a practitioner writing one was describing something
+// they never had any way to change.
 //
-// When the major comes: drop Optional, set Computed only, invert this test,
-// and re-close #236.
-func TestSamlAppSSOStaysConfigurable(t *testing.T) {
+// This is breaking on purpose: a configuration that sets sso now fails to
+// validate rather than pretending to work.
+func TestSamlAppSSOIsReadOnly(t *testing.T) {
 	sso := SAMLApps().Schema["sso"]
 
 	if sso == nil {
 		t.Fatal("expected the saml app schema to have an sso attribute")
 	}
 
-	// The whole guarantee. Optional false with Computed true is the breaking
-	// shape; Computed on its own is not.
-	if !sso.Optional {
-		t.Fatal("sso stopped being Optional, which rejects any configuration that sets it — that belongs in a major release (#236)")
+	if sso.Optional {
+		t.Fatal("sso is Optional again, so a configuration can set a value the API will never accept — #236 asked for Computed only")
 	}
-
-	// Not a breaking change, and wanted: without it, a configuration that omits
-	// sso diffs against the value samlAppRead writes into state.
 	if !sso.Computed {
-		t.Fatal("expected sso to be Computed alongside Optional, so omitting it does not diff against what read populates")
+		t.Fatal("expected sso to be Computed: it is read-only, not absent, and read populates it")
+	}
+	if sso.Required {
+		t.Fatal("sso cannot be Required: nothing supplies it but the API")
 	}
 }

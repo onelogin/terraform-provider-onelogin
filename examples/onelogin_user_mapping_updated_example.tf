@@ -27,17 +27,22 @@ resource "onelogin_user_mappings" "example_mapping" {
   enabled = true
 
   # Original condition
+  # A domain of its own, not plain @example.com. The user and privilege
+  # fixtures create accounts at @example.com, and a mapping that outlives a
+  # failed run then rewrites them -- which is exactly what happened here: a
+  # leftover set_userprincipalname mapping made TestAccUser_crud fail with a
+  # userprincipalname nobody had configured.
   conditions {
     source   = "email"
     operator = "~"
-    value    = "@example.com"
+    value    = "@sales.example.com"
   }
 
   # Added condition
   conditions {
     source   = "email"
     operator = "~"
-    value    = "@partner.com"
+    value    = "@partner.example.com"
   }
 
   actions {

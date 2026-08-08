@@ -40,6 +40,16 @@ resource onelogin_saml_apps saml{
     include_in_saml_assertion = true
   }
 
+  # Several values in one parameter -- the shape #239 reported the provider
+  # could not represent at all. A single value is still written as a list;
+  # the provider sends it to the API as a bare string, which is the shape the
+  # API has always stored for it.
+  parameters {
+    param_key_name = "multivalued"
+    label          = "Groups"
+    default_values = ["one", "two", "three"]
+  }
+
   configuration = {
     signature_algorithm = "SHA-256"
   }
