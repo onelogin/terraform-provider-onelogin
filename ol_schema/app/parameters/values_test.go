@@ -3,6 +3,8 @@ package appparametersschema
 import (
 	"reflect"
 	"testing"
+
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 // TestParameterValues covers the shape sent to the API.
@@ -57,5 +59,35 @@ func TestParameterValueList(t *testing.T) {
 				t.Fatalf("expected %#v, got %#v", tc.want, got)
 			}
 		})
+	}
+}
+
+// TestFlattenOmitsUnreportedValues pins Flatten and FlattenV4 to the same rule.
+// They flatten the same parameters for different resources -- Flatten for
+// onelogin_apps, FlattenV4 for the oidc and saml ones -- so a field the API
+// said nothing about has to be left out by both, not written as an empty list
+// by one of them.
+func TestFlattenOmitsUnreportedValues(t *testing.T) {
+	fromStruct := Flatten(map[string]models.Parameter{
+		"groups": {Label: "Groups"},
+	})
+	if len(fromStruct) != 1 {
+		t.Fatalf("expected one parameter, got %v", fromStruct)
+	}
+
+	fromMap := FlattenV4(map[string]interface{}{
+		"groups": map[string]interface{}{"label": "Groups"},
+	})
+	if len(fromMap) != 1 {
+		t.Fatalf("expected one parameter, got %v", fromMap)
+	}
+
+	for _, field := range []string{"values", "default_values"} {
+		if _, present := fromStruct[0][field]; present {
+			t.Fatalf("Flatten wrote %q for a parameter the API said nothing about", field)
+		}
+		if _, present := fromMap[0][field]; present {
+			t.Fatalf("FlattenV4 wrote %q for a parameter the API said nothing about", field)
+		}
 	}
 }

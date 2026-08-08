@@ -272,10 +272,20 @@ func Flatten(params map[string]models.Parameter) []map[string]interface{} {
 			"user_attribute_macros":      v.UserAttributeMacros,
 			"attributes_transformations": v.AttributesTransformations,
 			"skip_if_blank":              v.SkipIfBlank,
-			"values":                     parameterValueList(v.Values),
-			"default_values":             parameterValueList(v.DefaultValues),
 			"provisioned_entitlements":   v.ProvisionedEntitlements,
 			"include_in_saml_assertion":  v.IncludeInSamlAssertion,
+		}
+
+		// Absent stays absent, the same rule FlattenV4 follows: a field the
+		// API said nothing about is left out rather than written as an empty
+		// list. Both functions flatten the same parameters for different
+		// resources -- Flatten for onelogin_apps, FlattenV4 for the oidc and
+		// saml ones -- so they have no business shaping state differently.
+		if values := parameterValueList(v.Values); values != nil {
+			param["values"] = values
+		}
+		if values := parameterValueList(v.DefaultValues); values != nil {
+			param["default_values"] = values
 		}
 
 		// Absent stays absent: nil is a parameter the API said nothing about,
