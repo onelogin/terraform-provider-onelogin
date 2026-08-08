@@ -27,7 +27,21 @@ func Apps() *schema.Resource {
 		DeleteContext: appDelete,
 		Importer:      &schema.ResourceImporter{},
 		Schema:        appschema.Schema(),
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Version: 0,
+				Type:    appsV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: appparametersschema.UpgradeParameterValuesV0,
+			},
+		},
 	}
+}
+
+// appsV0 describes state written before a parameter's values and
+// default_values became lists, so the upgrader can decode it.
+func appsV0() *schema.Resource {
+	return &schema.Resource{Schema: appschema.SchemaV0()}
 }
 
 // appCreate creates an app

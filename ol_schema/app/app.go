@@ -10,6 +10,26 @@ import (
 	appprovisioningschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
 )
 
+// SchemaV0 returns the app schema as it was before a parameter's values and
+// default_values became lists. The state upgrader needs it to decode state
+// written by an earlier provider version.
+//
+// Only parameters differ; the rest comes from Schema so the two cannot drift
+// apart as fields are added.
+func SchemaV0() map[string]*schema.Schema {
+	v0 := Schema()
+	v0["parameters"] = &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Computed: true,
+		Set:      appparametersschema.HashByKeyName,
+		Elem: &schema.Resource{
+			Schema: appparametersschema.SchemaV0(),
+		},
+	}
+	return v0
+}
+
 // Schema returns a key/value map of the various fields that make up an App at OneLogin.
 func Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{

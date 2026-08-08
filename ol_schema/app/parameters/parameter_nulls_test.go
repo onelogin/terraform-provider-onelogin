@@ -53,15 +53,40 @@ func TestInflateDoesNotSendEmptyStringsForUnsetFields(t *testing.T) {
 	t.Run("still sends values that are set", func(t *testing.T) {
 		got := marshal(t, map[string]interface{}{
 			"label":                 "Groups",
-			"values":                "memberOf",
-			"default_values":        "everyone",
+			"values":                []interface{}{"memberOf"},
+			"default_values":        []interface{}{"everyone"},
 			"user_attribute_macros": "{$user.email}",
 		})
 
+		// A single value goes out as a bare string, not ["memberOf"]. The API
+		// keeps whichever shape it is sent, so this is what stops the change
+		// rewriting every parameter that has been a string until now.
 		for _, want := range []string{`"values":"memberOf"`, `"default_values":"everyone"`, `"user_attribute_macros":"{$user.email}"`} {
 			if !strings.Contains(got, want) {
 				t.Fatalf("expected %s in %s", want, got)
 			}
+		}
+	})
+
+	t.Run("sends an array only when there is more than one value", func(t *testing.T) {
+		got := marshal(t, map[string]interface{}{
+			"label":  "Groups",
+			"values": []interface{}{"memberOf", "department"},
+		})
+
+		if !strings.Contains(got, `"values":["memberOf","department"]`) {
+			t.Fatalf("expected an array for several values, got %s", got)
+		}
+	})
+
+	t.Run("an empty list is nothing, an empty string is a value", func(t *testing.T) {
+		// [""] is not the same as []. The API stores an empty string and hands
+		// it back, so the two have to stay distinguishable.
+		if got := marshal(t, map[string]interface{}{"label": "Groups", "values": []interface{}{}}); strings.Contains(got, `"values"`) {
+			t.Fatalf("expected an empty list to send nothing, got %s", got)
+		}
+		if got := marshal(t, map[string]interface{}{"label": "Groups", "values": []interface{}{""}}); !strings.Contains(got, `"values":""`) {
+			t.Fatalf("expected [\"\"] to send an empty string, got %s", got)
 		}
 	})
 

@@ -27,28 +27,13 @@ func SAMLApps() *schema.Resource {
 		Optional: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
-	// Optional *and* Computed, which are three different schemas and only one
-	// of them breaks anyone:
-	//
-	//   Optional only          — samlAppRead populates sso from the API, so a
-	//                            configuration that omits it has an empty value
-	//                            against populated state: a diff on every plan.
-	//   Optional and Computed  — configuration is still accepted, and an
-	//                            omitted attribute keeps whatever the API
-	//                            returned instead of planning its removal.
-	//   Computed only          — configuration that sets sso is rejected, so a
-	//                            plan that used to succeed now fails.
-	//
-	// The last is what #236 actually asks for: OneLogin documents every sso
-	// attribute as read-only and appschema.Inflate has never sent the field, so
-	// configuring it writes something the provider discards. It is breaking, so
-	// it waits for the next major.
-	//
-	// This is the middle one. It fixes the perpetual diff now, without
-	// rejecting anybody's configuration.
+	// Computed only, so a configuration cannot set it. Every sso attribute is
+	// read-only at the API -- the certificate, the ACS and metadata URLs, the
+	// issuer -- and appschema.Inflate has never sent any of them. Accepting
+	// configuration for it meant a practitioner could write a value, see a
+	// clean apply, and get whatever OneLogin decided instead. #236.
 	appSchema["sso"] = &schema.Schema{
 		Type:     schema.TypeMap,
-		Optional: true,
 		Computed: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
@@ -59,7 +44,33 @@ func SAMLApps() *schema.Resource {
 		DeleteContext: samlAppDelete,
 		Importer:      &schema.ResourceImporter{},
 		Schema:        appSchema,
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Version: 0,
+				Type:    samlAppsV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: appparametersschema.UpgradeParameterValuesV0,
+			},
+		},
 	}
+}
+
+// samlAppsV0 describes state written before a parameter's values and
+// default_values became lists. sso is a map either way -- only whether a
+// configuration may set it changed, which does not affect decoding.
+func samlAppsV0() *schema.Resource {
+	appSchema := appschema.SchemaV0()
+	appSchema["configuration"] = &schema.Schema{
+		Type:     schema.TypeMap,
+		Optional: true,
+		Elem:     &schema.Schema{Type: schema.TypeString},
+	}
+	appSchema["sso"] = &schema.Schema{
+		Type:     schema.TypeMap,
+		Computed: true,
+		Elem:     &schema.Schema{Type: schema.TypeString},
+	}
+	return &schema.Resource{Schema: appSchema}
 }
 
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and

@@ -33,7 +33,28 @@ func OIDCApps() *schema.Resource {
 		DeleteContext: oidcAppDelete,
 		Importer:      &schema.ResourceImporter{},
 		Schema:        appSchema,
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Version: 0,
+				Type:    oidcAppsV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: appparametersschema.UpgradeParameterValuesV0,
+			},
+		},
 	}
+}
+
+// oidcAppsV0 describes state written before a parameter's values and
+// default_values became lists. configuration is unchanged and repeated here
+// only so the shape matches what was written.
+func oidcAppsV0() *schema.Resource {
+	appSchema := appschema.SchemaV0()
+	appSchema["configuration"] = &schema.Schema{
+		Type:     schema.TypeMap,
+		Optional: true,
+		Elem:     &schema.Schema{Type: schema.TypeString},
+	}
+	return &schema.Resource{Schema: appSchema}
 }
 
 // oidcAppCreate creates an OIDC app with all sub-resources
