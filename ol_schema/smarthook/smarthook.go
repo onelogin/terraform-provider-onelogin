@@ -47,6 +47,7 @@ func Schema() map[string]*schema.Schema {
 		"options": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: smarthookoptions.Schema(),
 			},
@@ -80,6 +81,27 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+	}
+}
+
+// inflateOptions reads the options block from either shape it can arrive in:
+// the *schema.Set Terraform produces for a TypeSet, or the element map a
+// caller building the input by hand would pass.
+func inflateOptions(raw interface{}) (smarthooks.Options, bool) {
+	switch v := raw.(type) {
+	case *schema.Set:
+		if v.Len() == 0 {
+			return smarthooks.Options{}, false
+		}
+		first, ok := v.List()[0].(map[string]interface{})
+		if !ok {
+			return smarthooks.Options{}, false
+		}
+		return smarthookoptions.Inflate(first), true
+	case map[string]interface{}:
+		return smarthookoptions.Inflate(v), true
+	default:
+		return smarthooks.Options{}, false
 	}
 }
 
@@ -134,8 +156,17 @@ func Inflate(s map[string]interface{}) smarthooks.SmartHook {
 		}
 	}
 
-	if s["options"] != nil {
-		opts := smarthookoptions.Inflate(s["options"].(map[string]interface{}))
+	// options is a TypeSet of a nested resource, so Terraform hands this over
+	// as a *schema.Set. The model holds a single Options struct, so the schema
+	// sets MaxItems: 1 and a second block is refused at plan time rather than
+	// being dropped here. The old code asserted a map, which
+	// panicked the moment anybody set the block -- nothing noticed because the
+	// fixture that would have exercised it used pre-0.12 syntax and never
+	// reached the provider.
+	//
+	// A bare map is still accepted: callers that build the input themselves,
+	// the unit tests among them, pass the element directly.
+	if opts, ok := inflateOptions(s["options"]); ok {
 		out.Options = &opts
 	}
 

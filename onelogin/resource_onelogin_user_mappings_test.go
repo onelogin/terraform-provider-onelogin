@@ -8,8 +8,15 @@ import (
 )
 
 func TestAccUserMapping_crud(t *testing.T) {
-	base := GetFixture("onelogin_user_mapping_example.tf", t)
-	update := GetFixture("onelogin_user_mapping_updated_example.tf", t)
+	// The fixtures were rewritten as fuller documentation at some point and
+	// these assertions were never updated with them: they described a
+	// "basic_test" mapping the files have not defined for years. Nothing
+	// noticed, because the suite could not run.
+	fixtures := GetFixtures([]string{
+		"onelogin_user_mapping_example.tf",
+		"onelogin_user_mapping_updated_example.tf",
+	}, t)
+	base, update := fixtures[0], fixtures[1]
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },
@@ -18,25 +25,30 @@ func TestAccUserMapping_crud(t *testing.T) {
 			{
 				Config: base,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "name", "Select Login"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "enabled", "true"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "match", "all"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "actions.0.action", "set_status"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "conditions.0.value", "90"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "conditions.0.source", "last_login"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "conditions.0.operator", ">"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "name", "Example Domain Mapping"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "enabled", "true"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "match", "all"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "conditions.0.source", "email"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "conditions.0.operator", "~"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "actions.0.action", "add_role"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.department_mapping", "name", "Department Based Mapping"),
 				),
 			},
 			{
 				Config: update,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "name", "Updated Login"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "enabled", "true"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "match", "all"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "actions.0.action", "set_status"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "conditions.0.value", "120"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "conditions.0.source", "last_login"),
-					resource.TestCheckResourceAttr("onelogin_user_mappings.basic_test", "conditions.0.operator", ">"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "name", "Updated Domain Mapping"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "enabled", "true"),
+					// "any", not "all". Switching the two is what the updated
+					// fixture is demonstrating, and the assertion had been
+					// asserting that the change did not happen.
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "match", "any"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "conditions.#", "2"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.example_mapping", "actions.1.action", "set_userprincipalname"),
+					resource.TestCheckResourceAttr("onelogin_user_mappings.department_mapping", "name", "Engineering Team Mapping"),
+					// One role per action: the API rejects two values in a
+					// single add_role.
+					resource.TestCheckResourceAttr("onelogin_user_mappings.department_mapping", "actions.#", "2"),
 				),
 			},
 		},

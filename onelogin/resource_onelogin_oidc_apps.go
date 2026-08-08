@@ -123,7 +123,7 @@ func oidcAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Handle parameters if they exist
 	if v, ok := appMap["parameters"]; ok {
 		if params, ok := v.(map[string]interface{}); ok {
-			d.Set("parameters", appparametersschema.FlattenV4(params))
+			d.Set("parameters", appparametersschema.RetainManaged(d.Get("parameters"), appparametersschema.FlattenV4(params)))
 		}
 	}
 
@@ -137,7 +137,7 @@ func oidcAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Handle configuration if it exists
 	if v, ok := appMap["configuration"]; ok {
 		if configData, ok := v.(map[string]interface{}); ok {
-			d.Set("configuration", appconfigurationschema.Flatten(configData))
+			d.Set("configuration", appconfigurationschema.RetainManaged(d.Get("configuration"), appconfigurationschema.Flatten(configData)))
 		}
 	}
 

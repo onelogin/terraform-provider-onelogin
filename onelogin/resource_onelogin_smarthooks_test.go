@@ -1,17 +1,91 @@
 package onelogin
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	ol "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 )
+
+// skipIfHookTypeExists skips when the tenant already has a hook of this type.
+//
+// A synchronous hook is a singleton: creating a second pre-authentication hook
+// is refused with
+//
+//	409 The 'pre-authentication' hook is synchronous and can only have one
+//	defined function
+//
+// so on any tenant with one configured this test cannot run. The alternative is
+// deleting whatever is there, and on a shared tenant that is somebody's live
+// authentication path -- not something to do for a green tick.
+func skipIfHookTypeExists(t *testing.T, hookType string) {
+	t.Helper()
+
+	// The SDK still insists on a subdomain even though every call goes to
+	// ONELOGIN_API_URL, and nothing has configured the provider this early.
+	//
+	// Derived from the URL, with no fallback to a bare ONELOGIN_SUBDOMAIN on
+	// purpose. Given only a subdomain the SDK builds <subdomain>.onelogin.com
+	// -- production -- and this would be the one thing in the run to contact
+	// it, since the provider refuses to configure without a url at all.
+	subdomain, err := subdomainFromURL(os.Getenv("ONELOGIN_API_URL"))
+	if err != nil {
+		t.Fatalf("could not work out the subdomain to check for an existing %s hook: %v", hookType, err)
+	}
+
+	// Put back whatever was there. configProvider sets this from the same URL
+	// moments later, so the value is not in dispute -- but a precheck leaving
+	// the process environment changed makes what a later test sees depend on
+	// whether this one ran, and that is worth not doing.
+	previous, wasSet := os.LookupEnv("ONELOGIN_SUBDOMAIN")
+	t.Cleanup(func() {
+		if wasSet {
+			os.Setenv("ONELOGIN_SUBDOMAIN", previous)
+			return
+		}
+		os.Unsetenv("ONELOGIN_SUBDOMAIN")
+	})
+	os.Setenv("ONELOGIN_SUBDOMAIN", subdomain)
+
+	client, err := ol.NewOneloginSDK()
+	if err != nil {
+		t.Fatalf("could not build a client to check for an existing %s hook: %v", hookType, err)
+	}
+
+	result, err := client.ListHooks(nil)
+	if err != nil {
+		t.Fatalf("could not list hooks: %v", err)
+	}
+
+	hooks, ok := result.([]interface{})
+	if !ok {
+		// Not a shape this check understands. Say so and let the test run
+		// rather than skipping on a guess.
+		t.Logf("could not read the hook list (%T); running anyway", result)
+		return
+	}
+
+	for _, raw := range hooks {
+		hook, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if hook["type"] == hookType {
+			t.Skipf("this tenant already has a %s hook, and it is a singleton: the API refuses a second one with a 409", hookType)
+		}
+	}
+}
 
 func TestAccSmartHook_crud(t *testing.T) {
 	base := GetFixture("onelogin_smarthooks_example.tf", t)
 	update := GetFixture("onelogin_smarthooks_updated_example.tf", t)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { TestAccPreCheck(t) },
+		PreCheck: func() {
+			TestAccPreCheck(t)
+			skipIfHookTypeExists(t, "pre-authentication")
+		},
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

@@ -32,6 +32,13 @@ func resourceOneLoginGroups() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			// The API accepts reference in a create or update payload and
+			// then neither stores nor returns it. Computed keeps an omitted
+			// value from diffing, and the read below leaves a set one alone
+			// rather than clearing it, so a configuration that uses the
+			// attribute still settles. Whether it should exist at all, given
+			// the API does nothing with it, is a question for the next major
+			// alongside the sso change held in #236.
 			"reference": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -118,8 +125,14 @@ func groupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	if err := d.Set("name", groupMap["name"]); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("reference", groupMap["reference"]); err != nil {
-		return diag.FromErr(err)
+	// Absent stays absent. The API drops reference rather than storing it, so
+	// it comes back null on every read, and writing that null cleared whatever
+	// the configuration had asked for -- a removal every plan proposed and the
+	// next read produced again.
+	if reference, present := groupMap["reference"]; present && reference != nil {
+		if err := d.Set("reference", reference); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return nil

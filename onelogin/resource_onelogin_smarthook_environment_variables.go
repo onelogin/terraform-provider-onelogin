@@ -101,8 +101,12 @@ func environmentVariablesRead(ctx context.Context, d *schema.ResourceData, m int
 func environmentVariablesUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*onelogin.OneloginSDK)
 
+	// Only "value". The endpoint takes the variable's ID from the URL and
+	// refuses a body carrying anything else -- both id and name come back as
+	// `instance is not allowed to have the additional property` and a 422 --
+	// so sending the id here meant no environment variable could ever be
+	// updated.
 	envVar := smarthookenvironmentvariablesschema.Inflate(map[string]interface{}{
-		"id":    d.Id(),
 		"value": d.Get("value"),
 	})
 

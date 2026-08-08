@@ -135,8 +135,10 @@ func privilegeRead(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 			d.Set("privilege", []map[string]interface{}{
 				{
-					"version":   version,
-					"statement": statements,
+					"version": version,
+					// The API returns the statements in an order of its own,
+					// and a TypeList treats order as part of the value.
+					"statement": privilegeschema.OrderStatementsLikeState(d.Get("privilege"), statements),
 				},
 			})
 		}

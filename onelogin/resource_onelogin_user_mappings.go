@@ -108,6 +108,16 @@ func userMappingRead(ctx context.Context, d *schema.ResourceData, m interface{})
 
 	result, err := client.GetUserMapping(mid32)
 	if err != nil {
+		// A mapping deleted outside Terraform is not an error to report, it is
+		// a resource to forget. Without this a plan fails outright instead of
+		// proposing to recreate it, and a destroy cannot finish at all.
+		if utils.IsNotFoundError(err) {
+			tflog.Info(ctx, "[NOT FOUND] User mapping not found, removing from state", map[string]interface{}{
+				"id": mid,
+			})
+			d.SetId("")
+			return nil
+		}
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "User Mapping", d.Id())
 	}
 
@@ -212,8 +222,10 @@ func userMappingDelete(ctx context.Context, d *schema.ResourceData, m interface{
 		"id": mid,
 	})
 
-	err := client.DeleteUserMapping(mid32)
-	if err != nil {
+	// A 404 is the state the delete was asking for, so it falls through to the
+	// same ending as a successful one. Reporting it would leave the mapping in
+	// state for the next run to fail on again.
+	if err := client.DeleteUserMapping(mid32); err != nil && !utils.IsNotFoundError(err) {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryDelete, "User Mapping", d.Id())
 	}
 

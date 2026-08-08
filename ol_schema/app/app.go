@@ -78,6 +78,7 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Optional: true,
 			Computed: true,
+			Set:      appparametersschema.HashByKeyName,
 			Elem: &schema.Resource{
 				Schema: appparametersschema.Schema(),
 			},

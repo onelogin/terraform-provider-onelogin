@@ -45,8 +45,20 @@ func StandardDeleteFunc(
 		"id": id,
 	})
 
-	_, err = deleteFunc(id)
-	if err != nil {
+	if _, err = deleteFunc(id); err != nil {
+		// A 404 is the state the delete was asking for. Something else got
+		// there first -- another practitioner, a cascade, a retried request
+		// whose first attempt landed -- and reporting that as a failure leaves
+		// the resource in state, so the next run tries to delete it again and
+		// fails again. A destroy that cannot finish is the worse outcome.
+		if IsNotFoundError(err) {
+			tflog.Info(ctx, fmt.Sprintf("[DELETED] %s was already gone", resourceType), map[string]interface{}{
+				"id": id,
+			})
+			d.SetId("")
+			return nil
+		}
+
 		tflog.Error(ctx, fmt.Sprintf("[ERROR] Error deleting %s", resourceType), map[string]interface{}{
 			"id":    id,
 			"error": err,

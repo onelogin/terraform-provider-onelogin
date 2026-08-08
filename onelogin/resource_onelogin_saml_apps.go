@@ -152,7 +152,7 @@ func samlAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Handle parameters if they exist
 	if v, ok := appMap["parameters"]; ok {
 		if params, ok := v.(map[string]interface{}); ok {
-			d.Set("parameters", appparametersschema.FlattenV4(params))
+			d.Set("parameters", appparametersschema.RetainManaged(d.Get("parameters"), appparametersschema.FlattenV4(params)))
 		}
 	}
 
@@ -172,7 +172,7 @@ func samlAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			tflog.Debug(ctx, "Configuration is a map", map[string]interface{}{
 				"config_data": configData,
 			})
-			flattenedConfig := appconfigurationschema.Flatten(configData)
+			flattenedConfig := appconfigurationschema.RetainManaged(d.Get("configuration"), appconfigurationschema.Flatten(configData))
 			tflog.Debug(ctx, "Flattened configuration", map[string]interface{}{
 				"flattened_config": flattenedConfig,
 			})

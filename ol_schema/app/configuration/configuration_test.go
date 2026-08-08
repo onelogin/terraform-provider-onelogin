@@ -281,8 +281,10 @@ func TestFlattenConfiguration(t *testing.T) {
 				PostLogoutRedirectURI: strPtr(""),
 			},
 			ExpectedOutput: map[string]interface{}{
-				"redirect_uri":             "test",
-				"post_logout_redirect_uri": "",
+				"redirect_uri":               "test",
+				"post_logout_redirect_uri":   "",
+				"oidc_application_type":      "0",
+				"token_endpoint_auth_method": "0",
 			},
 		},
 		"drops a nil post_logout_redirect_uri, which means the app never had URIs": {
@@ -291,6 +293,11 @@ func TestFlattenConfiguration(t *testing.T) {
 			},
 			ExpectedOutput: map[string]interface{}{
 				"redirect_uri": "test",
+				// Written even at zero, which is a real value: application
+				// type 0 is Web and auth method 0 is basic. Omitting them kept
+				// the commonest OIDC configuration out of state.
+				"oidc_application_type":      "0",
+				"token_endpoint_auth_method": "0",
 			},
 		},
 	}
@@ -321,10 +328,13 @@ func TestFlattenGenericConfiguration(t *testing.T) {
 				"redirect_uri":                     "https://example.com/callback",
 				"post_logout_redirect_uri":         "https://example.com/logout",
 				"login_url":                        "https://example.com/login",
+				"oidc_application_type":            "0",
 				"token_endpoint_auth_method":       "1",
 				"access_token_expiration_minutes":  "10",
 				"refresh_token_expiration_minutes": "20",
-				// oidc_application_type is 0, which Flatten drops as a zero value
+				// oidc_application_type 0 is Web, a real value, so it is kept.
+				// This case previously asserted it was dropped, which is the
+				// behaviour that kept the commonest OIDC app from converging.
 			},
 		},
 		"keeps a cleared post_logout_redirect_uri so the plan converges": {
@@ -333,8 +343,10 @@ func TestFlattenGenericConfiguration(t *testing.T) {
 				"post_logout_redirect_uri": "",
 			},
 			ExpectedOutput: map[string]interface{}{
-				"redirect_uri":             "https://example.com/callback",
-				"post_logout_redirect_uri": "",
+				"oidc_application_type":      "0",
+				"token_endpoint_auth_method": "0",
+				"redirect_uri":               "https://example.com/callback",
+				"post_logout_redirect_uri":   "",
 			},
 		},
 		"drops a null post_logout_redirect_uri, which means the app never had URIs": {
@@ -343,7 +355,9 @@ func TestFlattenGenericConfiguration(t *testing.T) {
 				"post_logout_redirect_uri": nil,
 			},
 			ExpectedOutput: map[string]interface{}{
-				"redirect_uri": "https://example.com/callback",
+				"oidc_application_type":      "0",
+				"token_endpoint_auth_method": "0",
+				"redirect_uri":               "https://example.com/callback",
 			},
 		},
 		"flattens comprehensive SAML configuration from API response": {

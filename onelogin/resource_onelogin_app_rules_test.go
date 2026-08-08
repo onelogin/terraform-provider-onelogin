@@ -7,8 +7,13 @@ import (
 )
 
 func TestAccAppRule_crud(t *testing.T) {
-	base := GetFixture("onelogin_app_rules_example.tf", t)
-	update := GetFixture("onelogin_app_rules_updated_example.tf", t)
+	// One suffix across both steps: the fixtures create the role the second
+	// rule checks for, and separate suffixes would rename it between steps.
+	fixtures := GetFixtures([]string{
+		"onelogin_app_rules_example.tf",
+		"onelogin_app_rules_updated_example.tf",
+	}, t)
+	base, update := fixtures[0], fixtures[1]
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { TestAccPreCheck(t) },

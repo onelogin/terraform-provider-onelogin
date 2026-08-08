@@ -142,7 +142,7 @@ func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 					paramMap[key] = param
 				}
 			}
-			d.Set("parameters", appparametersschema.Flatten(paramMap))
+			d.Set("parameters", appparametersschema.RetainManaged(d.Get("parameters"), appparametersschema.Flatten(paramMap)))
 		}
 	}
 

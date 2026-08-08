@@ -17,6 +17,32 @@ func TestSmartHookSchema(t *testing.T) {
 	})
 }
 
+// TestInflateUpdateBody pins the shape the update endpoint accepts. It takes
+// the variable's ID from the URL and rejects a body carrying anything but the
+// value, with `instance is not allowed to have the additional property "id"`,
+// so an update that inflates from the resource ID fails every time.
+func TestInflateUpdateBody(t *testing.T) {
+	out := Inflate(map[string]interface{}{"value": "987-654-321"})
+
+	if out.ID != nil {
+		t.Fatalf("expected no id in the update body, got %q", *out.ID)
+	}
+	if out.Name != nil {
+		t.Fatalf("expected no name in the update body, got %q", *out.Name)
+	}
+	if out.Value == nil || *out.Value != "987-654-321" {
+		t.Fatalf("expected the value to be carried through, got %v", out.Value)
+	}
+}
+
+// TestNameForcesNew records that the API cannot rename a variable, so a changed
+// name has to replace it rather than update it.
+func TestNameForcesNew(t *testing.T) {
+	if name := Schema()["name"]; !name.ForceNew {
+		t.Fatal("expected name to be ForceNew: the update endpoint refuses a name outright")
+	}
+}
+
 func TestInflate(t *testing.T) {
 	// Create test variables
 	id := "32f9dfee-a02c-4932-98ec-37838ce62ba0"

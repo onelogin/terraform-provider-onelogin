@@ -48,24 +48,29 @@ func TestAccSAMLApp_crud(t *testing.T) {
 	})
 }
 
-// checkParameterExists verifies that a parameter with the given key name exists in the SAML app
-func checkParameterExists(resourceName, paramKeyName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Create a regex pattern to match the parameter set item
-		pattern := regexp.MustCompile(fmt.Sprintf(`parameters\.\d+\.param_key_name\s*=\s*%s`, paramKeyName))
+// paramKeyName matches the state address of a parameter's key name. parameters
+// is a TypeSet, so the middle element is the set hash rather than an index.
+//
+// The pattern used to end in `\s*=\s*<name>` and was matched against the
+// attribute key, which is only ever an address -- so it matched nothing and no
+// parameter was ever found. The name belongs in the value comparison below,
+// which was already there and never reached.
+var paramKeyName = regexp.MustCompile(`^parameters\.\d+\.param_key_name$`)
 
+// checkParameterExists verifies that a parameter with the given key name exists in the SAML app
+func checkParameterExists(resourceName, keyName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Resource %s not found", resourceName)
 		}
 
-		// Iterate through all attributes to find matching parameters
 		for k, v := range rs.Primary.Attributes {
-			if pattern.MatchString(k) && v == paramKeyName {
+			if paramKeyName.MatchString(k) && v == keyName {
 				return nil
 			}
 		}
 
-		return fmt.Errorf("Parameter with key_name %s not found in %s", paramKeyName, resourceName)
+		return fmt.Errorf("Parameter with key_name %s not found in %s", keyName, resourceName)
 	}
 }

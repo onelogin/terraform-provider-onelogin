@@ -11,63 +11,72 @@ provider "onelogin" {
   # Set these variables with ONELOGIN_CLIENT_ID, ONELOGIN_CLIENT_SECRET environment variables
 }
 
+# Unchanged from the example this updates -- the roles the mappings assign.
+resource "onelogin_roles" "mapping_primary" {
+  name = "Mapping Example Primary acctest"
+}
+
+resource "onelogin_roles" "mapping_secondary" {
+  name = "Mapping Example Secondary acctest"
+}
+
 # Updated version of the example mapping
-resource "onelogin_user_mapping" "example_mapping" {
-  name     = "Updated Domain Mapping"  # Changed name
-  match    = "any"                     # Changed from "all" to "any"
-  enabled  = true
-  position = 3                         # Changed position
+resource "onelogin_user_mappings" "example_mapping" {
+  name    = "Updated Domain Mapping" # Changed name
+  match   = "any"                    # Changed from "all" to "any"
+  enabled = true
 
   # Original condition
   conditions {
     source   = "email"
-    operator = "contains"
+    operator = "~"
     value    = "@example.com"
   }
 
   # Added condition
   conditions {
     source   = "email"
-    operator = "contains" 
+    operator = "~"
     value    = "@partner.com"
   }
 
-  # Original action with updated role IDs
   actions {
-    action = "set_role"
-    value  = ["45678"]                # Updated role ID
+    action = "add_role"
+    value  = [onelogin_roles.mapping_primary.id]
   }
-  
-  # Added action to set custom attributes
+
+  # Added action, using a OneLogin macro rather than a Terraform interpolation.
+  # The doubled $ is HCL's escape: what reaches OneLogin is ${user.email}.
   actions {
     action = "set_userprincipalname"
-    value  = ["${user.email}"]        # Dynamic value using user's email
+    value  = ["$${user.email}"]
   }
 }
 
 # Updated version of the department mapping with different approach
-resource "onelogin_user_mapping" "department_mapping" {
-  name     = "Engineering Team Mapping"  # Updated name
-  match    = "all"
-  enabled  = true
-  position = 4                           # Updated position
+resource "onelogin_user_mappings" "department_mapping" {
+  name    = "Engineering Team Mapping" # Updated name
+  match   = "all"
+  enabled = true
 
   # Simplified condition - now just checking for Engineering department
   conditions {
     source   = "department"
-    operator = "equals"
-    value    = "Engineering"             # Changed from IT to Engineering
+    operator = "="
+    value    = "Engineering" # Changed from IT to Engineering
   }
 
-  # Set specific custom attribute for engineers
+  # Now assigning both roles -- one block each, because add_role takes a single
+  # value. Two IDs in one block are rejected with
+  # "Invalid action value(s): <both ids>", which names the values when what is
+  # actually wrong is the count.
   actions {
-    action = "set_custom_attribute"
-    value  = ["employee_type", "technical"]
+    action = "add_role"
+    value  = [onelogin_roles.mapping_primary.id]
   }
 
-  # Updated role assignments
   actions {
-    action = "set_role"
-    value  = ["34567", "56789"]          # Updated role IDs
+    action = "add_role"
+    value  = [onelogin_roles.mapping_secondary.id]
   }
 }

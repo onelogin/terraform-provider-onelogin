@@ -51,10 +51,16 @@ func dataSourceOneLoginGroupsRead(ctx context.Context, d *schema.ResourceData, m
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "OneLogin Groups", "")
 	}
 
-	// Parse the response into a slice of Group models
-	groupsData, ok := resp.([]interface{})
+	// GetGroups calls api/1/groups, which wraps its payload:
+	//
+	//	{"status": {...}, "pagination": {...}, "data": [ ... ]}
+	//
+	// Asserting a bare slice therefore always failed, and this data source
+	// could never have returned anything. A bare slice is still accepted, so
+	// this keeps working if the SDK moves to the v2 path, which returns one.
+	groupsData, ok := groupsFromResponse(resp)
 	if !ok {
-		return diag.Errorf("failed to parse groups response")
+		return diag.Errorf("failed to parse groups response: unexpected shape %T", resp)
 	}
 
 	groups := make([]models.Group, 0, len(groupsData))
@@ -101,4 +107,18 @@ func dataSourceOneLoginGroupsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	return nil
+}
+
+// groupsFromResponse pulls the group list out of either envelope the API uses:
+// the v1 {"data": [...]} wrapper, or a bare array.
+func groupsFromResponse(resp interface{}) ([]interface{}, bool) {
+	switch v := resp.(type) {
+	case []interface{}:
+		return v, true
+	case map[string]interface{}:
+		if data, ok := v["data"].([]interface{}); ok {
+			return data, true
+		}
+	}
+	return nil, false
 }

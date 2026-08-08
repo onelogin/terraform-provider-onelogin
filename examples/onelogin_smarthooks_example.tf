@@ -6,9 +6,9 @@ resource onelogin_smarthooks basic_test {
   }
   retries = 0
   timeout = 1
-  runtime =  "nodejs12.x"
+  runtime =  "nodejs22.x"
   disabled = false
-  options = {
+  options {
     risk_enabled = false
     location_enabled = false
   }

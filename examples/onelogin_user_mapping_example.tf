@@ -12,59 +12,60 @@ provider "onelogin" {
   # Or provide them directly here (not recommended for sensitive values)
 }
 
+# Mappings act on roles, so this example creates the ones it assigns rather than
+# naming IDs from somebody else's account. Point these at your own roles if you
+# already have them -- the API rejects an ID it does not recognise with
+# "Invalid action value(s)".
+resource "onelogin_roles" "mapping_primary" {
+  name = "Mapping Example Primary acctest"
+}
+
+resource "onelogin_roles" "mapping_secondary" {
+  name = "Mapping Example Secondary acctest"
+}
+
 # Basic user mapping that applies a role to users with email domain @example.com
-resource "onelogin_user_mapping" "example_mapping" {
-  name     = "Example Domain Mapping"
-  match    = "all"                  # Match all conditions
-  enabled  = true
-  position = 1                      # Order in which mappings are evaluated
+resource "onelogin_user_mappings" "example_mapping" {
+  name    = "Example Domain Mapping"
+  match   = "all" # Match all conditions
+  enabled = true
 
   # Condition to check if user's email contains @example.com
   conditions {
-    source   = "email"              # User attribute to check
-    operator = "contains"           # Operator for comparison
-    value    = "@example.com"       # Value to compare against
+    source   = "email"        # User attribute to check
+    operator = "~"            # Operator for comparison
+    value    = "@example.com" # Value to compare against
   }
 
   # Action to assign a role to matching users
-  # Note: Replace 12345 with actual role ID from your OneLogin account
   actions {
-    action = "set_role"
-    value  = ["12345"]
+    action = "add_role"
+    value  = [onelogin_roles.mapping_primary.id]
   }
 }
 
 # More complex user mapping with multiple conditions and actions
-resource "onelogin_user_mapping" "department_mapping" {
-  name     = "Department Based Mapping"
-  match    = "all"                  # Match all conditions
-  enabled  = true
-  position = 2                      # Processed after the first mapping
+resource "onelogin_user_mappings" "department_mapping" {
+  name    = "Department Based Mapping"
+  match   = "all" # Match all conditions
+  enabled = true
 
   # Check if user belongs to IT department
   conditions {
     source   = "department"
-    operator = "equals"
+    operator = "="
     value    = "IT"
   }
 
   # Check if user's title contains "Engineer"
   conditions {
     source   = "title"
-    operator = "contains"
+    operator = "~"
     value    = "Engineer"
   }
 
-  # Assign multiple roles to matching users
-  # Note: Replace IDs with actual role IDs from your OneLogin account
   actions {
-    action = "set_role"
-    value  = ["23456", "34567"]
-  }
-
-  # Set the user's group memberships
-  actions {
-    action = "set_groups"
-    value  = ["Engineers", "IT Staff"]
+    action = "add_role"
+    value  = [onelogin_roles.mapping_primary.id]
   }
 }
