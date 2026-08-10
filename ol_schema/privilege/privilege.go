@@ -173,9 +173,18 @@ func statementKey(statement map[string]interface{}) string {
 	parts := []string{fmt.Sprint(statement["effect"])}
 
 	for _, field := range []string{"action", "scope"} {
-		values, _ := toStrings(statement[field])
+		values, ok := toStrings(statement[field])
+		if !ok {
+			// Not a list at all. Keyed distinctly from an empty list, and by
+			// what it actually was, so two statements that merely both have an
+			// unreadable field cannot match each other and get paired up. The
+			// "L"/"X" prefix keeps the two cases from ever colliding, whatever
+			// the values happen to contain.
+			parts = append(parts, "X"+fmt.Sprint(statement[field]))
+			continue
+		}
 		sort.Strings(values)
-		parts = append(parts, strings.Join(values, "\x00"))
+		parts = append(parts, "L"+strings.Join(values, "\x00"))
 	}
 	return strings.Join(parts, "\x00|\x00")
 }

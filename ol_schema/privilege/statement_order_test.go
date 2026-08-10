@@ -165,6 +165,28 @@ func TestOrderStatementsLikeState(t *testing.T) {
 		}
 	})
 
+	t.Run("an unreadable field is not the same as an empty one", func(t *testing.T) {
+		// action and scope are Required, so neither case should reach us. If
+		// one does, keying them alike would let two statements that have
+		// nothing in common match on their shared effect and be paired up.
+		missing := map[string]interface{}{"effect": "Allow", "scope": []interface{}{"*"}}
+		empty := map[string]interface{}{"effect": "Allow", "action": []interface{}{}, "scope": []interface{}{"*"}}
+		text := map[string]interface{}{"effect": "Allow", "action": "users:List", "scope": []interface{}{"*"}}
+
+		keys := map[string]string{
+			"missing action":  statementKey(missing),
+			"empty action":    statementKey(empty),
+			"action a string": statementKey(text),
+		}
+		seen := map[string]string{}
+		for name, key := range keys {
+			if other, clash := seen[key]; clash {
+				t.Fatalf("%s and %s share a statement key", name, other)
+			}
+			seen[key] = name
+		}
+	})
+
 	t.Run("does not mutate the response it was given", func(t *testing.T) {
 		configured := statement("Allow", "users:List", "users:Get")
 		returned := statement("Allow", "users:Get", "users:List")
