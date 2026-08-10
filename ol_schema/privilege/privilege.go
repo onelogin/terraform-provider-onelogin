@@ -49,7 +49,7 @@ func OrderStatementsLikeState(prior interface{}, statements []map[string]interfa
 		for i, statement := range statements {
 			if !used[i] && statementKey(statement) == key {
 				used[i] = true
-				out = append(out, statement)
+				out = append(out, orderValuesLikeState(priorStatement, statement))
 				break
 			}
 		}
@@ -99,37 +99,104 @@ func statementsFromState(prior interface{}) []map[string]interface{} {
 	return out
 }
 
-// statementKey identifies a statement by its contents. The action and scope
-// lists are sorted for the comparison only -- the values written to state are
-// the ones the API returned, untouched.
+// orderValuesLikeState puts the action and scope values of a matched statement
+// back into the order the configuration has them in.
 //
-// Untouched is safe: unlike the statements themselves, the API preserves the
-// order of the values inside one. A statement created with
-// ["users:List","users:Get","users:Update","users:Delete"] comes back in that
-// order on every read. Sorting here just means a statement is still recognised
-// if that ever stops being true.
+// The API does not preserve the order of the values inside a statement any more
+// than it preserves the order of the statements themselves: a statement written
+// as ["users:List","users:Get"] can be read back as ["users:Get","users:List"].
+// action and scope are TypeLists, so that is a changed value, and because
+// privilege is a TypeSet the changed value changes the element's hash -- which
+// is why the plan proposes removing the whole privilege block and adding it
+// back rather than editing it in place.
+//
+// Only values the prior statement already has are moved, and every value the
+// API returned is kept, so this reorders without ever inventing or dropping
+// one. A matched statement is copied rather than edited in place, so the
+// caller's map is left as it was. Statements that match nothing are passed
+// through as they arrived, and are the caller's own maps.
+func orderValuesLikeState(prior, statement map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{}, len(statement))
+	for key, value := range statement {
+		out[key] = value
+	}
+
+	for _, field := range []string{"action", "scope"} {
+		// A field the response did not give us as a list is left exactly as it
+		// arrived, rather than becoming an empty one. The test is the same one
+		// statementKey uses, so a statement can never match on its contents and
+		// then quietly skip the reordering -- that would be a perpetual diff
+		// with nothing to show for it.
+		values, ok := toStrings(statement[field])
+		if !ok {
+			continue
+		}
+		priorValues, _ := toStrings(prior[field])
+		out[field] = orderLikePrior(priorValues, values)
+	}
+	return out
+}
+
+// orderLikePrior returns returned, with the values prior names first and in
+// prior's order, then anything left over in the order the API gave it.
+func orderLikePrior(prior, returned []string) []interface{} {
+	used := make([]bool, len(returned))
+	out := make([]interface{}, 0, len(returned))
+
+	for _, want := range prior {
+		for i, got := range returned {
+			if !used[i] && got == want {
+				used[i] = true
+				out = append(out, got)
+				break
+			}
+		}
+	}
+
+	for i, got := range returned {
+		if !used[i] {
+			out = append(out, got)
+		}
+	}
+	return out
+}
+
+// statementKey identifies a statement by its contents. The action and scope
+// lists are sorted so that a statement is recognised as the same statement
+// however the API happens to have ordered its values; orderValuesLikeState then
+// restores the configuration's order in the value that reaches state.
+//
+// The separators are NUL so that a value containing one cannot forge a key:
+// joined on ",", ["a,b"] and ["a","b"] both render as "a,b" and compare equal.
+// No OneLogin action or scope contains a NUL.
 func statementKey(statement map[string]interface{}) string {
 	parts := []string{fmt.Sprint(statement["effect"])}
 
 	for _, field := range []string{"action", "scope"} {
-		values := toStrings(statement[field])
+		values, _ := toStrings(statement[field])
 		sort.Strings(values)
-		parts = append(parts, strings.Join(values, ","))
+		parts = append(parts, strings.Join(values, "\x00"))
 	}
-	return strings.Join(parts, "|")
+	return strings.Join(parts, "\x00|\x00")
 }
 
-func toStrings(value interface{}) []string {
-	items, ok := value.([]interface{})
-	if !ok {
-		return nil
+// toStrings reads the two shapes a statement's values arrive in: []interface{}
+// from a decoded API response, and []string from FlattenPrivilegeData. It
+// reports whether the value was one of them, so that callers can tell an empty
+// list from something that is not a list at all -- keying those the same would
+// make any two statements sharing an effect look identical.
+func toStrings(value interface{}) ([]string, bool) {
+	switch items := value.(type) {
+	case []interface{}:
+		out := make([]string, 0, len(items))
+		for _, item := range items {
+			out = append(out, fmt.Sprint(item))
+		}
+		return out, true
+	case []string:
+		return append([]string(nil), items...), true
 	}
-
-	out := make([]string, 0, len(items))
-	for _, item := range items {
-		out = append(out, fmt.Sprint(item))
-	}
-	return out
+	return nil, false
 }
 
 func Schema() map[string]*schema.Schema {
