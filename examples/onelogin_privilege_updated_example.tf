@@ -27,9 +27,10 @@ resource onelogin_privileges super_admin {
 		action = ["apps:List"]
 		scope = ["*"]
 	}
+	# A statement may grant several actions over the same scope.
 	statement {
 		effect = "Allow"
-		action = ["users:List"]
+		action = ["users:List", "users:Get", "users:Update", "users:Delete"]
 		scope = ["*"]
 	}
   }
