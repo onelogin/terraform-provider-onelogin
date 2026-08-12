@@ -40,7 +40,7 @@ func TestOIDCAppSSOIsReadOnlyAndSensitive(t *testing.T) {
 		t.Fatal("expected sso to be Sensitive: the map carries the OIDC client secret")
 	}
 	if sso.Type != schema.TypeMap {
-		t.Fatalf("expected sso to be a TypeMap, got %s", sso.Type)
+		t.Fatalf("expected sso to be a TypeMap, got %v", sso.Type)
 	}
 }
 

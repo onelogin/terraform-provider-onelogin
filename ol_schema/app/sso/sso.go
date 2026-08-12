@@ -102,6 +102,7 @@ func FlattenOIDCCredentials(ssoData map[string]interface{}) map[string]interface
 	return tfMap
 }
 
+// RetainSecret preserves a prior client_secret from Terraform state when the API response omits it (as OneLogin does after create).
 func RetainSecret(prior interface{}, flattened map[string]interface{}) map[string]interface{} {
 	if s, ok := flattened["client_secret"].(string); ok && s != "" {
 		return flattened
