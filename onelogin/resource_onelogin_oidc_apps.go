@@ -14,6 +14,7 @@ import (
 	appconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	appparametersschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
 	appprovisioningschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/provisioning"
+	appssoschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/sso"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
 
@@ -25,6 +26,17 @@ func OIDCApps() *schema.Resource {
 		Type:     schema.TypeMap,
 		Optional: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
+	}
+	// Computed only, so a configuration cannot set it, and Sensitive because
+	// the map carries the client secret. Every sso value is API-supplied --
+	// appschema.Inflate has never sent any of them. TypeMap cannot mark a
+	// single key sensitive, so the whole map is redacted; client_id needs
+	// nonsensitive() to reach a non-sensitive output.
+	appSchema["sso"] = &schema.Schema{
+		Type:      schema.TypeMap,
+		Computed:  true,
+		Elem:      &schema.Schema{Type: schema.TypeString},
+		Sensitive: true,
 	}
 	return &schema.Resource{
 		CreateContext: oidcAppCreate,
@@ -47,12 +59,26 @@ func OIDCApps() *schema.Resource {
 // oidcAppsV0 describes state written before a parameter's values and
 // default_values became lists. configuration is unchanged and repeated here
 // only so the shape matches what was written.
+//
+// sso is declared here defensively, not because decoding requires it.
+// StateUpgrader.Type is only consulted on the flatmap (Terraform 0.11) upgrade
+// path; JSON state goes straight into Upgrade as a raw map, and whatever
+// survives is then filtered against the *current* schema. Declaring sso in the
+// V0 schema keeps it out of that flatmap path's blind spot, so pre-refactor
+// state -- which carried it as a TypeMap -- still decodes cleanly instead of
+// relying on the current schema alone.
 func oidcAppsV0() *schema.Resource {
 	appSchema := appschema.SchemaV0()
 	appSchema["configuration"] = &schema.Schema{
 		Type:     schema.TypeMap,
 		Optional: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
+	}
+	appSchema["sso"] = &schema.Schema{
+		Type:      schema.TypeMap,
+		Computed:  true,
+		Elem:      &schema.Schema{Type: schema.TypeString},
+		Sensitive: true,
 	}
 	return &schema.Resource{Schema: appSchema}
 }
@@ -101,6 +127,19 @@ func oidcAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	})
 
 	d.SetId(fmt.Sprintf("%d", appID))
+
+	// The client secret appears in exactly one response: this one. OneLogin
+	// returns sso.client_secret only when an app is created -- the app read
+	// endpoint returns sso.client_id alone
+	// (https://developers.onelogin.com/api-docs/2/apps/app-resource). Capture
+	// it here or lose it permanently; oidcAppRead then preserves it on every
+	// later refresh via appssoschema.RetainSecret.
+	if v, ok := appMap["sso"]; ok {
+		if ssoData, ok := v.(map[string]interface{}); ok {
+			d.Set("sso", appssoschema.FlattenOIDCCredentials(ssoData))
+		}
+	}
+
 	return oidcAppRead(ctx, d, m)
 }
 
@@ -159,6 +198,20 @@ func oidcAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	if v, ok := appMap["configuration"]; ok {
 		if configData, ok := v.(map[string]interface{}); ok {
 			d.Set("configuration", appconfigurationschema.RetainManaged(d.Get("configuration"), appconfigurationschema.Flatten(configData)))
+		}
+	}
+
+	// Handle sso if it exists. client_id comes from the response; client_secret
+	// is retained from state, because OneLogin returns it only at create time.
+	if v, ok := appMap["sso"]; ok {
+		if ssoData, ok := v.(map[string]interface{}); ok {
+			sso := appssoschema.RetainSecret(d.Get("sso"), appssoschema.FlattenOIDCCredentials(ssoData))
+			if _, hasSecret := sso["client_secret"].(string); !hasSecret {
+				tflog.Debug(ctx, "[READ] OIDC app has no client_secret in state; it can only be captured when the app is created", map[string]interface{}{
+					"id": aid,
+				})
+			}
+			d.Set("sso", sso)
 		}
 	}
 

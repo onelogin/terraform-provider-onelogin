@@ -177,6 +177,29 @@ The following arguments are supported:
 
   * `token_endpoint_auth_method` - Indicates the token endpoint authentication method.
 
+* `sso` - The OIDC client credentials OneLogin generated for the app. `sso` is read only and cannot be set in configuration; OneLogin supplies every value.
+
+  * `client_id` - The OIDC client ID.
+
+  * `client_secret` - The OIDC client secret. Per the [OneLogin Apps Documentation](https://developers.onelogin.com/api-docs/2/apps/app-resource), `client_secret` is only ever returned by OneLogin when an app is created, so the provider captures it at create time and retains it in state thereafter. It is therefore available for apps **created by Terraform**, and **not available for imported apps** -- an import has no create response, and no later read can recover the secret. If the secret is rotated outside Terraform, the value in state goes stale and the provider cannot detect that, because it cannot read the current secret.
+
+  The whole `sso` map is marked sensitive because it carries the client secret. Terraform cannot mark individual map keys, so `client_id` is redacted too and needs `nonsensitive()` to be used in a non-sensitive output:
+
+  `client_secret` is omitted from the map for an imported app, or one created before this provider version, rather than present with an empty value, so indexing it directly (`sso.client_secret`) fails at plan time with an "Invalid index" error instead of returning an empty string. A configuration that must work for both Terraform-created and imported apps should use `lookup()` (or `try()`) with a default instead of a direct index:
+
+  ```hcl
+  output "oidc_client_id" {
+    value = nonsensitive(onelogin_oidc_apps.my_oidc_app.sso.client_id)
+  }
+
+  output "oidc_client_secret" {
+    value     = lookup(onelogin_oidc_apps.my_oidc_app.sso, "client_secret", "")
+    sensitive = true
+  }
+  ```
+
+  Note that sensitivity controls display only. The client secret is written to Terraform state in plaintext, so the state file must be treated as a secret.
+
 ## Import
 
 A OIDC App can be imported via the OneLogin App ID.

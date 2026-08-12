@@ -85,3 +85,43 @@ func Flatten(ssoData map[string]interface{}) map[string]interface{} {
 	// Return the flattened map
 	return tfMap
 }
+
+// FlattenOIDCCredentials takes the sso object from an OIDC app's API response
+// and transforms it into a map for the Terraform schema
+func FlattenOIDCCredentials(ssoData map[string]interface{}) map[string]interface{} {
+	tfMap := map[string]interface{}{}
+
+	if clientID, ok := ssoData["client_id"].(string); ok {
+		tfMap["client_id"] = clientID
+	}
+
+	if clientSecret, ok := ssoData["client_secret"].(string); ok {
+		tfMap["client_secret"] = clientSecret
+	}
+
+	return tfMap
+}
+
+func RetainSecret(prior interface{}, flattened map[string]interface{}) map[string]interface{} {
+	if s, ok := flattened["client_secret"].(string); ok && s != "" {
+		return flattened
+	}
+
+	priorMap, ok := prior.(map[string]interface{})
+	if !ok {
+		return flattened
+	}
+
+	priorSecret, ok := priorMap["client_secret"].(string)
+	if !ok {
+		return flattened
+	}
+
+	out := make(map[string]interface{}, len(flattened)+1)
+	for key, val := range flattened {
+		out[key] = val
+	}
+	out["client_secret"] = priorSecret
+
+	return out
+}
