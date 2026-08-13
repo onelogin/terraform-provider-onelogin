@@ -1,8 +1,10 @@
 package onelogin
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 
@@ -126,15 +128,116 @@ func TestOIDCAppSSOSecretSurvivesRead(t *testing.T) {
 		t.Fatalf("setting sso from the create response: %v", err)
 	}
 
-	// What every subsequent read sees: client_id only.
-	fromRead := map[string]interface{}{
-		"client_id": "cid",
-	}
-	merged := appssoschema.RetainSecret(d.Get("sso"), appssoschema.FlattenOIDCCredentials(fromRead))
+	// The read path is driven through mergeSSOFromRead -- the same function
+	// oidcAppRead calls -- so removing the retain step from the resource fails
+	// this test rather than leaving it green.
+	merged, ok := mergeSSOFromRead(d.Get("sso"), map[string]interface{}{
+		"sso": map[string]interface{}{"client_id": "cid"}, // every read after create
+	})
+	assert.True(t, ok)
 	if err := d.Set("sso", merged); err != nil {
 		t.Fatalf("setting sso from the read response: %v", err)
 	}
 
 	assert.Equal(t, "cid", d.Get("sso.client_id"))
 	assert.Equal(t, "captured-at-create", d.Get("sso.client_secret"))
+	assert.Empty(t, warnIfSecretDropped(context.Background(), 1, d.Get("sso"), merged), "a retained secret must not warn")
+}
+
+func TestOIDCAppSSOReadDoesNotEraseClientID(t *testing.T) {
+	// An app with no OIDC client record reports sso as an empty object. Because
+	// d.Set replaces the whole map, a merge that dropped client_id would remove
+	// it from state with no way to recover it.
+	d := schema.TestResourceDataRaw(t, OIDCApps().Schema, map[string]interface{}{})
+	if err := d.Set("sso", map[string]interface{}{
+		"client_id":     "cid",
+		"client_secret": "captured-at-create",
+	}); err != nil {
+		t.Fatalf("seeding state: %v", err)
+	}
+
+	merged, ok := mergeSSOFromRead(d.Get("sso"), map[string]interface{}{
+		"sso": map[string]interface{}{},
+	})
+	assert.True(t, ok)
+	if err := d.Set("sso", merged); err != nil {
+		t.Fatalf("setting sso from the read response: %v", err)
+	}
+
+	assert.Equal(t, "cid", d.Get("sso.client_id"))
+	assert.Equal(t, "captured-at-create", d.Get("sso.client_secret"))
+}
+
+func TestOIDCAppSSOReadDropsSecretWhenCredentialsReissued(t *testing.T) {
+	// A secret paired with a client_id it does not belong to is worse than no
+	// secret: callers persist this value into other systems.
+	d := schema.TestResourceDataRaw(t, OIDCApps().Schema, map[string]interface{}{})
+	if err := d.Set("sso", map[string]interface{}{
+		"client_id":     "old-cid",
+		"client_secret": "captured-at-create",
+	}); err != nil {
+		t.Fatalf("seeding state: %v", err)
+	}
+
+	prior := d.Get("sso")
+	merged, ok := mergeSSOFromRead(prior, map[string]interface{}{
+		"sso": map[string]interface{}{"client_id": "new-cid"},
+	})
+	assert.True(t, ok)
+	if err := d.Set("sso", merged); err != nil {
+		t.Fatalf("setting sso from the read response: %v", err)
+	}
+
+	assert.Equal(t, "new-cid", d.Get("sso.client_id"))
+
+	// Asserted on the stored map rather than d.Get("sso.client_secret"): a dotted
+	// Get returns "" for both "key absent" and "key present but empty", so it
+	// could not tell a dropped secret from an empty one -- the exact distinction
+	// this design rests on.
+	stored, ok := d.Get("sso").(map[string]interface{})
+	assert.True(t, ok)
+	assert.NotContains(t, stored, "client_secret")
+
+	warnings := warnIfSecretDropped(context.Background(), 1, prior, merged)
+	assert.Len(t, warnings, 1, "discarding a captured secret must warn")
+	assert.Equal(t, diag.Warning, warnings[0].Severity)
+}
+
+func TestWarnIfSecretDroppedHandlesUnexpectedPriorShapes(t *testing.T) {
+	// d.Get("sso") is interface{}, and legacy or hand-edited state can hold
+	// shapes the happy path never produces. None of these may panic, and none
+	// describes a dropped secret.
+	tests := map[string]interface{}{
+		"nil prior":                    nil,
+		"prior is not a map":           "not-a-map",
+		"prior is a typed map":         map[string]string{"client_secret": "s"},
+		"prior secret is not a string": map[string]interface{}{"client_secret": 12345},
+		"prior secret is empty":        map[string]interface{}{"client_secret": ""},
+	}
+
+	for name, prior := range tests {
+		t.Run(name, func(t *testing.T) {
+			merged := map[string]interface{}{"client_id": "cid"}
+			assert.Empty(t, warnIfSecretDropped(context.Background(), 1, prior, merged))
+		})
+	}
+}
+
+func TestOIDCAppSSOReadStaysQuietWhenThereWasNeverASecret(t *testing.T) {
+	// An imported app and a public client (PKCE) both legitimately have no
+	// secret. Warning on every plan for the life of those resources would be
+	// noise, and telling a public client to recreate itself would be wrong.
+	prior := map[string]interface{}{"client_id": "cid"}
+	merged, ok := mergeSSOFromRead(prior, map[string]interface{}{
+		"sso": map[string]interface{}{"client_id": "cid"},
+	})
+	assert.True(t, ok)
+	assert.Empty(t, merged["client_secret"])
+	assert.Empty(t, warnIfSecretDropped(context.Background(), 1, prior, merged))
+}
+
+func TestOIDCAppSSOReadSkipsResponseWithoutSSO(t *testing.T) {
+	merged, ok := mergeSSOFromRead(map[string]interface{}{"client_id": "cid"}, map[string]interface{}{})
+	assert.False(t, ok)
+	assert.Nil(t, merged)
 }

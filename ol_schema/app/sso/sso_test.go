@@ -120,6 +120,18 @@ func TestFlattenOIDCCredentials(t *testing.T) {
 				"client_id": "test-client-id",
 			},
 		},
+		// Same contract as the case above, for an API that reports the field
+		// present-but-empty rather than absent. Storing "" would put a key in
+		// state that reads as a real value at plan time.
+		"omits fields the API reports as empty strings": {
+			InputData: map[string]interface{}{
+				"client_id":     "test-client-id",
+				"client_secret": "",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"client_id": "test-client-id",
+			},
+		},
 		"returns an empty map for an empty sso object": {
 			InputData:      map[string]interface{}{},
 			ExpectedOutput: map[string]interface{}{},
@@ -194,7 +206,10 @@ func TestRetainSecret(t *testing.T) {
 			},
 		},
 		// client_id always comes from the response; only the secret is retained.
-		"takes client_id from the response, not from prior state": {
+		"drops the prior secret when the response reports a different client_id": {
+			// The app's OIDC client was re-issued, so the captured secret belongs to
+			// credentials that no longer exist. Callers persist this value into other
+			// systems, so an absent secret is safer than a confidently wrong one.
 			Prior: map[string]interface{}{
 				"client_id":     "old-cid",
 				"client_secret": "s",
@@ -203,7 +218,69 @@ func TestRetainSecret(t *testing.T) {
 				"client_id": "new-cid",
 			},
 			ExpectedOutput: map[string]interface{}{
-				"client_id":     "new-cid",
+				"client_id": "new-cid",
+			},
+		},
+		"retains the prior secret when the response reports the same client_id": {
+			Prior: map[string]interface{}{
+				"client_id":     "cid",
+				"client_secret": "s",
+			},
+			Flattened: map[string]interface{}{
+				"client_id": "cid",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"client_id":     "cid",
+				"client_secret": "s",
+			},
+		},
+		"keeps a known client_id the response did not report": {
+			// d.Set replaces the whole map, so a response without client_id would
+			// otherwise erase it from state with no way to get it back.
+			Prior: map[string]interface{}{
+				"client_id":     "cid",
+				"client_secret": "s",
+			},
+			Flattened: map[string]interface{}{},
+			ExpectedOutput: map[string]interface{}{
+				"client_id":     "cid",
+				"client_secret": "s",
+			},
+		},
+		"does not make an empty prior secret permanent": {
+			Prior: map[string]interface{}{
+				"client_id":     "cid",
+				"client_secret": "",
+			},
+			Flattened: map[string]interface{}{
+				"client_id": "cid",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"client_id": "cid",
+			},
+		},
+		"drops a prior secret that has no client_id to confirm it against": {
+			// Legacy flatmap state can carry a secret with no client_id beside it.
+			// Retaining it would pair it with whatever the response reports, which
+			// is the mismatched pair this function exists to prevent -- and it
+			// would happen silently, since a secret would be present either way.
+			Prior: map[string]interface{}{
+				"client_secret": "s",
+			},
+			Flattened: map[string]interface{}{
+				"client_id": "cid",
+			},
+			ExpectedOutput: map[string]interface{}{
+				"client_id": "cid",
+			},
+		},
+		"retains a secret when neither side reports a client_id": {
+			// Nothing contradicts the pairing, and there is no id to erase.
+			Prior: map[string]interface{}{
+				"client_secret": "s",
+			},
+			Flattened: map[string]interface{}{},
+			ExpectedOutput: map[string]interface{}{
 				"client_secret": "s",
 			},
 		},

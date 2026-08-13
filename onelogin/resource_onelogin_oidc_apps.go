@@ -134,10 +134,21 @@ func oidcAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	// (https://developers.onelogin.com/api-docs/2/apps/app-resource). Capture
 	// it here or lose it permanently; oidcAppRead then preserves it on every
 	// later refresh via appssoschema.RetainSecret.
-	if v, ok := appMap["sso"]; ok {
-		if ssoData, ok := v.(map[string]interface{}); ok {
-			d.Set("sso", appssoschema.FlattenOIDCCredentials(ssoData))
-		}
+	//
+	// Both the missing-sso case and a failed Set are reported rather than passed
+	// over: this is the only moment the secret is recoverable, so a silent miss
+	// leaves the practitioner with an app whose secret cannot be retrieved and no
+	// indication of why.
+	ssoData, ok := appMap["sso"].(map[string]interface{})
+	if !ok {
+		tflog.Warn(ctx, "[CREATED] OIDC app response carried no sso object; the client secret could not be captured and cannot be retrieved later", map[string]interface{}{
+			"id": appID,
+		})
+		return oidcAppRead(ctx, d, m)
+	}
+
+	if err := d.Set("sso", appssoschema.FlattenOIDCCredentials(ssoData)); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return oidcAppRead(ctx, d, m)
@@ -145,6 +156,8 @@ func oidcAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 // oidcAppRead reads an OIDC app with all sub-resources
 func oidcAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	client := m.(*onelogin.OneloginSDK)
 	aid, _ := strconv.Atoi(d.Id())
 
@@ -203,19 +216,65 @@ func oidcAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	// Handle sso if it exists. client_id comes from the response; client_secret
 	// is retained from state, because OneLogin returns it only at create time.
-	if v, ok := appMap["sso"]; ok {
-		if ssoData, ok := v.(map[string]interface{}); ok {
-			sso := appssoschema.RetainSecret(d.Get("sso"), appssoschema.FlattenOIDCCredentials(ssoData))
-			if _, hasSecret := sso["client_secret"].(string); !hasSecret {
-				tflog.Debug(ctx, "[READ] OIDC app has no client_secret in state; it can only be captured when the app is created", map[string]interface{}{
-					"id": aid,
-				})
-			}
-			d.Set("sso", sso)
+	if sso, ok := mergeSSOFromRead(d.Get("sso"), appMap); ok {
+		diags = append(diags, warnIfSecretDropped(ctx, aid, d.Get("sso"), sso)...)
+
+		if err := d.Set("sso", sso); err != nil {
+			return append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	return nil
+	return diags
+}
+
+// mergeSSOFromRead combines the sso object from a read response with what state
+// already holds, returning false when the response carries no usable sso object.
+//
+// This is a named function rather than an inline block so that the resource and
+// its tests exercise the same code. A test that re-implements the merge would
+// keep passing if the RetainSecret call were removed from the read path, which
+// is precisely the regression worth guarding.
+func mergeSSOFromRead(prior interface{}, appMap map[string]interface{}) (map[string]interface{}, bool) {
+	ssoData, ok := appMap["sso"].(map[string]interface{})
+	if !ok {
+		return nil, false
+	}
+
+	return appssoschema.RetainSecret(prior, appssoschema.FlattenOIDCCredentials(ssoData)), true
+}
+
+// warnIfSecretDropped reports the one case worth interrupting a plan for: state
+// held a client_secret and this read discarded it, because the app's OIDC client
+// was re-issued and the retained secret no longer belongs to it.
+//
+// It deliberately stays quiet when there was never a secret to begin with. An
+// imported app and a public client (PKCE, token_endpoint_auth_method "none")
+// both legitimately have none, and warning on every plan for the lifetime of
+// those resources would be noise -- and for a public client the advice would be
+// wrong, since it has no secret to recover. Those cases are a debug line.
+func warnIfSecretDropped(ctx context.Context, aid int, prior interface{}, merged map[string]interface{}) diag.Diagnostics {
+	if secret, _ := merged["client_secret"].(string); secret != "" {
+		return nil
+	}
+
+	priorMap, _ := prior.(map[string]interface{})
+	priorSecret, _ := priorMap["client_secret"].(string)
+
+	if priorSecret == "" {
+		tflog.Debug(ctx, "[READ] OIDC app has no client_secret in state; it can only be captured when the app is created", map[string]interface{}{
+			"id": aid,
+		})
+		return nil
+	}
+
+	return diag.Diagnostics{{
+		Severity: diag.Warning,
+		Summary:  "OIDC app client_secret discarded because the app's credentials were re-issued",
+		Detail: "The client_id returned by OneLogin no longer matches the one the stored client_secret was captured for, so the " +
+			"secret has been removed from state rather than paired with credentials it does not belong to. OneLogin returns " +
+			"sso.client_secret only when an app is created, so it cannot be read back -- recreate the app if Terraform needs a " +
+			"valid secret in state. Anything already given the old secret must be updated separately.",
+	}}
 }
 
 // oidcAppUpdate updates an OIDC app with all sub-resources
