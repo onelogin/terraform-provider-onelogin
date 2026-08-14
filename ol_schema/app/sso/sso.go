@@ -116,12 +116,14 @@ func FlattenOIDCCredentials(ssoData map[string]interface{}) map[string]interface
 // three because d.Set replaces the whole map rather than patching keys:
 //
 //  1. A secret in the response always wins -- it is the freshest value.
-//  2. A secret is retained only where its pairing with client_id is positively
-//     confirmed. A re-issued client_id, or state holding a secret with no
-//     client_id to check it against, both count as unconfirmed and the secret is
-//     dropped. State is better off with the secret absent than confidently
-//     wrong, because callers persist this value into other systems.
-//  3. A response that omits client_id must not erase the one already in state.
+//  2. A retained secret is dropped as soon as the response contradicts its
+//     pairing, meaning the response reports a client_id that differs from the
+//     one state holds -- which includes state holding no client_id at all, since
+//     then nothing confirms the secret belongs to the app being read. State is
+//     better off with the secret absent than confidently wrong, because callers
+//     persist this value into other systems.
+//  3. A response that omits client_id contradicts nothing, so the secret is kept
+//     and a client_id already in state must not be erased.
 func RetainSecret(prior interface{}, flattened map[string]interface{}) map[string]interface{} {
 	// (1) The response carries a usable secret; nothing to retain.
 	if s, ok := flattened["client_secret"].(string); ok && s != "" {
@@ -136,17 +138,18 @@ func RetainSecret(prior interface{}, flattened map[string]interface{}) map[strin
 	priorID, _ := priorMap["client_id"].(string)
 	responseID, responseHasID := flattened["client_id"].(string)
 
-	// (2) Retain only a secret whose pairing can be positively confirmed: the
-	// response reports the same client_id state captured it against. Anything
-	// else -- a re-issued client_id, or state carrying a secret with no client_id
-	// to check it against, which legacy flatmap state can -- is treated as stale.
+	// (2) Drop the secret as soon as the response contradicts its pairing, i.e.
+	// reports a client_id other than the one state holds. That covers a re-issued
+	// client, and also state carrying a secret with no client_id to check it
+	// against -- which legacy flatmap state can -- since nothing there confirms
+	// the secret belongs to the app being read.
 	//
-	// Note this deliberately drops rather than keeps when the pairing is merely
-	// unknown. OneLogin builds the sso object from one record, so a create
-	// response carries client_id and client_secret together or neither, and a
-	// secret with no id beside it does not arise from a healthy create. Between
-	// an absent secret and a possibly-wrong one, absent is the recoverable
-	// failure: it is visible, and it is fixed by recreating the app.
+	// Dropping when the pairing is merely unknown is deliberate. OneLogin builds
+	// the sso object from a single record, so a create response carries client_id
+	// and client_secret together or neither, and a secret with no id beside it
+	// does not arise from a healthy create. Between an absent secret and a
+	// possibly-wrong one, absent is the recoverable failure: it is visible, it
+	// warns, and it is fixed by recreating the app.
 	if responseHasID && responseID != priorID {
 		return flattened
 	}
