@@ -177,6 +177,35 @@ The following arguments are supported:
 
   * `token_endpoint_auth_method` - Indicates the token endpoint authentication method.
 
+* `sso` - The OIDC client credentials OneLogin generated for the app. `sso` is read only and cannot be set in configuration; OneLogin supplies every value.
+
+  * `client_id` - The OIDC client ID.
+
+  * `client_secret` - The OIDC client secret. Per the [OneLogin Apps Documentation](https://developers.onelogin.com/api-docs/2/apps/app-resource), `client_secret` is only ever returned by OneLogin when an app is created, so the provider captures it at create time and retains it in state thereafter. It is therefore available for apps **created by Terraform**, and **not available for imported apps** -- an import has no create response, and no later read can recover the secret.
+
+  If OneLogin re-issues the app's credentials, the following read returns a different `client_id`. The provider treats the retained secret as stale and drops it, rather than pairing it with credentials it does not belong to, and emits a warning. A rotation that leaves `client_id` unchanged cannot be detected, because the provider has no way to read the current secret; in that case the value in state stays stale silently. Either way the app must be recreated for Terraform to hold a valid secret again.
+
+  `client_secret` is omitted from the map -- rather than present with an empty value -- whenever it has not been captured, so indexing it directly (`sso.client_secret`) fails with an "Invalid index" error instead of quietly returning an empty string. For a resource already in state that failure comes at plan time; for one not yet created the map is unknown until apply, so the error lands there instead.
+
+  **If you feed the secret into another system, index it directly.** A default-returning form such as `lookup(..., "client_secret", "")` turns every one of the cases above into an empty string, and an empty string will be written to whatever consumes it -- silently replacing a working credential with a blank one. Failing at plan time is the safer outcome. Use `lookup()` or `try()` with a default only where an absent secret is genuinely acceptable, such as a module that must also accept imported apps and public clients.
+
+  The whole `sso` map is marked sensitive because it carries the client secret. Terraform cannot mark individual map keys, so `client_id` is redacted too and needs `nonsensitive()` to be used in a non-sensitive output:
+
+  ```hcl
+  output "oidc_client_id" {
+    value = nonsensitive(onelogin_oidc_apps.my_oidc_app.sso.client_id)
+  }
+
+  # Direct index: fails loudly at plan time if the secret was never captured,
+  # rather than handing an empty string to whatever consumes this output.
+  output "oidc_client_secret" {
+    value     = onelogin_oidc_apps.my_oidc_app.sso.client_secret
+    sensitive = true
+  }
+  ```
+
+  Note that sensitivity controls display only. The client secret is written in plaintext to Terraform state, to `terraform.tfstate.backup`, to remote state, and to any saved plan file -- `terraform plan -out=...` embeds prior state, so plan artifacts kept by CI contain the secret too. `terraform show -json` exposes it as well. Treat all of them as secrets.
+
 ## Import
 
 A OIDC App can be imported via the OneLogin App ID.
