@@ -39,3 +39,10 @@ resource "onelogin_policies" "finance_app" {
   force_authn            = true
   app_force_authn_offset = 60
 }
+
+# An app policy takes effect through the app that uses it.
+resource "onelogin_apps" "finance" {
+  name         = "Finance"
+  connector_id = 108419
+  policy_id    = onelogin_policies.finance_app.id
+}
