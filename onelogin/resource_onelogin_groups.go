@@ -44,6 +44,17 @@ func resourceOneLoginGroups() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			// The user policy applied to this group's members. Optional and
+			// deliberately not Computed: Computed reads an empty
+			// configuration as "keep what is in state", which would leave no
+			// way to say "no policy" once one had been set.
+			//
+			// Only user policies are assignable; an app policy is refused
+			// with 422 "Policy must reference a user policy".
+			"policy_id": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -55,6 +66,11 @@ func groupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 	if ref, ok := d.GetOk("reference"); ok {
 		inflateMap["reference"] = ref
+	}
+	// A new group with no policy simply does not mention one; sending a 0
+	// would store that 0 rather than leaving the column null.
+	if policyID, ok := d.GetOk("policy_id"); ok {
+		inflateMap["policy_id"] = policyID
 	}
 
 	group, err := groupschema.Inflate(inflateMap)
@@ -135,6 +151,20 @@ func groupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		}
 	}
 
+	// An unassigned group reports policy_id as null and a cleared one reports
+	// it as 0. Both land on the zero value, which is also what an absent
+	// attribute holds, so dropping policy_id from a configuration converges on
+	// the next read instead of proposing the same change forever.
+	policyID := 0
+	if raw, present := groupMap["policy_id"]; present && raw != nil {
+		if number, ok := raw.(float64); ok {
+			policyID = int(number)
+		}
+	}
+	if err := d.Set("policy_id", policyID); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
@@ -151,6 +181,12 @@ func groupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 	if ref, ok := d.GetOk("reference"); ok {
 		inflateMap["reference"] = ref
+	}
+	// Sent only when it actually changed, and then whatever it now is --
+	// including the 0 that clears the assignment. Leaving it out of every
+	// other update is what stops a rename from disturbing the policy.
+	if d.HasChange("policy_id") {
+		inflateMap["policy_id"] = d.Get("policy_id")
 	}
 
 	group, err := groupschema.Inflate(inflateMap)

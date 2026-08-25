@@ -78,10 +78,23 @@ Creating a policy does not by itself apply it to anyone.
 
 * **App policies** are applied through the app: set `policy_id` on `onelogin_apps`,
   `onelogin_saml_apps` or `onelogin_oidc_apps`, as above.
-* **User policies** are applied by assigning them to a group, or by making one the account
-  default. Neither is manageable through this provider yet — `onelogin_groups` has no
-  `policy_id` argument, and the default is set in the OneLogin admin UI. Until that is added,
-  a user policy created here has to be assigned in the admin UI.
+* **User policies** are applied by assigning them to a group, using `policy_id` on
+  `onelogin_groups`:
+
+  ```hcl
+  resource "onelogin_policies" "engineering" {
+    name = "Engineering"
+    kind = "user"
+  }
+
+  resource "onelogin_groups" "engineering" {
+    name      = "Engineering"
+    policy_id = onelogin_policies.engineering.id
+  }
+  ```
+
+  Making a policy the *account default* is not manageable here; that is still set in the
+  OneLogin admin UI.
 
 ## Argument Reference
 

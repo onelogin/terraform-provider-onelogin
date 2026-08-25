@@ -87,3 +87,33 @@ func TestFlatten(t *testing.T) {
 func stringPtr(s string) *string {
 	return &s
 }
+
+func TestInflatePolicyID(t *testing.T) {
+	t.Run("absent leaves the policy alone", func(t *testing.T) {
+		group, _ := Inflate(map[string]interface{}{"name": "Engineering"})
+		assert.Nil(t, group.PolicyID, "an unmentioned policy must stay out of the request body")
+	})
+
+	t.Run("a zero is carried through", func(t *testing.T) {
+		// The clear. A nil here would drop the key and silently preserve the
+		// existing assignment, so the zero has to survive Inflate.
+		group, _ := Inflate(map[string]interface{}{"name": "Engineering", "policy_id": 0})
+		assert.NotNil(t, group.PolicyID)
+		assert.Equal(t, 0, *group.PolicyID)
+	})
+
+	t.Run("an id is carried through", func(t *testing.T) {
+		group, _ := Inflate(map[string]interface{}{"name": "Engineering", "policy_id": 955633})
+		assert.NotNil(t, group.PolicyID)
+		assert.Equal(t, 955633, *group.PolicyID)
+	})
+}
+
+func TestPolicyIDSchema(t *testing.T) {
+	// Computed here would read an empty configuration as "keep what is in
+	// state", leaving no way to remove a policy once set.
+	policy := Schema()["policy_id"]
+	assert.NotNil(t, policy)
+	assert.True(t, policy.Optional)
+	assert.False(t, policy.Computed, "Computed would make the assignment impossible to clear")
+}
