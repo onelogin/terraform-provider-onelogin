@@ -52,6 +52,46 @@ func TestConfiguredKeys(t *testing.T) {
 		assert.Equal(t, map[string]bool{"name": true, "kind": true, "otp_auth_enabled": true}, keys)
 	})
 
+	t.Run("a block nobody wrote is not configured", func(t *testing.T) {
+		// Terraform renders an omitted block as an empty list of objects
+		// rather than as null, so this is the shape a policy that never
+		// mentioned terms_and_conditions actually arrives in. Reading it as
+		// configured made every app policy fail its plan complaining about a
+		// user-only block the configuration did not contain.
+		termsType := cty.Object(map[string]cty.Type{
+			"enabled": cty.Bool,
+			"content": cty.String,
+		})
+
+		keys := ConfiguredKeys(cty.ObjectVal(map[string]cty.Value{
+			"name":                 cty.StringVal("Engineering"),
+			"terms_and_conditions": cty.ListValEmpty(termsType),
+		}))
+
+		assert.Equal(t, map[string]bool{"name": true}, keys)
+	})
+
+	t.Run("a block that was written is configured", func(t *testing.T) {
+		keys := ConfiguredKeys(cty.ObjectVal(map[string]cty.Value{
+			"terms_and_conditions": cty.ListVal([]cty.Value{cty.ObjectVal(map[string]cty.Value{
+				"enabled": cty.True,
+				"content": cty.StringVal("Be careful out there"),
+			})}),
+		}))
+
+		assert.Equal(t, map[string]bool{"terms_and_conditions": true}, keys)
+	})
+
+	t.Run("an emptied list of scalars stays configured", func(t *testing.T) {
+		// authentication_factor_ids = [] is a request to clear the factors,
+		// not an absent argument, and the request body has to carry it.
+		keys := ConfiguredKeys(cty.ObjectVal(map[string]cty.Value{
+			"authentication_factor_ids": cty.SetValEmpty(cty.Number),
+		}))
+
+		assert.Equal(t, map[string]bool{"authentication_factor_ids": true}, keys)
+	})
+
 	t.Run("returns nil when the raw configuration is unavailable", func(t *testing.T) {
 		// nil rather than an empty map: the caller has to be able to tell
 		// "nothing was configured" from "the configuration could not be read".

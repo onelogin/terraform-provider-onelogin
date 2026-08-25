@@ -248,12 +248,39 @@ func ConfiguredKeys(raw cty.Value) map[string]bool {
 
 	keys := map[string]bool{}
 	for name, value := range raw.AsValueMap() {
-		if value.IsNull() {
+		if value.IsNull() || isAbsentBlock(value) {
 			continue
 		}
 		keys[name] = true
 	}
 	return keys
+}
+
+// isAbsentBlock reports whether value is a nested block that was never written.
+// An omitted block is not null in the raw config the way an omitted argument is
+// -- it arrives as an empty list of objects -- so a null check alone reads every
+// policy as having configured every block it did not write.
+//
+// The element type is what keeps this honest. Blocks are the collections whose
+// elements are objects, so an explicitly emptied list of scalars, such as
+//
+//	authentication_factor_ids = []
+//
+// is left configured: that one is an instruction to clear the factors, and
+// dropping it would silently ignore the request.
+func isAbsentBlock(value cty.Value) bool {
+	t := value.Type()
+	if !t.IsListType() && !t.IsSetType() {
+		return false
+	}
+	if !t.ElementType().IsObjectType() {
+		return false
+	}
+	// An unknown collection has no length to ask for, and something is coming.
+	if !value.IsKnown() {
+		return false
+	}
+	return value.LengthInt() == 0
 }
 
 // FieldsNotApplicableTo returns the configured attributes that do not belong on
