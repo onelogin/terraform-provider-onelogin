@@ -98,6 +98,7 @@ The provider supports the following OneLogin resources:
 - `onelogin_smarthooks` - Manage SmartHooks
 - `onelogin_smarthook_environment_variables` - Manage SmartHook environment variables
 - `onelogin_self_registration_profiles` - Manage self-registration profiles
+- `onelogin_policies` - Manage user and app security policies
 
 ## Available Data Sources
 
