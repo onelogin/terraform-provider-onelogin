@@ -21,6 +21,18 @@ func Schema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		// The user policy applied to the group's members. Optional and not
+		// Computed: Computed would read an empty configuration as "keep
+		// whatever is in state", which leaves no way to say "no policy" once
+		// one has been set. Optional lets the attribute be removed, and the
+		// API accepts a 0 to clear the assignment.
+		//
+		// Only user policies are assignable. An app policy is refused with
+		// 422 "Policy must reference a user policy".
+		"policy_id": &schema.Schema{
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
 	}
 }
 
@@ -47,6 +59,16 @@ func Inflate(s map[string]interface{}) (models.Group, error) {
 		}
 	}
 
+	// Presence of the key, not truth of the value, decides whether the policy
+	// is sent. A 0 is meaningful here -- it is how the assignment is cleared --
+	// so the caller controls the key and this only translates it.
+	if policyID, ok := s["policy_id"]; ok && policyID != nil {
+		if policyIDInt, ok := policyID.(int); ok {
+			id := policyIDInt
+			group.PolicyID = &id
+		}
+	}
+
 	return group, nil
 }
 
@@ -61,6 +83,9 @@ func FlattenMany(groups []models.Group) []map[string]interface{} {
 		if group.Reference != nil {
 			out[i]["reference"] = *group.Reference
 		}
+		if group.PolicyID != nil {
+			out[i]["policy_id"] = *group.PolicyID
+		}
 	}
 	return out
 }
@@ -73,6 +98,9 @@ func Flatten(group models.Group) map[string]interface{} {
 	}
 	if group.Reference != nil {
 		out["reference"] = *group.Reference
+	}
+	if group.PolicyID != nil {
+		out["policy_id"] = *group.PolicyID
 	}
 	return out
 }
