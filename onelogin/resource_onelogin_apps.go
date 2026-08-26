@@ -46,7 +46,7 @@ func appsV0() *schema.Resource {
 
 // appCreate creates an app
 func appCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	basicApp, _ := appschema.Inflate(map[string]interface{}{
+	inflateMap := map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -55,7 +55,10 @@ func appCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		"allow_assumed_signin": d.Get("allow_assumed_signin"),
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
-	})
+	}
+	addAppPolicyIDForCreate(d, inflateMap)
+
+	basicApp, _ := appschema.Inflate(inflateMap)
 
 	client := m.(*onelogin.OneloginSDK)
 	result, err := client.CreateApp(basicApp)
@@ -179,7 +182,7 @@ func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 func appUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	aid, _ := strconv.Atoi(d.Id())
 
-	basicApp, _ := appschema.Inflate(map[string]interface{}{
+	inflateMap := map[string]interface{}{
 		"id":                   d.Id(),
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
@@ -190,7 +193,10 @@ func appUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"brand_id":             d.Get("brand_id"),
-	})
+	}
+	addAppPolicyIDForUpdate(d, inflateMap)
+
+	basicApp, _ := appschema.Inflate(inflateMap)
 
 	client := m.(*onelogin.OneloginSDK)
 	_, err := client.UpdateApp(aid, basicApp)

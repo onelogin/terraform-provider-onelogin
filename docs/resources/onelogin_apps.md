@@ -58,6 +58,36 @@ The following arguments are supported:
 
 * `allow_assumed_signin` - (Optional) Enable sign in when user has been assumed by the account owner. Defaults to `false`.
 
+* `policy_id` - (Optional, Number) ID of the app policy enforced when users sign in to
+  this app. Create one with [`onelogin_policies`](onelogin_policies.md).
+
+  Only app policies can be assigned. A user policy is refused with
+  `The associated Policy with ID <id> could not be found`, the same message the API gives
+  for an ID that does not exist.
+
+  The attribute is computed as well as optional, so a policy assigned in the OneLogin
+  admin UI is left alone by a configuration that does not mention `policy_id`. The cost
+  of that is that an assignment cannot be taken off through Terraform: OneLogin wants
+  `policy_id` sent as `null` to unassign and refuses `0`, and a `null` is not something
+  the provider can currently send. `policy_id = 0` is rejected during validation rather
+  than failing the apply with a 422. Assign a different app policy, or clear the
+  assignment in the OneLogin admin UI.
+
+  ```hcl
+  resource "onelogin_policies" "finance_app" {
+    name                   = "Finance app step-up"
+    kind                   = "app"
+    force_authn            = true
+    app_force_authn_offset = 60
+  }
+
+  resource "onelogin_apps" "finance" {
+    name         = "Finance"
+    connector_id = 108419
+    policy_id    = onelogin_policies.finance_app.id
+  }
+  ```
+
 * `provisioning` - (Optional) Settings regarding the app's provisioning ability.
   * `enabled` - (Required) Indicates if provisioning is enabled for this app.
 
@@ -109,7 +139,7 @@ The following arguments are supported:
 
 * `created_at` - Timestamp for app's creation.
 
-* `policy_id` - The security policy assigned to the app.
+* `policy_id` - The app policy assigned to the app. Settable; see the argument above.
 
 * `visible` - Indicates if the app is visible in the OneLogin portal.
 

@@ -1,6 +1,7 @@
 package appschema
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -59,9 +60,28 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Computed: true,
 		},
+		// The app policy enforced when users sign in to this app. Only a
+		// policy whose kind is "app" resolves here; the endpoint answers a
+		// user policy with 422 "The associated Policy with ID <n> could not be
+		// found", the same thing it says about an ID that does not exist.
+		//
+		// Optional *and* Computed, which is the opposite of the group
+		// resource's policy_id. There the attribute was new, so Computed would
+		// only have taken away the ability to say "no policy". Here it has
+		// been Computed since the resource shipped, so state already holds
+		// whatever policy the app was given in the OneLogin UI; dropping
+		// Computed would read every configuration that never mentioned
+		// policy_id as asking for 0 and unassign the policy on the first apply
+		// after the provider was upgraded. #260.
+		//
+		// The cost is that removing the attribute leaves the last value in
+		// place rather than clearing it, and validAppPolicyID explains why
+		// writing 0 is not the way out.
 		"policy_id": &schema.Schema{
-			Type:     schema.TypeInt,
-			Computed: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validAppPolicyID,
 		},
 		"brand_id": &schema.Schema{
 			Type:     schema.TypeInt,
@@ -104,6 +124,35 @@ func Schema() map[string]*schema.Schema {
 			},
 		},
 	}
+}
+
+// validAppPolicyID rejects the two values that cannot reach the API as a policy
+// assignment, so that a plan fails with the reason rather than an apply failing
+// with a 422.
+//
+// A group clears its policy by being sent a 0, and an app cannot: OneLogin
+// answers 0 with 422 "The associated Policy with ID 0 could not be found". What
+// the app endpoint accepts as "no policy" is a JSON null, and models.App
+// declares PolicyID as *int tagged omitempty, where a nil pointer is omitted
+// from the request entirely and so leaves the assignment alone. There is no
+// third state to send, which is why unassigning is not expressible here yet and
+// needs a change to the SDK model rather than to this provider.
+func validAppPolicyID(val interface{}, key string) ([]string, []error) {
+	id, ok := val.(int)
+	if !ok || id > 0 {
+		return nil, nil
+	}
+
+	if id < 0 {
+		return nil, []error{fmt.Errorf("%s must be the ID of an app policy, got %d", key, id)}
+	}
+
+	return nil, []error{fmt.Errorf(
+		"%s cannot be set to 0: OneLogin rejects it with \"The associated Policy with ID 0 could not be found\". "+
+			"Unassigning an app's policy is not supported yet -- it requires sending policy_id as null, which the "+
+			"OneLogin Go SDK's App model cannot express. Assign a different app policy, or clear the assignment in "+
+			"the OneLogin admin UI. Note that removing policy_id from the configuration does not clear it either, "+
+			"because the attribute is computed as well as optional", key)}
 }
 
 // Inflate takes a map of interfaces and constructs a OneLogin App.
@@ -169,6 +218,18 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 	if s["brand_id"] != nil {
 		brandID := s["brand_id"].(int)
 		app.BrandID = &brandID
+	}
+
+	// Presence of the key, not truth of the value, decides whether the policy
+	// is sent, so that the caller controls it and this only translates. Unlike
+	// a group, an app has no value meaning "no policy": 0 is refused and null
+	// is unreachable through a *int tagged omitempty, so the callers only ever
+	// hand over a real policy ID. See validAppPolicyID.
+	if policyID, ok := s["policy_id"]; ok && policyID != nil {
+		if policyIDInt, ok := policyID.(int); ok {
+			id := policyIDInt
+			app.PolicyID = &id
+		}
 	}
 
 	// Handle parameters
