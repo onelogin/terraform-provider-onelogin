@@ -2,10 +2,7 @@ package onelogin
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -17,10 +14,6 @@ import (
 	policyschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/policy"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
 )
-
-// policiesPath is the collection endpoint. The SDK has no policy methods, so
-// this resource builds the requests itself on the SDK's authenticated client.
-const policiesPath = "/api/2/policies"
 
 // Policies returns the onelogin_policies resource: a OneLogin security policy,
 // either the user policy that governs how people sign in or the app policy that
@@ -78,15 +71,14 @@ func policyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) di
 		"kind": body["kind"],
 	})
 
-	path := policiesPath
-	resp, err := client.Client.Post(&path, body)
+	result, err := client.CreatePolicyWithContext(ctx, body)
 	if err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryCreate, "Policy", "")
 	}
 
-	policy, err := decodePolicy(resp)
-	if err != nil {
-		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryCreate, "Policy", "")
+	policy, ok := policyFromResponse(result)
+	if !ok {
+		return diag.Errorf("expected a policy object in the create response, got %T", result)
 	}
 
 	id, ok := policyID(policy)
@@ -105,14 +97,12 @@ func policyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 
 	tflog.Info(ctx, "[READ] Reading policy", map[string]interface{}{"id": d.Id()})
 
-	path := fmt.Sprintf("%s/%s", policiesPath, d.Id())
-	resp, err := client.Client.Get(&path, nil)
-
-	var policy map[string]interface{}
-	if err == nil {
-		policy, err = decodePolicy(resp)
+	id, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
+	result, err := client.GetPolicyByIDWithContext(ctx, id)
 	if err != nil {
 		// A policy that is gone is not an error on a read. Somebody deleted it
 		// outside Terraform; dropping it from state lets the next plan offer
@@ -124,6 +114,11 @@ func policyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 			return nil
 		}
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Policy", d.Id())
+	}
+
+	policy, ok := policyFromResponse(result)
+	if !ok {
+		return diag.Errorf("expected a policy object in the read response, got %T", result)
 	}
 
 	if err := policyschema.Flatten(d, policy); err != nil {
@@ -141,12 +136,12 @@ func policyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) di
 
 	tflog.Info(ctx, "[UPDATE] Updating policy", map[string]interface{}{"id": d.Id()})
 
-	path := fmt.Sprintf("%s/%s", policiesPath, d.Id())
-	resp, err := client.Client.Put(&path, body)
+	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryUpdate, "Policy", d.Id())
+		return diag.FromErr(err)
 	}
-	if _, err := decodePolicy(resp); err != nil {
+
+	if _, err := client.UpdatePolicyWithContext(ctx, id, body); err != nil {
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryUpdate, "Policy", d.Id())
 	}
 
@@ -157,74 +152,24 @@ func policyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) di
 	client := m.(*onelogin.OneloginSDK)
 
 	return utils.StandardDeleteFunc(ctx, d, func(id string) (interface{}, error) {
-		path := fmt.Sprintf("%s/%s", policiesPath, id)
-		resp, err := client.Client.Delete(&path)
+		policyID, err := strconv.Atoi(id)
 		if err != nil {
 			return nil, err
 		}
-		// A successful delete is a 204 with no body; only the status matters.
-		_, err = policyResponseBody(resp)
-		return nil, err
+		return client.DeletePolicyWithContext(ctx, policyID)
 	}, "Policy")
 }
 
-// decodePolicy turns a policy response into a map. The endpoint returns the
-// policy at the top level rather than wrapped in a key, so the decoded body is
-// the policy itself.
-func decodePolicy(resp *http.Response) (map[string]interface{}, error) {
-	body, err := policyResponseBody(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	var policy map[string]interface{}
-	if err := json.Unmarshal(body, &policy); err != nil {
-		return nil, fmt.Errorf("expected a policy object in the response: %w", err)
-	}
-	return policy, nil
-}
-
-// policyResponseBody reads a response and turns a failing status into an error
-// carrying what the API said.
+// policyFromResponse narrows the SDK's decoded body to the policy itself. The
+// endpoint returns the policy at the top level rather than wrapped in a key,
+// so the decoded body is the policy.
 //
-// The SDK's CheckHTTPResponse discards the error body, and this endpoint
-// validates hard -- a field belonging to the other kind of policy, a password
-// length outside the allowed set, an invite expiry of zero -- answering with a
-// message that names the field. "request failed with status: 422" on its own
-// leaves the practitioner guessing which of seventy-odd arguments it meant.
-func policyResponseBody(resp *http.Response) ([]byte, error) {
-	body, err := io.ReadAll(resp.Body)
-	if closeErr := resp.Body.Close(); err == nil {
-		err = closeErr
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		// "status: %d" is the wording utils.IsNotFoundError matches on, and
-		// both policyRead and the delete helper depend on recognising a 404,
-		// so it stays even with a message appended.
-		if message := apiErrorMessage(body); message != "" {
-			return nil, fmt.Errorf("request failed with status: %d: %s", resp.StatusCode, message)
-		}
-		return nil, fmt.Errorf("request failed with status: %d", resp.StatusCode)
-	}
-
-	return body, nil
-}
-
-// apiErrorMessage pulls the explanation out of an error body, which OneLogin
-// sends as {"name":..., "message":..., "statusCode":...}. An unrecognisable
-// body gives an empty string, leaving the caller with the status alone.
-func apiErrorMessage(body []byte) string {
-	var apiError struct {
-		Message string `json:"message"`
-	}
-	if err := json.Unmarshal(body, &apiError); err != nil {
-		return ""
-	}
-	return apiError.Message
+// Reading the response and turning a failing status into an error that carries
+// the API's message now happens in the SDK, which this resource used to do for
+// itself because there were no policy methods to do it.
+func policyFromResponse(result interface{}) (map[string]interface{}, bool) {
+	policy, ok := result.(map[string]interface{})
+	return policy, ok
 }
 
 // policyID reads the ID out of a policy response as the string Terraform keeps.

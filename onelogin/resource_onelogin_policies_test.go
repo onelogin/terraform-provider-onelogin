@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 
 	policyschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/policy"
 	"github.com/onelogin/terraform-provider-onelogin/utils"
@@ -44,48 +46,51 @@ func TestPolicyID(t *testing.T) {
 	}
 }
 
-func TestDecodePolicy(t *testing.T) {
+func TestPolicyFromResponse(t *testing.T) {
+	t.Run("returns the policy, which the endpoint sends unwrapped", func(t *testing.T) {
+		policy, ok := policyFromResponse(map[string]interface{}{
+			"id": float64(42), "name": "Engineering", "kind": "user",
+		})
+
+		assert.True(t, ok)
+		assert.Equal(t, "Engineering", policy["name"])
+	})
+
+	t.Run("rejects a response that is not a policy object", func(t *testing.T) {
+		_, ok := policyFromResponse([]interface{}{map[string]interface{}{"id": float64(42)}})
+
+		assert.False(t, ok)
+	})
+}
+
+// The contract between the two repositories. policyRead tells a deleted policy
+// from a failure by the wording of the SDK's error, and nothing in either
+// repository forces those to agree -- an SDK release that reformatted its
+// errors would quietly turn a deleted policy into a plan that fails every run.
+//
+// Reading and error-shaping now happen in the SDK, so the earlier tests for
+// them live there. This is the part that has to be checked from this side.
+func TestSDKErrorsRemainRecognisable(t *testing.T) {
 	response := func(status int, body string) *http.Response {
 		return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader(body))}
 	}
 
-	t.Run("returns the policy, which the endpoint sends unwrapped", func(t *testing.T) {
-		policy, err := decodePolicy(response(http.StatusOK, `{"id":42,"name":"Engineering","kind":"user"}`))
-
-		assert.NoError(t, err)
-		assert.Equal(t, "Engineering", policy["name"])
-	})
-
-	t.Run("reports an error status", func(t *testing.T) {
-		_, err := decodePolicy(response(http.StatusNotFound, `{}`))
+	t.Run("a 404 is recognisable as one", func(t *testing.T) {
+		_, err := utl.CheckHTTPResponseWithErrorBody(response(http.StatusNotFound,
+			`{"name":"NotFoundError","message":"The resource with the given id could not be found","statusCode":404}`))
 
 		assert.Error(t, err)
-		// policyRead relies on this wording to tell a deleted policy from a
-		// failure, so it is worth pinning down here rather than in an
-		// acceptance test that needs a tenant.
 		assert.True(t, utils.IsNotFoundError(err), "a 404 should be recognisable as one, got %q", err)
 	})
 
-	t.Run("reports what the API said about a rejected write", func(t *testing.T) {
-		// The whole reason this does not use the SDK's CheckHTTPResponse: the
-		// status alone does not say which of seventy-odd arguments was wrong.
-		_, err := decodePolicy(response(http.StatusUnprocessableEntity,
+	t.Run("a rejected write still says what the API said", func(t *testing.T) {
+		// Why this resource wanted the body in the first place: the status
+		// alone does not say which of seventy-odd arguments was wrong.
+		_, err := utl.CheckHTTPResponseWithErrorBody(response(http.StatusUnprocessableEntity,
 			`{"name":"UnprocessableEntityError","message":"Password expiration days is not applicable to app policies","statusCode":422}`))
 
 		assert.ErrorContains(t, err, "status: 422")
 		assert.ErrorContains(t, err, "Password expiration days is not applicable to app policies")
-	})
-
-	t.Run("falls back to the status when the body explains nothing", func(t *testing.T) {
-		_, err := decodePolicy(response(http.StatusInternalServerError, `<html>gateway</html>`))
-
-		assert.ErrorContains(t, err, "status: 500")
-	})
-
-	t.Run("rejects a response that is not a policy object", func(t *testing.T) {
-		_, err := decodePolicy(response(http.StatusOK, `[{"id":42}]`))
-
-		assert.Error(t, err)
 	})
 }
 
@@ -276,12 +281,11 @@ func testAccCheckOneLoginPolicyDestroyed(s *terraform.State) error {
 		if rs.Type != "onelogin_policies" {
 			continue
 		}
-		path := fmt.Sprintf("%s/%s", policiesPath, rs.Primary.ID)
-		resp, err := client.Client.Get(&path, nil)
+		id, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
-			continue
+			return err
 		}
-		if _, err := decodePolicy(resp); err == nil {
+		if _, err := client.GetPolicyByID(id); err == nil {
 			return fmt.Errorf("policy %s still exists", rs.Primary.ID)
 		}
 	}
