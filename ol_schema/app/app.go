@@ -1,6 +1,7 @@
 package appschema
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -59,9 +60,29 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeInt,
 			Computed: true,
 		},
+		// The app policy enforced when users sign in to this app. Only a
+		// policy whose kind is "app" resolves here; the endpoint answers a
+		// user policy with 422 "The associated Policy with ID <n> could not be
+		// found", the same thing it says about an ID that does not exist.
+		//
+		// Optional *and* Computed, which is the opposite of the group
+		// resource's policy_id. There the attribute was new, so Computed would
+		// only have taken away the ability to say "no policy". Here it has
+		// been Computed since the resource shipped, so state already holds
+		// whatever policy the app was given in the OneLogin UI; dropping
+		// Computed would read every configuration that never mentioned
+		// policy_id as asking for 0 and unassign the policy on the first apply
+		// after the provider was upgraded. #260.
+		//
+		// The cost is that removing the attribute leaves the last value in
+		// place rather than clearing it. Write policy_id = 0 to unassign: an
+		// explicit zero is still a value in the configuration, so it diffs
+		// against state, and Inflate turns it into the null the API wants.
 		"policy_id": &schema.Schema{
-			Type:     schema.TypeInt,
-			Computed: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validAppPolicyID,
 		},
 		"brand_id": &schema.Schema{
 			Type:     schema.TypeInt,
@@ -104,6 +125,46 @@ func Schema() map[string]*schema.Schema {
 			},
 		},
 	}
+}
+
+// validAppPolicyID rejects an ID that cannot name a policy.
+//
+// 0 is allowed and means "no policy": Inflate turns it into the JSON null the
+// app endpoint accepts as an unassignment. A negative is simply wrong, and
+// saying so during planning beats an apply that comes back with 422 "The
+// associated resource with the given id could not be found".
+func validAppPolicyID(val interface{}, key string) ([]string, []error) {
+	id, ok := val.(int)
+	if !ok || id >= 0 {
+		return nil, nil
+	}
+
+	return nil, []error{fmt.Errorf("%s must be the ID of an app policy, or 0 to unassign, got %d", key, id)}
+}
+
+// assignmentID reads policy_id out of an inflate map.
+//
+// present is false when the key is absent, which is how a caller says "leave
+// this assignment alone". A value that cannot be read is an error rather than
+// something to step over: the key being present is the whole instruction, and
+// the worst case is a dropped 0, where the plan promises an unassignment and
+// the apply quietly does nothing, leaving a diff that never settles.
+//
+// The type cannot actually be wrong today -- policy_id is TypeInt, so d.Get
+// hands back an int -- but a map built by hand can get it wrong, and the
+// neighbouring fields answer that with an unchecked assertion and a panic.
+func assignmentID(s map[string]interface{}, key string) (id int, present bool, err error) {
+	raw, ok := s[key]
+	if !ok || raw == nil {
+		return 0, false, nil
+	}
+
+	id, ok = raw.(int)
+	if !ok {
+		return 0, false, fmt.Errorf("%s must be an int, got %T", key, raw)
+	}
+
+	return id, true, nil
 }
 
 // Inflate takes a map of interfaces and constructs a OneLogin App.
@@ -169,6 +230,26 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 	if s["brand_id"] != nil {
 		brandID := s["brand_id"].(int)
 		app.BrandID = &brandID
+	}
+
+	// Presence of the key, not truth of the value, decides whether the policy
+	// is sent, so that the caller controls it and this only translates.
+	//
+	// 0 is not sent as 0. The app endpoint refuses it -- 422 "The associated
+	// Policy with ID 0 could not be found" -- and takes a JSON null as the
+	// unassignment instead, which ClearPolicyID is how models.App expresses
+	// (onelogin-go-sdk v4.16.0). A group, whose API does accept 0, is the
+	// reason this is worth spelling out.
+	policyID, policyGiven, err := assignmentID(s, "policy_id")
+	if err != nil {
+		return app, err
+	}
+	if policyGiven {
+		if policyID == 0 {
+			app.ClearPolicyID = true
+		} else {
+			app.PolicyID = &policyID
+		}
 	}
 
 	// Handle parameters

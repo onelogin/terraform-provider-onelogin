@@ -76,7 +76,7 @@ func samlAppsV0() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an SAML App with its sub-resources
 func samlAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	samlApp, err := appschema.Inflate(map[string]interface{}{
+	inflateMap := map[string]interface{}{
 		"name":                 d.Get("name"),
 		"visible":              d.Get("visible"),
 		"description":          d.Get("description"),
@@ -87,7 +87,10 @@ func samlAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
 		"sso":                  d.Get("sso"),
-	})
+	}
+	addAppPolicyIDForCreate(d, inflateMap)
+
+	samlApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "SAML App", "")
 	}
@@ -220,7 +223,7 @@ func samlAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 func samlAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	aid, _ := strconv.Atoi(d.Id())
 
-	samlApp, err := appschema.Inflate(map[string]interface{}{
+	inflateMap := map[string]interface{}{
 		"id":                   d.Id(),
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
@@ -232,7 +235,10 @@ func samlAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
 		"sso":                  d.Get("sso"),
-	})
+	}
+	addAppPolicyIDForUpdate(d, inflateMap)
+
+	samlApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "SAML App", d.Id())
 	}

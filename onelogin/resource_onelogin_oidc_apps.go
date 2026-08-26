@@ -85,7 +85,7 @@ func oidcAppsV0() *schema.Resource {
 
 // oidcAppCreate creates an OIDC app with all sub-resources
 func oidcAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	oidcApp, err := appschema.Inflate(map[string]interface{}{
+	inflateMap := map[string]interface{}{
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
 		"notes":                d.Get("notes"),
@@ -95,7 +95,10 @@ func oidcAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
-	})
+	}
+	addAppPolicyIDForCreate(d, inflateMap)
+
+	oidcApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "OIDC App", "")
 	}
@@ -281,7 +284,7 @@ func warnIfSecretDropped(ctx context.Context, aid int, prior interface{}, merged
 func oidcAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	aid, _ := strconv.Atoi(d.Id())
 
-	oidcApp, err := appschema.Inflate(map[string]interface{}{
+	inflateMap := map[string]interface{}{
 		"id":                   d.Id(),
 		"name":                 d.Get("name"),
 		"description":          d.Get("description"),
@@ -292,7 +295,10 @@ func oidcAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		"parameters":           d.Get("parameters"),
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
-	})
+	}
+	addAppPolicyIDForUpdate(d, inflateMap)
+
+	oidcApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "OIDC App", d.Id())
 	}

@@ -79,6 +79,11 @@ Creating a policy does not by itself apply it to anyone.
 
 * **App policies** are applied through the app: set `policy_id` on `onelogin_apps`,
   `onelogin_saml_apps` or `onelogin_oidc_apps`, as above.
+
+  Unassign with `policy_id = 0`. Note that *removing* the argument does not unassign —
+  it leaves the last value in place, because `policy_id` is computed as well as
+  optional, which is what stops a configuration that never mentioned a policy from
+  clearing one assigned in the admin UI.
 * **User policies** are applied by assigning them to a group, using `policy_id` on
   `onelogin_groups`:
 
