@@ -154,3 +154,51 @@ func TestInflate(t *testing.T) {
 		})
 	}
 }
+
+// TestInflatePolicyIDTypes covers the three things the key can mean, and the
+// one thing it must not do quietly.
+//
+// A value Inflate cannot read is reported rather than stepped over. The key
+// being present is the whole instruction, and the case that would hurt is a
+// dropped 0: the plan promises an unassignment, the apply sends nothing, and
+// the next read brings the policy back, so the same diff returns for ever.
+func TestInflatePolicyIDTypes(t *testing.T) {
+	base := func() map[string]interface{} {
+		return map[string]interface{}{"name": "test app", "connector_id": 108419}
+	}
+
+	t.Run("absent leaves both fields alone", func(t *testing.T) {
+		app, err := Inflate(base())
+		assert.NoError(t, err)
+		assert.Nil(t, app.PolicyID)
+		assert.False(t, app.ClearPolicyID)
+	})
+
+	t.Run("a positive id assigns", func(t *testing.T) {
+		s := base()
+		s["policy_id"] = 955633
+		app, err := Inflate(s)
+		assert.NoError(t, err)
+		if assert.NotNil(t, app.PolicyID) {
+			assert.Equal(t, 955633, *app.PolicyID)
+		}
+		assert.False(t, app.ClearPolicyID)
+	})
+
+	t.Run("zero unassigns", func(t *testing.T) {
+		s := base()
+		s["policy_id"] = 0
+		app, err := Inflate(s)
+		assert.NoError(t, err)
+		assert.Nil(t, app.PolicyID)
+		assert.True(t, app.ClearPolicyID)
+	})
+
+	t.Run("a value it cannot read is an error, not a silent drop", func(t *testing.T) {
+		s := base()
+		s["policy_id"] = "955633"
+		_, err := Inflate(s)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "policy_id")
+	})
+}

@@ -142,6 +142,31 @@ func validAppPolicyID(val interface{}, key string) ([]string, []error) {
 	return nil, []error{fmt.Errorf("%s must be the ID of an app policy, or 0 to unassign, got %d", key, id)}
 }
 
+// assignmentID reads policy_id out of an inflate map.
+//
+// present is false when the key is absent, which is how a caller says "leave
+// this assignment alone". A value that cannot be read is an error rather than
+// something to step over: the key being present is the whole instruction, and
+// the worst case is a dropped 0, where the plan promises an unassignment and
+// the apply quietly does nothing, leaving a diff that never settles.
+//
+// The type cannot actually be wrong today -- policy_id is TypeInt, so d.Get
+// hands back an int -- but a map built by hand can get it wrong, and the
+// neighbouring fields answer that with an unchecked assertion and a panic.
+func assignmentID(s map[string]interface{}, key string) (id int, present bool, err error) {
+	raw, ok := s[key]
+	if !ok || raw == nil {
+		return 0, false, nil
+	}
+
+	id, ok = raw.(int)
+	if !ok {
+		return 0, false, fmt.Errorf("%s must be an int, got %T", key, raw)
+	}
+
+	return id, true, nil
+}
+
 // Inflate takes a map of interfaces and constructs a OneLogin App.
 func Inflate(s map[string]interface{}) (models.App, error) {
 	var appID, connectorID int32
@@ -215,14 +240,15 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 	// unassignment instead, which ClearPolicyID is how models.App expresses
 	// (onelogin-go-sdk v4.16.0). A group, whose API does accept 0, is the
 	// reason this is worth spelling out.
-	if policyID, ok := s["policy_id"]; ok && policyID != nil {
-		if policyIDInt, ok := policyID.(int); ok {
-			if policyIDInt == 0 {
-				app.ClearPolicyID = true
-			} else {
-				id := policyIDInt
-				app.PolicyID = &id
-			}
+	policyID, policyGiven, err := assignmentID(s, "policy_id")
+	if err != nil {
+		return app, err
+	}
+	if policyGiven {
+		if policyID == 0 {
+			app.ClearPolicyID = true
+		} else {
+			app.PolicyID = &policyID
 		}
 	}
 
