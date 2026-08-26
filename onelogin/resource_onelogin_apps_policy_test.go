@@ -206,7 +206,7 @@ func TestAppPolicyIDNegativeRejected(t *testing.T) {
 // would receive, through the resource's own diff and the helper each app
 // resource calls. The bug only exists once the request is serialised, so that
 // is where the assertions are.
-func appBody(t *testing.T, r *schema.Resource, state *terraform.InstanceState, config map[string]interface{}, add func(*schema.ResourceData, map[string]interface{})) string {
+func appBody(t *testing.T, r *schema.Resource, state *terraform.InstanceState, config map[string]interface{}, key string, add func(*schema.ResourceData, map[string]interface{}, string)) string {
 	t.Helper()
 
 	d, err := schema.InternalMap(r.Schema).Data(state, appDiff(t, r, state, config))
@@ -218,7 +218,7 @@ func appBody(t *testing.T, r *schema.Resource, state *terraform.InstanceState, c
 		"name":         d.Get("name"),
 		"connector_id": d.Get("connector_id"),
 	}
-	add(d, inflateMap)
+	add(d, inflateMap, key)
 
 	app, err := appschema.Inflate(inflateMap)
 	if err != nil {
@@ -246,7 +246,7 @@ func TestAppPolicyIDCreateBody(t *testing.T) {
 					"name":         "my OIDC APP",
 					"connector_id": 38568,
 					"policy_id":    955633,
-				}, addAppPolicyIDForCreate)
+				}, "policy_id", addAppAssignmentForCreate)
 
 				if !strings.Contains(got, `"policy_id":955633`) {
 					t.Fatalf("expected policy_id to be sent, got %s", got)
@@ -257,7 +257,7 @@ func TestAppPolicyIDCreateBody(t *testing.T) {
 				got := appBody(t, r, nil, map[string]interface{}{
 					"name":         "my OIDC APP",
 					"connector_id": 38568,
-				}, addAppPolicyIDForCreate)
+				}, "policy_id", addAppAssignmentForCreate)
 
 				if strings.Contains(got, `"policy_id"`) {
 					t.Fatalf("expected policy_id to be omitted, got %s", got)
@@ -275,7 +275,7 @@ func TestAppPolicyIDCreateBody(t *testing.T) {
 					"name":         "my OIDC APP",
 					"connector_id": 38568,
 					"policy_id":    0,
-				}, addAppPolicyIDForCreate)
+				}, "policy_id", addAppAssignmentForCreate)
 
 				if strings.Contains(got, `"policy_id"`) {
 					t.Fatalf("expected policy_id to be omitted on create, got %s", got)
@@ -301,7 +301,7 @@ func TestAppPolicyIDUpdateBody(t *testing.T) {
 					"name":         "my OIDC APP",
 					"connector_id": 38568,
 					"policy_id":    955634,
-				}, addAppPolicyIDForUpdate)
+				}, "policy_id", addAppAssignmentForUpdate)
 
 				if !strings.Contains(got, `"policy_id":955634`) {
 					t.Fatalf("expected the new policy to be sent, got %s", got)
@@ -316,7 +316,7 @@ func TestAppPolicyIDUpdateBody(t *testing.T) {
 					"name":         "my OIDC APP",
 					"connector_id": 38568,
 					"policy_id":    0,
-				}, addAppPolicyIDForUpdate)
+				}, "policy_id", addAppAssignmentForUpdate)
 
 				if !strings.Contains(got, `"policy_id":null`) {
 					t.Fatalf("expected policy_id to be sent as null, got %s", got)
@@ -330,7 +330,7 @@ func TestAppPolicyIDUpdateBody(t *testing.T) {
 				got := appBody(t, r, appState(t, r, 955633), map[string]interface{}{
 					"name":         "a renamed app",
 					"connector_id": 38568,
-				}, addAppPolicyIDForUpdate)
+				}, "policy_id", addAppAssignmentForUpdate)
 
 				if strings.Contains(got, `"policy_id"`) {
 					t.Fatalf("expected an unrelated update to leave policy_id out, got %s", got)

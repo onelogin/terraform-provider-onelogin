@@ -82,11 +82,23 @@ func Schema() map[string]*schema.Schema {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validAppPolicyID,
+			ValidateFunc: validAppAssignmentID,
 		},
+		// The brand whose login page this app uses. Optional and Computed for
+		// the same reason as policy_id, and previously neither: brand_id was
+		// Optional alone while being populated by every read, so an app branded
+		// in the OneLogin UI proposed brand_id -> 0 on every plan. On the basic
+		// app resource, the only one that sent the field, that apply then failed
+		// with 422 "The associated AccountBrand with ID 0 could not be found";
+		// on the OIDC and SAML resources the field was never sent at all, so the
+		// diff simply came back for ever.
+		//
+		// Write brand_id = 0 to unassign, as with policy_id.
 		"brand_id": &schema.Schema{
-			Type:     schema.TypeInt,
-			Optional: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validAppAssignmentID,
 		},
 		"allow_assumed_signin": &schema.Schema{
 			Type:     schema.TypeBool,
@@ -127,22 +139,22 @@ func Schema() map[string]*schema.Schema {
 	}
 }
 
-// validAppPolicyID rejects an ID that cannot name a policy.
+// validAppAssignmentID rejects an ID that cannot name a policy or a brand.
 //
-// 0 is allowed and means "no policy": Inflate turns it into the JSON null the
-// app endpoint accepts as an unassignment. A negative is simply wrong, and
-// saying so during planning beats an apply that comes back with 422 "The
-// associated resource with the given id could not be found".
-func validAppPolicyID(val interface{}, key string) ([]string, []error) {
+// 0 is allowed and means "none": Inflate turns it into the JSON null the app
+// endpoint accepts as an unassignment. A negative is simply wrong, and saying
+// so during planning beats an apply that comes back with 422 "The associated
+// resource with the given id could not be found".
+func validAppAssignmentID(val interface{}, key string) ([]string, []error) {
 	id, ok := val.(int)
 	if !ok || id >= 0 {
 		return nil, nil
 	}
 
-	return nil, []error{fmt.Errorf("%s must be the ID of an app policy, or 0 to unassign, got %d", key, id)}
+	return nil, []error{fmt.Errorf("%s must be a positive ID, or 0 to unassign, got %d", key, id)}
 }
 
-// assignmentID reads policy_id out of an inflate map.
+// assignmentID reads policy_id or brand_id out of an inflate map.
 //
 // present is false when the key is absent, which is how a caller says "leave
 // this assignment alone". A value that cannot be read is an error rather than
@@ -150,7 +162,7 @@ func validAppPolicyID(val interface{}, key string) ([]string, []error) {
 // the worst case is a dropped 0, where the plan promises an unassignment and
 // the apply quietly does nothing, leaving a diff that never settles.
 //
-// The type cannot actually be wrong today -- policy_id is TypeInt, so d.Get
+// The type cannot actually be wrong today -- both fields are TypeInt, so d.Get
 // hands back an int -- but a map built by hand can get it wrong, and the
 // neighbouring fields answer that with an unchecked assertion and a panic.
 func assignmentID(s map[string]interface{}, key string) (id int, present bool, err error) {
@@ -227,9 +239,17 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 		}
 	}
 
-	if s["brand_id"] != nil {
-		brandID := s["brand_id"].(int)
-		app.BrandID = &brandID
+	// Both assignments follow the same rule; see the policy_id note below.
+	brandID, brandGiven, err := assignmentID(s, "brand_id")
+	if err != nil {
+		return app, err
+	}
+	if brandGiven {
+		if brandID == 0 {
+			app.ClearBrandID = true
+		} else {
+			app.BrandID = &brandID
+		}
 	}
 
 	// Presence of the key, not truth of the value, decides whether the policy

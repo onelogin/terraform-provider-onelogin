@@ -46,17 +46,7 @@ func appsV0() *schema.Resource {
 
 // appCreate creates an app
 func appCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	inflateMap := map[string]interface{}{
-		"name":                 d.Get("name"),
-		"description":          d.Get("description"),
-		"notes":                d.Get("notes"),
-		"connector_id":         d.Get("connector_id"),
-		"visible":              d.Get("visible"),
-		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-		"parameters":           d.Get("parameters"),
-		"provisioning":         d.Get("provisioning"),
-	}
-	addAppPolicyIDForCreate(d, inflateMap)
+	inflateMap := basicAppCreateMap(d)
 
 	basicApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
@@ -185,19 +175,7 @@ func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 func appUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	aid, _ := strconv.Atoi(d.Id())
 
-	inflateMap := map[string]interface{}{
-		"id":                   d.Id(),
-		"name":                 d.Get("name"),
-		"description":          d.Get("description"),
-		"notes":                d.Get("notes"),
-		"connector_id":         d.Get("connector_id"),
-		"visible":              d.Get("visible"),
-		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-		"parameters":           d.Get("parameters"),
-		"provisioning":         d.Get("provisioning"),
-		"brand_id":             d.Get("brand_id"),
-	}
-	addAppPolicyIDForUpdate(d, inflateMap)
+	inflateMap := basicAppUpdateMap(d)
 
 	basicApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
@@ -223,4 +201,47 @@ func appDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		aid, _ := strconv.Atoi(id)
 		return client.DeleteApp(aid)
 	}, "app")
+}
+
+// basicAppCreateMap builds the map handed to appschema.Inflate.
+//
+// Extracted so that the wiring is testable. brand_id was declared on this
+// resource for a long time while never being put in this map, which no test
+// could notice while the map was built inline.
+func basicAppCreateMap(d *schema.ResourceData) map[string]interface{} {
+	inflateMap := map[string]interface{}{
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+	}
+	addAppAssignmentForCreate(d, inflateMap, "policy_id")
+	addAppAssignmentForCreate(d, inflateMap, "brand_id")
+	return inflateMap
+}
+
+// basicAppUpdateMap builds the map handed to appschema.Inflate.
+//
+// Extracted so that the wiring is testable. brand_id was declared on this
+// resource for a long time while never being put in this map, which no test
+// could notice while the map was built inline.
+func basicAppUpdateMap(d *schema.ResourceData) map[string]interface{} {
+	inflateMap := map[string]interface{}{
+		"id":                   d.Id(),
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+	}
+	addAppAssignmentForUpdate(d, inflateMap, "policy_id")
+	addAppAssignmentForUpdate(d, inflateMap, "brand_id")
+	return inflateMap
 }

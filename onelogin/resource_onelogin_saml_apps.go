@@ -76,19 +76,7 @@ func samlAppsV0() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an SAML App with its sub-resources
 func samlAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	inflateMap := map[string]interface{}{
-		"name":                 d.Get("name"),
-		"visible":              d.Get("visible"),
-		"description":          d.Get("description"),
-		"notes":                d.Get("notes"),
-		"connector_id":         d.Get("connector_id"),
-		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-		"parameters":           d.Get("parameters"),
-		"provisioning":         d.Get("provisioning"),
-		"configuration":        d.Get("configuration"),
-		"sso":                  d.Get("sso"),
-	}
-	addAppPolicyIDForCreate(d, inflateMap)
+	inflateMap := samlAppCreateMap(d)
 
 	samlApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
@@ -223,20 +211,7 @@ func samlAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 func samlAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	aid, _ := strconv.Atoi(d.Id())
 
-	inflateMap := map[string]interface{}{
-		"id":                   d.Id(),
-		"name":                 d.Get("name"),
-		"description":          d.Get("description"),
-		"notes":                d.Get("notes"),
-		"connector_id":         d.Get("connector_id"),
-		"visible":              d.Get("visible"),
-		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-		"parameters":           d.Get("parameters"),
-		"provisioning":         d.Get("provisioning"),
-		"configuration":        d.Get("configuration"),
-		"sso":                  d.Get("sso"),
-	}
-	addAppPolicyIDForUpdate(d, inflateMap)
+	inflateMap := samlAppUpdateMap(d)
 
 	samlApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
@@ -269,4 +244,51 @@ func samlAppDelete(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		aid, _ := strconv.Atoi(id)
 		return client.DeleteApp(aid)
 	}, "SAML App")
+}
+
+// samlAppCreateMap builds the map handed to appschema.Inflate.
+//
+// Extracted so that the wiring is testable. brand_id was declared on this
+// resource for a long time while never being put in this map, which no test
+// could notice while the map was built inline.
+func samlAppCreateMap(d *schema.ResourceData) map[string]interface{} {
+	inflateMap := map[string]interface{}{
+		"name":                 d.Get("name"),
+		"visible":              d.Get("visible"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+		"sso":                  d.Get("sso"),
+	}
+	addAppAssignmentForCreate(d, inflateMap, "policy_id")
+	addAppAssignmentForCreate(d, inflateMap, "brand_id")
+	return inflateMap
+}
+
+// samlAppUpdateMap builds the map handed to appschema.Inflate.
+//
+// Extracted so that the wiring is testable. brand_id was declared on this
+// resource for a long time while never being put in this map, which no test
+// could notice while the map was built inline.
+func samlAppUpdateMap(d *schema.ResourceData) map[string]interface{} {
+	inflateMap := map[string]interface{}{
+		"id":                   d.Id(),
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+		"sso":                  d.Get("sso"),
+	}
+	addAppAssignmentForUpdate(d, inflateMap, "policy_id")
+	addAppAssignmentForUpdate(d, inflateMap, "brand_id")
+	return inflateMap
 }
