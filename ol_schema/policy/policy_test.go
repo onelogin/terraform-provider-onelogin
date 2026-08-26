@@ -336,3 +336,19 @@ func TestFlatten(t *testing.T) {
 		assert.Empty(t, d.Get("terms_and_conditions"))
 	})
 }
+
+// A nil map is what ConfiguredKeys returns when the raw configuration cannot
+// be read, and it reaches FieldsNotApplicableTo unguarded. Reading a missing
+// key from a nil map is defined behaviour in Go -- it yields the zero value --
+// so this does not panic; only writing to one would.
+//
+// The result is that an unreadable configuration checks nothing rather than
+// blocking the plan. That is deliberate: the API still refuses a wrong-kind
+// field at apply, so the worst case is the diagnostic arriving later, not a
+// bad write getting through.
+func TestFieldsNotApplicableToNilConfigured(t *testing.T) {
+	assert.NotPanics(t, func() {
+		assert.Empty(t, FieldsNotApplicableTo("app", nil))
+		assert.Empty(t, FieldsNotApplicableTo("user", nil))
+	})
+}

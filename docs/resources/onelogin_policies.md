@@ -14,7 +14,8 @@ A policy is one of two kinds, set by `kind` and fixed for the life of the policy
 
 * A **user** policy governs how people sign in — passwords, MFA, lockout, session length,
   self-service password reset, the portal, and so on. Assign it to users through the
-  `policy_id` on a role or group, or make it the account default in the OneLogin admin UI.
+  `policy_id` on a group, or make it the account default in the OneLogin admin UI.
+  Roles cannot carry a policy: OneLogin has no role-to-policy assignment.
 * An **app** policy governs a single application — whether opening it forces
   re-authentication, and how long that lasts.
 
