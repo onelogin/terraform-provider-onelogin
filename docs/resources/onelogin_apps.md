@@ -67,11 +67,9 @@ The following arguments are supported:
 
   The attribute is computed as well as optional, so a policy assigned in the OneLogin
   admin UI is left alone by a configuration that does not mention `policy_id`. The cost
-  of that is that an assignment cannot be taken off through Terraform: OneLogin wants
-  `policy_id` sent as `null` to unassign and refuses `0`, and a `null` is not something
-  the provider can currently send. `policy_id = 0` is rejected during validation rather
-  than failing the apply with a 422. Assign a different app policy, or clear the
-  assignment in the OneLogin admin UI.
+  of that is that *removing* the argument does not unassign the policy — it leaves the
+  last value in place. Write `policy_id = 0` to unassign. OneLogin refuses a literal `0`
+  and wants `null` for this, so the provider sends the `null` on your behalf.
 
   ```hcl
   resource "onelogin_policies" "finance_app" {

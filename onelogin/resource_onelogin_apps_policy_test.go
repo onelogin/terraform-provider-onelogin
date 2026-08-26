@@ -156,27 +156,47 @@ func TestAppPolicyIDSettles(t *testing.T) {
 	}
 }
 
-// TestAppPolicyIDZeroRejected covers the value that looks like it should mean
-// "no policy" and does not.
+// TestAppPolicyIDClearable covers unassigning.
 //
-// A group clears its policy by being sent a 0. An app cannot: OneLogin answers
-// 0 with 422 "The associated Policy with ID 0 could not be found". Rejecting it
-// during validation turns that into a failed plan naming the reason, rather
-// than an apply that gets a 422 back.
-func TestAppPolicyIDZeroRejected(t *testing.T) {
+// Because policy_id is Computed as well as Optional, dropping the attribute
+// keeps the last value, so unassigning has to be said out loud. An explicit 0
+// is still a value in the configuration, so it diffs against state -- and
+// Inflate turns it into the null the API wants, which the body tests check.
+func TestAppPolicyIDClearable(t *testing.T) {
+	for name, newResource := range appResourcesUnderTest() {
+		t.Run(name, func(t *testing.T) {
+			r := newResource()
+			diff := appDiff(t, r, appState(t, r, 955633), map[string]interface{}{
+				"name":         "my OIDC APP",
+				"connector_id": 38568,
+				"policy_id":    0,
+			})
+
+			change, ok := diff.Attributes["policy_id"]
+			if !ok {
+				t.Fatalf("expected clearing policy_id to propose a change, got %v", diff.Attributes)
+			}
+			if change.Old != "955633" || change.New != "0" {
+				t.Fatalf("expected 955633 -> 0, got %q -> %q", change.Old, change.New)
+			}
+		})
+	}
+}
+
+// TestAppPolicyIDNegativeRejected covers the one value that still cannot mean
+// anything. 0 unassigns and a positive assigns; a negative names no policy at
+// all, and saying so during planning beats an apply that comes back 422.
+func TestAppPolicyIDNegativeRejected(t *testing.T) {
 	for name, newResource := range appResourcesUnderTest() {
 		t.Run(name, func(t *testing.T) {
 			diags := schema.InternalMap(newResource().Schema).Validate(terraform.NewResourceConfigRaw(map[string]interface{}{
 				"name":         "my OIDC APP",
 				"connector_id": 38568,
-				"policy_id":    0,
+				"policy_id":    -1,
 			}))
 
 			if !diags.HasError() {
-				t.Fatal("expected policy_id = 0 to be rejected")
-			}
-			if !strings.Contains(diags[0].Summary, "cannot be set to 0") {
-				t.Fatalf("expected the error to explain the 0, got %q", diags[0].Summary)
+				t.Fatal("expected a negative policy_id to be rejected")
 			}
 		})
 	}
@@ -270,19 +290,21 @@ func TestAppPolicyIDUpdateBody(t *testing.T) {
 				}
 			})
 
-			// A configured 0 never reaches an update -- validation stops it --
-			// but state can still fall to 0 when an app's policy is removed in
-			// the OneLogin UI. Sending that back would turn a read that had
-			// settled into a 422, so it is dropped.
-			t.Run("never sends a zero", func(t *testing.T) {
+			// The whole point of the SDK bump: a configured 0 leaves here as a
+			// JSON null. Sending it as 0 comes back 422, and omitting it would
+			// leave the policy in place while the plan claimed otherwise.
+			t.Run("sends null to unassign", func(t *testing.T) {
 				got := appBody(t, r, appState(t, r, 955633), map[string]interface{}{
 					"name":         "my OIDC APP",
 					"connector_id": 38568,
 					"policy_id":    0,
 				}, addAppPolicyIDForUpdate)
 
-				if strings.Contains(got, `"policy_id"`) {
-					t.Fatalf("expected policy_id 0 to be dropped, got %s", got)
+				if !strings.Contains(got, `"policy_id":null`) {
+					t.Fatalf("expected policy_id to be sent as null, got %s", got)
+				}
+				if strings.Contains(got, `"policy_id":0`) {
+					t.Fatalf("expected 0 not to be sent literally, got %s", got)
 				}
 			})
 
@@ -337,12 +359,12 @@ func TestAppPolicyIDReadsNullAsZero(t *testing.T) {
 }
 
 // TestAccOIDCApp_policy is the configuration from issue #260 end to end: an app
-// policy created in the same run, attached to an OIDC app, then swapped for a
-// different one.
+// policy created in the same run, attached to an OIDC app, swapped for a
+// different one, and finally taken back off.
 //
-// There is no step taking the policy back off. OneLogin wants a JSON null for
-// that and the SDK's App model cannot send one; TestAppPolicyIDZeroRejected
-// covers what a practitioner gets if they try.
+// The last step is what onelogin-go-sdk v4.16.0 made possible. It is written as
+// policy_id = 0 rather than by dropping the attribute, because policy_id is
+// Computed as well as Optional -- see TestAppPolicyIDClearable.
 //
 // The unit tests above stop at the request body, so this is what covers the
 // resources actually calling the helpers, and the API accepting what they send.
@@ -368,6 +390,15 @@ func TestAccOIDCApp_policy(t *testing.T) {
 						"onelogin_oidc_apps.policy_test", "policy_id",
 						"onelogin_policies.other_policy", "id",
 					),
+				),
+			},
+			{
+				// Unassignment. The API takes a JSON null for this and refuses
+				// a 0, so what this really exercises is Inflate translating the
+				// one into the other.
+				Config: testAccOIDCAppPolicyConfigCleared,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("onelogin_oidc_apps.policy_test", "policy_id", "0"),
 				),
 			},
 		},
@@ -411,4 +442,8 @@ resource "onelogin_oidc_apps" "policy_test" {
 var (
 	testAccOIDCAppPolicyConfig      = testAccOIDCAppPolicyPolicies + fmt.Sprintf(testAccOIDCAppPolicyApp, "policy_id = onelogin_policies.app_policy.id")
 	testAccOIDCAppPolicyConfigOther = testAccOIDCAppPolicyPolicies + fmt.Sprintf(testAccOIDCAppPolicyApp, "policy_id = onelogin_policies.other_policy.id")
+
+	// Explicit rather than absent: dropping policy_id would leave the last
+	// value in place, because the attribute is Computed as well as Optional.
+	testAccOIDCAppPolicyConfigCleared = testAccOIDCAppPolicyPolicies + fmt.Sprintf(testAccOIDCAppPolicyApp, "policy_id = 0")
 )

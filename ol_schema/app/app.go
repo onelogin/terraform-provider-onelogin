@@ -75,8 +75,9 @@ func Schema() map[string]*schema.Schema {
 		// after the provider was upgraded. #260.
 		//
 		// The cost is that removing the attribute leaves the last value in
-		// place rather than clearing it, and validAppPolicyID explains why
-		// writing 0 is not the way out.
+		// place rather than clearing it. Write policy_id = 0 to unassign: an
+		// explicit zero is still a value in the configuration, so it diffs
+		// against state, and Inflate turns it into the null the API wants.
 		"policy_id": &schema.Schema{
 			Type:         schema.TypeInt,
 			Optional:     true,
@@ -126,33 +127,19 @@ func Schema() map[string]*schema.Schema {
 	}
 }
 
-// validAppPolicyID rejects the two values that cannot reach the API as a policy
-// assignment, so that a plan fails with the reason rather than an apply failing
-// with a 422.
+// validAppPolicyID rejects an ID that cannot name a policy.
 //
-// A group clears its policy by being sent a 0, and an app cannot: OneLogin
-// answers 0 with 422 "The associated Policy with ID 0 could not be found". What
-// the app endpoint accepts as "no policy" is a JSON null, and models.App
-// declares PolicyID as *int tagged omitempty, where a nil pointer is omitted
-// from the request entirely and so leaves the assignment alone. There is no
-// third state to send, which is why unassigning is not expressible here yet and
-// needs a change to the SDK model rather than to this provider.
+// 0 is allowed and means "no policy": Inflate turns it into the JSON null the
+// app endpoint accepts as an unassignment. A negative is simply wrong, and
+// saying so during planning beats an apply that comes back with 422 "The
+// associated resource with the given id could not be found".
 func validAppPolicyID(val interface{}, key string) ([]string, []error) {
 	id, ok := val.(int)
-	if !ok || id > 0 {
+	if !ok || id >= 0 {
 		return nil, nil
 	}
 
-	if id < 0 {
-		return nil, []error{fmt.Errorf("%s must be the ID of an app policy, got %d", key, id)}
-	}
-
-	return nil, []error{fmt.Errorf(
-		"%s cannot be set to 0: OneLogin rejects it with \"The associated Policy with ID 0 could not be found\". "+
-			"Unassigning an app's policy is not supported yet -- it requires sending policy_id as null, which the "+
-			"OneLogin Go SDK's App model cannot express. Assign a different app policy, or clear the assignment in "+
-			"the OneLogin admin UI. Note that removing policy_id from the configuration does not clear it either, "+
-			"because the attribute is computed as well as optional", key)}
+	return nil, []error{fmt.Errorf("%s must be the ID of an app policy, or 0 to unassign, got %d", key, id)}
 }
 
 // Inflate takes a map of interfaces and constructs a OneLogin App.
@@ -221,14 +208,21 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 	}
 
 	// Presence of the key, not truth of the value, decides whether the policy
-	// is sent, so that the caller controls it and this only translates. Unlike
-	// a group, an app has no value meaning "no policy": 0 is refused and null
-	// is unreachable through a *int tagged omitempty, so the callers only ever
-	// hand over a real policy ID. See validAppPolicyID.
+	// is sent, so that the caller controls it and this only translates.
+	//
+	// 0 is not sent as 0. The app endpoint refuses it -- 422 "The associated
+	// Policy with ID 0 could not be found" -- and takes a JSON null as the
+	// unassignment instead, which ClearPolicyID is how models.App expresses
+	// (onelogin-go-sdk v4.16.0). A group, whose API does accept 0, is the
+	// reason this is worth spelling out.
 	if policyID, ok := s["policy_id"]; ok && policyID != nil {
 		if policyIDInt, ok := policyID.(int); ok {
-			id := policyIDInt
-			app.PolicyID = &id
+			if policyIDInt == 0 {
+				app.ClearPolicyID = true
+			} else {
+				id := policyIDInt
+				app.PolicyID = &id
+			}
 		}
 	}
 

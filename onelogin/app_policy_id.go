@@ -6,10 +6,10 @@ import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 // so share policy_id. They also share the two rules for when to send it, which
 // live here rather than being repeated six times.
 //
-// Both rules end up saying "only a real policy ID is ever sent". OneLogin
-// refuses 0 with a 422 and treats a JSON null as "no policy", and a *int tagged
-// omitempty cannot produce a null, so 0 is worth nothing to either caller.
-// appschema.validAppPolicyID stops a configuration reaching them with one.
+// Both rules are about the key: appschema.Inflate reads its presence, not the
+// truth of its value, because 0 is meaningful. It is how a configuration says
+// "no policy", and Inflate turns it into the JSON null the app endpoint takes
+// as an unassignment.
 
 // addAppPolicyIDForCreate records the policy a new app should be created with,
 // and says nothing when the configuration named none.
@@ -26,22 +26,19 @@ func addAppPolicyIDForCreate(d *schema.ResourceData, inflateMap map[string]inter
 // addAppPolicyIDForUpdate records the policy an update should apply, and says
 // nothing when it did not change.
 //
-// The app endpoint takes a PUT but merges it, so a field left out is left
-// alone. That is what keeps an update touching only the name from disturbing
-// the policy, and it matters more here than it does for a group: policy_id is
-// Computed as well as Optional on an app, so state routinely holds a value no
-// configuration asked for, and d.Get would echo it back on every unrelated
-// apply.
+// Sent only when it actually changed, and then whatever it now is -- including
+// the 0 that unassigns. The app endpoint takes a PUT but merges it, so a field
+// left out is left alone, and that is what keeps an update touching only the
+// name from disturbing the policy. It matters more here than it does for a
+// group: policy_id is Computed as well as Optional on an app, so state
+// routinely holds a value no configuration asked for, and d.Get would echo it
+// back on every unrelated apply.
+//
+// A policy removed outside Terraform does not reach this either. State falls to
+// 0 on the next read, but so does the absent attribute it is compared against,
+// so HasChange stays false and nothing is sent.
 func addAppPolicyIDForUpdate(d *schema.ResourceData, inflateMap map[string]interface{}) {
-	if !d.HasChange("policy_id") {
-		return
-	}
-	// A 0 here is a policy going away, which the API cannot be asked to do.
-	// validAppPolicyID rejects a configured 0 before a plan gets this far, so
-	// what reaches this line is state catching up with an app whose policy was
-	// removed elsewhere -- and sending that 0 back would only turn a settled
-	// read into a 422.
-	if policyID := d.Get("policy_id").(int); policyID > 0 {
-		inflateMap["policy_id"] = policyID
+	if d.HasChange("policy_id") {
+		inflateMap["policy_id"] = d.Get("policy_id")
 	}
 }
