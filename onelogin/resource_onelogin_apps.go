@@ -58,7 +58,10 @@ func appCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	}
 	addAppPolicyIDForCreate(d, inflateMap)
 
-	basicApp, _ := appschema.Inflate(inflateMap)
+	basicApp, err := appschema.Inflate(inflateMap)
+	if err != nil {
+		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "App", "")
+	}
 
 	client := m.(*onelogin.OneloginSDK)
 	result, err := client.CreateApp(basicApp)
@@ -196,10 +199,13 @@ func appUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	}
 	addAppPolicyIDForUpdate(d, inflateMap)
 
-	basicApp, _ := appschema.Inflate(inflateMap)
+	basicApp, err := appschema.Inflate(inflateMap)
+	if err != nil {
+		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "App", d.Id())
+	}
 
 	client := m.(*onelogin.OneloginSDK)
-	_, err := client.UpdateApp(aid, basicApp)
+	_, err = client.UpdateApp(aid, basicApp)
 	if err != nil {
 		tflog.Error(ctx, "[ERROR] Error updating app", map[string]interface{}{"id": aid, "error": err})
 		return diag.FromErr(err)

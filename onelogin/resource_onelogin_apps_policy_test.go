@@ -263,6 +263,24 @@ func TestAppPolicyIDCreateBody(t *testing.T) {
 					t.Fatalf("expected policy_id to be omitted, got %s", got)
 				}
 			})
+
+			// An explicit 0 on a create is omitted too, and that is not the
+			// same compromise the update path makes. A create has no policy to
+			// take off: the app comes back with policy_id null either way, so
+			// omitting the field and sending the null produce the same app.
+			// GetOk collapsing the two is therefore harmless here, which is
+			// what lets this path avoid the deprecated GetOkExists.
+			t.Run("omits an explicit zero on create", func(t *testing.T) {
+				got := appBody(t, r, nil, map[string]interface{}{
+					"name":         "my OIDC APP",
+					"connector_id": 38568,
+					"policy_id":    0,
+				}, addAppPolicyIDForCreate)
+
+				if strings.Contains(got, `"policy_id"`) {
+					t.Fatalf("expected policy_id to be omitted on create, got %s", got)
+				}
+			})
 		})
 	}
 }

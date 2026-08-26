@@ -14,9 +14,18 @@ import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 // addAppPolicyIDForCreate records the policy a new app should be created with,
 // and says nothing when the configuration named none.
 //
-// Omitting the field is what a create with no policy wants in any case: the app
-// is stored with policy_id null, which is exactly the state an app that never
-// had a policy should be in.
+// GetOk reads an explicit policy_id = 0 as unset, and that is wanted here even
+// though 0 is meaningful everywhere else in this file. On an update a 0 is an
+// instruction -- take the policy off -- and has to be sent. On a create there
+// is nothing to take off: an app created without the field comes back with
+// policy_id null, which is the same app a null would have produced. Omitting it
+// and sending the null are indistinguishable in the result, so the simpler of
+// the two is fine.
+//
+// GetOkExists would tell the two apart, but it is deprecated in
+// terraform-plugin-sdk v2 -- "usage is discouraged due to undefined behaviors"
+// -- and GetRawConfig would be the supported way if a real difference ever
+// appeared. TestAppPolicyIDCreateBody pins the behaviour either way.
 func addAppPolicyIDForCreate(d *schema.ResourceData, inflateMap map[string]interface{}) {
 	if policyID, ok := d.GetOk("policy_id"); ok {
 		inflateMap["policy_id"] = policyID
