@@ -85,18 +85,7 @@ func oidcAppsV0() *schema.Resource {
 
 // oidcAppCreate creates an OIDC app with all sub-resources
 func oidcAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	inflateMap := map[string]interface{}{
-		"name":                 d.Get("name"),
-		"description":          d.Get("description"),
-		"notes":                d.Get("notes"),
-		"connector_id":         d.Get("connector_id"),
-		"visible":              d.Get("visible"),
-		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-		"parameters":           d.Get("parameters"),
-		"provisioning":         d.Get("provisioning"),
-		"configuration":        d.Get("configuration"),
-	}
-	addAppPolicyIDForCreate(d, inflateMap)
+	inflateMap := oidcAppCreateMap(d)
 
 	oidcApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
@@ -284,19 +273,7 @@ func warnIfSecretDropped(ctx context.Context, aid int, prior interface{}, merged
 func oidcAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	aid, _ := strconv.Atoi(d.Id())
 
-	inflateMap := map[string]interface{}{
-		"id":                   d.Id(),
-		"name":                 d.Get("name"),
-		"description":          d.Get("description"),
-		"notes":                d.Get("notes"),
-		"connector_id":         d.Get("connector_id"),
-		"visible":              d.Get("visible"),
-		"allow_assumed_signin": d.Get("allow_assumed_signin"),
-		"parameters":           d.Get("parameters"),
-		"provisioning":         d.Get("provisioning"),
-		"configuration":        d.Get("configuration"),
-	}
-	addAppPolicyIDForUpdate(d, inflateMap)
+	inflateMap := oidcAppUpdateMap(d)
 
 	oidcApp, err := appschema.Inflate(inflateMap)
 	if err != nil {
@@ -328,4 +305,49 @@ func oidcAppDelete(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		aid, _ := strconv.Atoi(id)
 		return client.DeleteApp(aid)
 	}, "OIDC App")
+}
+
+// oidcAppCreateMap builds the map handed to appschema.Inflate.
+//
+// Extracted so that the wiring is testable. brand_id was declared on this
+// resource for a long time while never being put in this map, which no test
+// could notice while the map was built inline.
+func oidcAppCreateMap(d *schema.ResourceData) map[string]interface{} {
+	inflateMap := map[string]interface{}{
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+	}
+	addAppAssignmentForCreate(d, inflateMap, "policy_id")
+	addAppAssignmentForCreate(d, inflateMap, "brand_id")
+	return inflateMap
+}
+
+// oidcAppUpdateMap builds the map handed to appschema.Inflate.
+//
+// Extracted so that the wiring is testable. brand_id was declared on this
+// resource for a long time while never being put in this map, which no test
+// could notice while the map was built inline.
+func oidcAppUpdateMap(d *schema.ResourceData) map[string]interface{} {
+	inflateMap := map[string]interface{}{
+		"id":                   d.Id(),
+		"name":                 d.Get("name"),
+		"description":          d.Get("description"),
+		"notes":                d.Get("notes"),
+		"connector_id":         d.Get("connector_id"),
+		"visible":              d.Get("visible"),
+		"allow_assumed_signin": d.Get("allow_assumed_signin"),
+		"parameters":           d.Get("parameters"),
+		"provisioning":         d.Get("provisioning"),
+		"configuration":        d.Get("configuration"),
+	}
+	addAppAssignmentForUpdate(d, inflateMap, "policy_id")
+	addAppAssignmentForUpdate(d, inflateMap, "brand_id")
+	return inflateMap
 }

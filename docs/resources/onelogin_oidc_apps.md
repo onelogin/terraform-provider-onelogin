@@ -97,6 +97,16 @@ The following arguments are supported:
   }
   ```
 
+* `brand_id` - (Optional, Number) ID of the brand whose login page this app uses. Omit to
+  fall back to the account default brand.
+
+  Like `policy_id`, the attribute is computed as well as optional, so a brand assigned in
+  the OneLogin admin UI is left alone by a configuration that does not mention
+  `brand_id`, and *removing* the argument does not unassign it. Write `brand_id = 0` to
+  unassign; OneLogin refuses a literal `0` and wants `null`, which the provider sends on
+  your behalf.
+
+
 * `provisioning` - (Optional) Settings regarding the app's provisioning ability.
   * `enabled` - (Required) Indicates if provisioning is enabled for this app.
 
@@ -162,6 +172,8 @@ The following arguments are supported:
 * `created_at` - Timestamp for app's creation.
 
 * `policy_id` - The app policy assigned to the app. Settable; see the argument above.
+
+* `brand_id` - The brand assigned to the app. Settable; see the argument above.
 
 * `visible` - Indicates if the app is visible in the OneLogin portal.
 
