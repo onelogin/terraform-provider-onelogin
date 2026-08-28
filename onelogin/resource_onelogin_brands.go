@@ -115,6 +115,25 @@ func brandUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 }
 
 func brandDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	// The master brand is the account's own branding, created with the account
+	// and the fallback for every app that names no other brand. It is reachable
+	// here only by importing it, and destroying it is not what anyone importing
+	// it to change a colour is asking for.
+	//
+	// This is deliberately refused rather than attempted-and-reported. Whether
+	// the endpoint would allow it was not tested: doing so would have meant
+	// deleting the master brand of a shared tenant, and the answer does not
+	// change what this resource should do. If the API refuses, this is a
+	// clearer error than the one it would return; if it allows, this is the
+	// difference between a destroy and an outage.
+	if master, ok := d.Get("master").(bool); ok && master {
+		return diag.Errorf(
+			"brand %s is the account's master brand and will not be deleted: it is the branding every app falls back to. "+
+				"Remove it from state with `terraform state rm` to stop managing it without destroying it",
+			d.Id(),
+		)
+	}
+
 	client := m.(*onelogin.OneloginSDK)
 
 	return utils.StandardDeleteFunc(ctx, d, func(id string) (interface{}, error) {

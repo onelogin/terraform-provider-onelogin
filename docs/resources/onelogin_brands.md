@@ -14,9 +14,13 @@ label on the Username/Email field.
 
 Attach a brand to an application through that application's `brand_id`.
 
-Every account has one **master** brand, created with the account. It cannot be created or
-destroyed through this resource, and no brand can be promoted to master. To manage the
-master brand's colours and images, `terraform import` it.
+Every account has one **master** brand, created with the account. It cannot be created
+through this resource, and no brand can be promoted to master. To manage the master
+brand's colours and images, `terraform import` it.
+
+**Destroying an imported master brand is refused.** It is the branding every app falls
+back to when it names no other, so `terraform destroy` returns an error rather than
+attempting the delete. Use `terraform state rm` to stop managing it without destroying it.
 
 ## Example Usage
 
