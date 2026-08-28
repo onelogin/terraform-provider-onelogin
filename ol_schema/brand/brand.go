@@ -88,14 +88,23 @@ func Schema() map[string]*schema.Schema {
 		// The cost is that a logo replaced outside Terraform is not detected
 		// as drift: state keeps the base64 that was last applied. Changing the
 		// configured value still replaces the image.
+		//
+		// Both are Sensitive, which is not a claim that an image is a secret.
+		// It is the only lever the SDK offers to stop Terraform printing a
+		// string attribute in full, and base64 image data is long enough that
+		// it matters: a 200KB logo renders as a single 270,909-character line
+		// and a 273KB plan, against 2.2KB with this set. The value is not
+		// readable by eye either way.
 		"logo": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			Description: "Base64-encoded PNG for the login page logo, under 1MB. Write-only: the API returns image URLs rather than the data, so a logo changed outside Terraform is not seen as drift.",
 		},
 		"background": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			Description: "Base64-encoded JPG or PNG for the login page background, under 5MB. Write-only, for the same reason as logo.",
 		},
 	}

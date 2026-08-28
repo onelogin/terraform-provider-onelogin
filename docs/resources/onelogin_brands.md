@@ -100,6 +100,11 @@ The consequence: **an image replaced outside Terraform is not reported as drift.
 keeps the base64 that was last applied. Changing the configured value still replaces the
 image as usual, and `filebase64` on a changed file produces a changed value.
 
+Both are also marked sensitive, so a plan shows `(sensitive value)` rather than the data.
+That is not a claim that an image is a secret — it stops Terraform printing the base64 in
+full. A 200KB logo otherwise renders as a single 270,909-character line, turning a 2.2KB
+plan into a 273KB one, and the API accepts a background five times that size.
+
 ## Attributes this resource does not manage
 
 The API returns some brand fields that the Go SDK's `models.Brand` cannot send, so they are

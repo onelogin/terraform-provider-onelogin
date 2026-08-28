@@ -22,11 +22,17 @@ func TestSchema(t *testing.T) {
 		assert.False(t, s["master"].Optional, "a brand cannot be made the master through this API")
 	})
 
-	t.Run("the images are optional and not computed", func(t *testing.T) {
+	t.Run("the images are optional, not computed, and not printed", func(t *testing.T) {
 		for _, name := range []string{"logo", "background"} {
 			assert.True(t, s[name].Optional, "%s should be settable", name)
 			assert.False(t, s[name].Computed,
 				"%s must not be Computed: the API returns an object of URLs, not the base64 that was sent, so there is nothing to write back", name)
+			// Not because an image is a secret, but because Terraform prints a
+			// string attribute in full: a 200KB logo measured at a single
+			// 270,909-character line and a 273KB plan, against 2.2KB with this
+			// set. The API allows five times that for a background.
+			assert.True(t, s[name].Sensitive,
+				"%s holds base64 image data and would otherwise be printed in full on every plan", name)
 		}
 	})
 
