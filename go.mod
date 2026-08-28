@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.10.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/onelogin/onelogin-go-sdk v1.1.22
-	github.com/onelogin/onelogin-go-sdk/v4 v4.17.0
+	github.com/onelogin/onelogin-go-sdk/v4 v4.18.0
 	github.com/stretchr/testify v1.11.1
 )
 
