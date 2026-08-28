@@ -65,8 +65,8 @@ resource "onelogin_saml_apps" "internal" {
 * `login_instruction` - (Optional) Text of the login instruction screen, styled in Markdown. Localised, see below.
 * `hide_onelogin_footer` - (Optional) Whether to hide the OneLogin footer at the bottom of the login page.
 * `mfa_enrollment_message` - (Optional) Text replacing the default message on the first screen of MFA registration.
-* `logo` - (Optional) Base64-encoded PNG for the login page logo, under 1MB. Write-only, see below.
-* `background` - (Optional) Base64-encoded JPG or PNG for the login page background, under 5MB. Write-only, see below.
+* `logo` - (Optional) Base64-encoded PNG for the login page logo, under 1MB. Write-only, and cannot be set to `""`; see below.
+* `background` - (Optional) Base64-encoded JPG or PNG for the login page background, under 5MB. Write-only, and cannot be set to `""`; see below.
 
 ## Attribute Reference
 
@@ -99,6 +99,21 @@ neither attribute is refreshed from the API.
 The consequence: **an image replaced outside Terraform is not reported as drift.** State
 keeps the base64 that was last applied. Changing the configured value still replaces the
 image as usual, and `filebase64` on a changed file produces a changed value.
+
+### Removing an image is not supported
+
+Setting `logo = ""` is refused during `terraform plan`. An empty string is not a way to
+clear an image: the API answers `{"logo":""}` with a `200` and then changes nothing, so
+accepting it would record a value in state that does not describe the brand.
+
+The API does support removal, through a JSON `null`, but the Go SDK cannot send one —
+`models.Brand.Logo` is a pointer tagged `omitempty`, so a nil is omitted from the request
+rather than sent as `null`. Remove an image in the OneLogin admin UI until the SDK model
+grows a way to express it.
+
+Omit the argument to leave the current image alone.
+
+### Sensitivity
 
 Both are also marked sensitive, so a plan shows `(sensitive value)` rather than the data.
 That is not a claim that an image is a secret — it stops Terraform printing the base64 in

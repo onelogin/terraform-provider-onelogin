@@ -4,6 +4,7 @@ package brand
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 
@@ -96,16 +97,18 @@ func Schema() map[string]*schema.Schema {
 		// and a 273KB plan, against 2.2KB with this set. The value is not
 		// readable by eye either way.
 		"logo": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Sensitive:   true,
-			Description: "Base64-encoded PNG for the login page logo, under 1MB. Write-only: the API returns image URLs rather than the data, so a logo changed outside Terraform is not seen as drift.",
+			Type:         schema.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validateImageNotEmpty,
+			Description:  "Base64-encoded PNG for the login page logo, under 1MB. Write-only: the API returns image URLs rather than the data, so a logo changed outside Terraform is not seen as drift.",
 		},
 		"background": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Sensitive:   true,
-			Description: "Base64-encoded JPG or PNG for the login page background, under 5MB. Write-only, for the same reason as logo.",
+			Type:         schema.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validateImageNotEmpty,
+			Description:  "Base64-encoded JPG or PNG for the login page background, under 5MB. Write-only, for the same reason as logo.",
 		},
 	}
 
@@ -135,6 +138,35 @@ func Schema() map[string]*schema.Schema {
 	}
 
 	return s
+}
+
+// validateImageNotEmpty rejects an empty image at plan time.
+//
+// An empty string is not a way to remove an image. The API answers
+// {"logo":""} with a 200 and then does nothing -- the brand keeps the image it
+// had -- so accepting one would record a value in state that does not describe
+// the brand, which is exactly the divergence Terraform exists to prevent.
+//
+// Removing an image needs a JSON null, and models.Brand cannot produce one:
+// Logo and Background are pointers tagged omitempty, so a nil is omitted from
+// the request rather than sent as null. The field is three-state at the API --
+// omitted leaves the image alone, a base64 string replaces it, null removes it
+// -- and the model reaches only the first two. All three were confirmed
+// against the API, along with {"logo":false} being a 422.
+//
+// So the honest answer to an empty image is a plan-time error naming the
+// limitation, rather than a request that quietly changes nothing.
+func validateImageNotEmpty(value interface{}, key string) ([]string, []error) {
+	text, ok := value.(string)
+	if !ok || text != "" {
+		return nil, nil
+	}
+	return nil, []error{fmt.Errorf(
+		"%s cannot be an empty string: the API ignores an empty image, so it would not remove the existing one. "+
+			"Removing an image is not supported through the Go SDK, which cannot send the JSON null the API requires. "+
+			"Omit the argument to leave the current image alone",
+		key,
+	)}
 }
 
 // suppressEquivalentJSON hides a diff between two JSON documents that differ
@@ -220,16 +252,15 @@ func RequestBody(d Getter, configured map[string]bool) models.Brand {
 	}
 
 	// The images are write-only, so they are sent whenever configured and
-	// never read back.
+	// never read back. Whatever is configured is sent: dropping a value here
+	// that ConfiguredKeys counted as configured would put it in state without
+	// it ever reaching the API. validateImageNotEmpty is what keeps the one
+	// value that would be pointless to send out of the configuration.
 	if value, ok := requestValue(d, configured, "logo"); ok {
-		if text, ok := value.(string); ok && text != "" {
-			body.Logo = &text
-		}
+		body.Logo = stringPtr(value)
 	}
 	if value, ok := requestValue(d, configured, "background"); ok {
-		if text, ok := value.(string); ok && text != "" {
-			body.Background = &text
-		}
+		body.Background = stringPtr(value)
 	}
 
 	return body

@@ -33,6 +33,8 @@ func TestSchema(t *testing.T) {
 			// set. The API allows five times that for a background.
 			assert.True(t, s[name].Sensitive,
 				"%s holds base64 image data and would otherwise be printed in full on every plan", name)
+			assert.NotNil(t, s[name].ValidateFunc,
+				"%s must refuse an empty string: the API ignores one, so it would diverge from state", name)
 		}
 	})
 
@@ -125,6 +127,32 @@ func TestSuppressEquivalentJSON(t *testing.T) {
 	}
 }
 
+// TestValidateImageNotEmpty covers the one image value that must not reach the
+// API. {"logo":""} is answered 200 and changes nothing, so accepting it would
+// put a value in state that does not describe the brand. Removing an image
+// needs a JSON null, which models.Brand cannot send.
+func TestValidateImageNotEmpty(t *testing.T) {
+	t.Run("rejects an empty string", func(t *testing.T) {
+		_, errs := validateImageNotEmpty("", "logo")
+
+		if assert.Len(t, errs, 1, "an empty image should be refused during plan") {
+			assert.Contains(t, errs[0].Error(), "logo")
+			assert.Contains(t, errs[0].Error(), "Omit the argument",
+				"the error has to say what to do instead")
+		}
+	})
+
+	t.Run("accepts base64 data", func(t *testing.T) {
+		_, errs := validateImageNotEmpty("aGVsbG8=", "logo")
+		assert.Empty(t, errs)
+	})
+
+	t.Run("leaves a non-string alone", func(t *testing.T) {
+		_, errs := validateImageNotEmpty(42, "logo")
+		assert.Empty(t, errs, "the type is the schema's business, not this validator's")
+	})
+}
+
 func TestConfiguredKeys(t *testing.T) {
 	t.Run("returns the attributes that are not null", func(t *testing.T) {
 		keys := ConfiguredKeys(cty.ObjectVal(map[string]cty.Value{
@@ -210,6 +238,20 @@ func TestRequestBody(t *testing.T) {
 
 		if assert.NotNil(t, body.CustomMaskingOpacity) {
 			assert.Equal(t, int32(0), *body.CustomMaskingOpacity)
+		}
+	})
+
+	t.Run("sends an image exactly as configured", func(t *testing.T) {
+		// RequestBody must not second-guess ConfiguredKeys. Dropping a value
+		// it counted as configured would record it in state without it ever
+		// reaching the API.
+		body := RequestBody(
+			getter{"name": "Engineering", "logo": "aGVsbG8="},
+			map[string]bool{"name": true, "logo": true},
+		)
+
+		if assert.NotNil(t, body.Logo, "a configured logo has to be sent") {
+			assert.Equal(t, "aGVsbG8=", *body.Logo)
 		}
 	})
 
