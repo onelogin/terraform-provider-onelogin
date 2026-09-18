@@ -176,6 +176,7 @@ func TestPolicyNoPerpetualDiff(t *testing.T) {
 		"kind":                     "user",
 		"password_expiration_days": 90,
 		"enable_password_change":   false,
+		"ip_addresses":             []interface{}{"10.0.0.5-10.0.0.9", "10.0.0.1"},
 	}
 
 	r := Policies()
@@ -197,6 +198,8 @@ func TestPolicyNoPerpetualDiff(t *testing.T) {
 		"ignore_xff":                true,
 		"new_portal_setting":        "allowed",
 		"authentication_factor_ids": []interface{}{float64(3), float64(5)},
+		// In the API's order rather than the configuration's.
+		"ip_addresses": []interface{}{"10.0.0.1", "10.0.0.5-10.0.0.9"},
 		// A policy with no reset factors and no terms contract. The API sends
 		// both keys regardless, the second as null, and both have to reach
 		// state as empty or the plan is never empty.
@@ -231,6 +234,9 @@ func TestAccOneLoginPolicy_crud(t *testing.T) {
 					resource.TestCheckResourceAttr("onelogin_policies.test", "kind", "user"),
 					resource.TestCheckResourceAttr("onelogin_policies.test", "password_expiration_days", "90"),
 					resource.TestCheckResourceAttr("onelogin_policies.test", "minimum_password_length", "12"),
+					resource.TestCheckResourceAttr("onelogin_policies.test", "ip_addresses.#", "2"),
+					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "10.0.0.1"),
+					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "10.0.0.5-10.0.0.9"),
 					// Nobody configured this; it is the API's own default,
 					// reported back because the attribute is Computed.
 					resource.TestCheckResourceAttrSet("onelogin_policies.test", "is_default"),
@@ -242,6 +248,10 @@ func TestAccOneLoginPolicy_crud(t *testing.T) {
 					resource.TestCheckResourceAttr("onelogin_policies.test", "name", "Updated Test User Policy"),
 					resource.TestCheckResourceAttr("onelogin_policies.test", "password_expiration_days", "30"),
 					resource.TestCheckResourceAttr("onelogin_policies.test", "enable_password_change", "false"),
+					// Replaced, not merged: one entry kept, one dropped, one added.
+					resource.TestCheckResourceAttr("onelogin_policies.test", "ip_addresses.#", "2"),
+					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "10.0.0.5-10.0.0.9"),
+					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "192.0.2.10"),
 				),
 			},
 			{
@@ -299,6 +309,7 @@ resource "onelogin_policies" "test" {
   password_expiration_days = 90
   minimum_password_length  = 12
   passwords_remembered     = 3
+  ip_addresses             = ["10.0.0.1", "10.0.0.5-10.0.0.9"]
 }
 `
 
@@ -310,6 +321,7 @@ resource "onelogin_policies" "test" {
   minimum_password_length  = 12
   passwords_remembered     = 3
   enable_password_change   = false
+  ip_addresses             = ["10.0.0.5-10.0.0.9", "192.0.2.10"]
 }
 `
 
