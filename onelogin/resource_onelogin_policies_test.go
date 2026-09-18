@@ -235,6 +235,7 @@ func TestAccOneLoginPolicy_crud(t *testing.T) {
 					resource.TestCheckResourceAttr("onelogin_policies.test", "password_expiration_days", "90"),
 					resource.TestCheckResourceAttr("onelogin_policies.test", "minimum_password_length", "12"),
 					resource.TestCheckResourceAttr("onelogin_policies.test", "ip_addresses.#", "2"),
+					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "10.0.0.1"),
 					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "10.0.0.5-10.0.0.9"),
 					// Nobody configured this; it is the API's own default,
 					// reported back because the attribute is Computed.
@@ -249,6 +250,7 @@ func TestAccOneLoginPolicy_crud(t *testing.T) {
 					resource.TestCheckResourceAttr("onelogin_policies.test", "enable_password_change", "false"),
 					// Replaced, not merged: one entry kept, one dropped, one added.
 					resource.TestCheckResourceAttr("onelogin_policies.test", "ip_addresses.#", "2"),
+					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "10.0.0.5-10.0.0.9"),
 					resource.TestCheckTypeSetElemAttr("onelogin_policies.test", "ip_addresses.*", "192.0.2.10"),
 				),
 			},
