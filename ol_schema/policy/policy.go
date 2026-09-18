@@ -3,7 +3,10 @@
 package policy
 
 import (
+	"fmt"
+	"net"
 	"sort"
+	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -188,6 +191,20 @@ func Schema() map[string]*schema.Schema {
 			Elem:        &schema.Schema{Type: schema.TypeInt},
 			Description: "IDs of the authentication factors accepted for password reset. Setting it replaces the whole list.",
 		},
+		// A set because the API keeps no order worth preserving and drops
+		// duplicates itself. Each entry is validated to the one spelling the
+		// API gives back, since anything it would normalise -- a range of a
+		// single address comes back as that address -- never converges.
+		"ip_addresses": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validateIPAddressEntry,
+			},
+			Description: "MFA IP bypass list: IPv4 addresses (`10.0.0.1`) or ranges (`10.0.0.1-10.0.0.9`) from which MFA is not required. Setting it replaces the whole list; `[]` clears it. Applies to both kinds.",
+		},
 		"terms_and_conditions": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -361,6 +378,17 @@ func RequestBody(d Getter, configured map[string]bool) map[string]interface{} {
 		body[name] = ids
 	}
 
+	if _, ok := requestValue(d, configured, "ip_addresses"); ok {
+		entries := []string{}
+		if set, ok := d.Get("ip_addresses").(*schema.Set); ok {
+			for _, entry := range set.List() {
+				entries = append(entries, entry.(string))
+			}
+			sort.Strings(entries)
+		}
+		body["ip_addresses"] = entries
+	}
+
 	if _, ok := requestValue(d, configured, "terms_and_conditions"); ok {
 		if terms, ok := d.Get("terms_and_conditions").([]interface{}); ok && len(terms) > 0 {
 			if block, ok := terms[0].(map[string]interface{}); ok {
@@ -450,6 +478,23 @@ func Flatten(d *schema.ResourceData, policy map[string]interface{}) error {
 		}
 	}
 
+	// The bypass list, written empty included for the same reason. A response
+	// without the key comes from an API that predates the field, and leaves
+	// state alone.
+	if raw, present := policy["ip_addresses"]; present {
+		entries := []interface{}{}
+		if list, ok := raw.([]interface{}); ok {
+			for _, entry := range list {
+				if text, ok := entry.(string); ok {
+					entries = append(entries, text)
+				}
+			}
+		}
+		if err := d.Set("ip_addresses", entries); err != nil {
+			return err
+		}
+	}
+
 	// A policy with no terms contract presents terms_and_conditions as null,
 	// which becomes an empty block list for the same reason as the factor
 	// lists above.
@@ -467,6 +512,68 @@ func Flatten(d *schema.ResourceData, policy map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+// validateIPAddressEntry accepts what the API stores unchanged: a dotted IPv4
+// address, or two of them joined by a hyphen in strictly ascending order. The
+// API refuses a reversed range, and presents a range whose ends are equal as
+// the single address, which would plan as a change on every run.
+func validateIPAddressEntry(value interface{}, key string) ([]string, []error) {
+	entry, ok := value.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("%s must be a string", key)}
+	}
+
+	parts := strings.Split(entry, "-")
+	if len(parts) > 2 {
+		return nil, []error{fmt.Errorf("%s: %q is not an IPv4 address or a range of two", key, entry)}
+	}
+
+	addresses := make([]net.IP, 0, len(parts))
+	for _, part := range parts {
+		address := parseIPv4(part)
+		if address == nil {
+			return nil, []error{fmt.Errorf("%s: %q is not an IPv4 address such as 10.0.0.1, or a range such as 10.0.0.1-10.0.0.9", key, entry)}
+		}
+		addresses = append(addresses, address)
+	}
+
+	if len(addresses) == 2 {
+		switch compareIPv4(addresses[0], addresses[1]) {
+		case 0:
+			return nil, []error{fmt.Errorf("%s: range %q starts and ends on the same address; write %q instead", key, entry, parts[0])}
+		case 1:
+			return nil, []error{fmt.Errorf("%s: range %q runs backwards; the lower address goes first", key, entry)}
+		}
+	}
+
+	return nil, nil
+}
+
+// parseIPv4 returns the address, or nil for anything but four plain decimal
+// octets. net.ParseIP already refuses a zero-padded octet, as the API does, but
+// it accepts IPv6 and IPv4-mapped forms, which the API does not.
+func parseIPv4(text string) net.IP {
+	if strings.Count(text, ".") != 3 || strings.Contains(text, ":") {
+		return nil
+	}
+	address := net.ParseIP(text)
+	if address == nil {
+		return nil
+	}
+	return address.To4()
+}
+
+func compareIPv4(a, b net.IP) int {
+	for i := range a {
+		switch {
+		case a[i] < b[i]:
+			return -1
+		case a[i] > b[i]:
+			return 1
+		}
+	}
+	return 0
 }
 
 // toInt converts a number from a decoded JSON response. Numbers arrive as

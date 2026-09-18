@@ -183,6 +183,10 @@ returned and nothing is sent. To undo a setting, set it explicitly to the value 
 
 * `ip_addr_restriction` - (Optional, String) Newline-separated list of allowed IP addresses or CIDR ranges. Applies to both kinds.
 * `ignore_xff` - (Optional, Boolean) Ignore the X-Forwarded-For header when matching ip_addr_restriction. Applies to both kinds.
+* `ip_addresses` - (Optional, Set of String) MFA IP bypass list: the addresses from which MFA is not
+  required ("OTP bypassed for the following IP addresses" in the admin UI). Each entry is an IPv4
+  address (`10.0.0.1`) or an ascending range (`10.0.0.1-10.0.0.9`); CIDR notation is not accepted.
+  Setting it replaces the whole list, and `[]` clears it. Applies to both kinds.
 
 ### Device trust
 

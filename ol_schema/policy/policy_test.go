@@ -346,6 +346,107 @@ func TestFlatten(t *testing.T) {
 // blocking the plan. That is deliberate: the API still refuses a wrong-kind
 // field at apply, so the worst case is the diagnostic arriving later, not a
 // bad write getting through.
+func TestIPAddresses(t *testing.T) {
+	t.Run("is an optional, computed set of strings", func(t *testing.T) {
+		attribute := Schema()["ip_addresses"]
+		assert.Equal(t, schema.TypeSet, attribute.Type)
+		assert.True(t, attribute.Optional)
+		assert.True(t, attribute.Computed, "or a policy that never mentions the list shows a diff for the one it has")
+	})
+
+	t.Run("belongs to both kinds", func(t *testing.T) {
+		configured := map[string]bool{"ip_addresses": true}
+		assert.Empty(t, FieldsNotApplicableTo("user", configured))
+		assert.Empty(t, FieldsNotApplicableTo("app", configured))
+	})
+
+	t.Run("is sent as a sorted array when configured", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, Schema(), map[string]interface{}{
+			"name":         "Engineering",
+			"ip_addresses": []interface{}{"10.0.0.5-10.0.0.9", "10.0.0.1"},
+		})
+
+		body := RequestBody(d, map[string]bool{"name": true, "ip_addresses": true})
+
+		assert.Equal(t, []string{"10.0.0.1", "10.0.0.5-10.0.0.9"}, body["ip_addresses"])
+	})
+
+	t.Run("is sent as an empty array when configured empty, which clears the list", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, Schema(), map[string]interface{}{"name": "Engineering"})
+
+		body := RequestBody(d, map[string]bool{"name": true, "ip_addresses": true})
+
+		assert.Equal(t, []string{}, body["ip_addresses"])
+	})
+
+	t.Run("is left out when not configured", func(t *testing.T) {
+		// A null would be a no-op to the API, but an absent key is the same
+		// promise every other attribute makes.
+		d := schema.TestResourceDataRaw(t, Schema(), map[string]interface{}{
+			"name":         "Engineering",
+			"ip_addresses": []interface{}{"10.0.0.1"},
+		})
+
+		body := RequestBody(d, map[string]bool{"name": true})
+
+		assert.NotContains(t, body, "ip_addresses")
+	})
+
+	t.Run("is read from the response, empty included", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, Schema(), map[string]interface{}{})
+		if err := Flatten(d, map[string]interface{}{
+			"ip_addresses": []interface{}{"10.0.0.1", "10.0.0.5-10.0.0.9"},
+		}); err != nil {
+			t.Fatal(err)
+		}
+		entries := d.Get("ip_addresses").(*schema.Set)
+		assert.Equal(t, 2, entries.Len())
+		assert.True(t, entries.Contains("10.0.0.5-10.0.0.9"))
+
+		if err := Flatten(d, map[string]interface{}{"ip_addresses": []interface{}{}}); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, 0, d.Get("ip_addresses").(*schema.Set).Len())
+	})
+
+	t.Run("is left alone by a response that does not carry it", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, Schema(), map[string]interface{}{
+			"ip_addresses": []interface{}{"10.0.0.1"},
+		})
+		if err := Flatten(d, map[string]interface{}{"name": "Engineering"}); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, 1, d.Get("ip_addresses").(*schema.Set).Len())
+	})
+}
+
+func TestValidateIPAddressEntry(t *testing.T) {
+	valid := []string{"10.0.0.1", "0.0.0.0", "255.255.255.255", "10.0.0.1-10.0.0.9", "9.255.255.255-10.0.0.0"}
+	for _, entry := range valid {
+		_, errs := validateIPAddressEntry(entry, "ip_addresses")
+		assert.Empty(t, errs, "%q should be accepted", entry)
+	}
+
+	invalid := map[string]string{
+		"":                           "empty",
+		"10.0.0.0/8":                 "CIDR, which the bypass list does not take",
+		"10.0.0":                     "three octets",
+		"10.0.0.256":                 "octet out of range",
+		"01.02.03.04":                "zero-padded, which the API refuses as ambiguous",
+		"::1":                        "IPv6",
+		"::ffff:10.0.0.1":            "IPv4-mapped IPv6",
+		"10.0.0.1 10.0.0.2":          "two entries in one",
+		"10.0.0.9-10.0.0.1":          "reversed range",
+		"10.0.0.1-10.0.0.1":          "single-address range, which the API gives back as the address",
+		"10.0.0.1-10.0.0.5-10.0.0.9": "three-part range",
+		"10.0.0.1-":                  "open range",
+	}
+	for entry, why := range invalid {
+		_, errs := validateIPAddressEntry(entry, "ip_addresses")
+		assert.NotEmpty(t, errs, "%q should be refused: %s", entry, why)
+	}
+}
+
 func TestFieldsNotApplicableToNilConfigured(t *testing.T) {
 	assert.NotPanics(t, func() {
 		assert.Empty(t, FieldsNotApplicableTo("app", nil))
