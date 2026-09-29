@@ -35,6 +35,13 @@ resource "onelogin_brands" "engineering" {
 
   hide_onelogin_footer = true
 
+  # Show branded links on MFA screens as well as username/password screens.
+  # Requires custom_support_enabled = true if show_support_on_mfa is set.
+  custom_support_enabled       = true
+  show_help_on_mfa             = true
+  show_support_on_mfa          = true
+  show_additional_links_on_mfa = false
+
   enable_custom_label_for_login_screen = true
   custom_label_text_for_login_screen = jsonencode({
     en = "Username"
@@ -68,6 +75,9 @@ resource "onelogin_saml_apps" "internal" {
 * `login_instruction_title` - (Optional) Link text that opens the login instruction screen. Localised, see below.
 * `login_instruction` - (Optional) Text of the login instruction screen, styled in Markdown. Localised, see below.
 * `hide_onelogin_footer` - (Optional) Whether to hide the OneLogin footer at the bottom of the login page.
+* `show_help_on_mfa` - (Optional) Whether the branded **Login help** link is shown on MFA verification, enrollment, and Protect enrollment notice screens. Omit to leave the current value alone; the link is only shown when explicitly set to `true`.
+* `show_support_on_mfa` - (Optional) Whether the branded **Support** link is shown on MFA verification, enrollment, and Protect enrollment notice screens. Requires `custom_support_enabled = true`. Omit to leave the current value alone; the link is only shown when explicitly set to `true`.
+* `show_additional_links_on_mfa` - (Optional) Whether branded **Additional links** are shown on MFA verification, enrollment, and Protect enrollment notice screens. Omit to leave the current value alone; the links are only shown when explicitly set to `true`.
 * `mfa_enrollment_message` - (Optional) Text replacing the default message on the first screen of MFA registration.
 * `logo` - (Optional) Base64-encoded PNG for the login page logo, under 1MB. Write-only, and cannot be set to `""`; see below.
 * `background` - (Optional) Base64-encoded JPG or PNG for the login page background, under 5MB. Write-only, and cannot be set to `""`; see below.

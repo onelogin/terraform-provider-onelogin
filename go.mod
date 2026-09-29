@@ -65,3 +65,6 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// Temporary replace pending onelogin/onelogin-go-sdk#128 release. Remove and pin to v4.19.0 once the SDK cuts the release.
+replace github.com/onelogin/onelogin-go-sdk/v4 => github.com/onelogin/onelogin-go-sdk/v4 v4.18.1-0.20260929121939-9d6532800605
