@@ -50,6 +50,9 @@ var fields = []field{
 	{Name: "login_instruction", Type: schema.TypeString, Localised: true, Description: "Text of the login instruction screen, styled in Markdown."},
 
 	{Name: "hide_onelogin_footer", Type: schema.TypeBool, Description: "Whether to hide the OneLogin footer at the bottom of the login page."},
+	{Name: "show_help_on_mfa", Type: schema.TypeBool, Description: "Whether the branded Login help link is shown on MFA verification, enrollment, and Protect enrollment notice screens. Omit to leave the current value alone; the link is only shown when explicitly set to true."},
+	{Name: "show_support_on_mfa", Type: schema.TypeBool, Description: "Whether the branded Support link is shown on MFA verification, enrollment, and Protect enrollment notice screens. Requires `custom_support_enabled = true`. Omit to leave the current value alone; the link is only shown when explicitly set to true."},
+	{Name: "show_additional_links_on_mfa", Type: schema.TypeBool, Description: "Whether branded Additional links are shown on MFA verification, enrollment, and Protect enrollment notice screens. Omit to leave the current value alone; the links are only shown when explicitly set to true."},
 	{Name: "mfa_enrollment_message", Type: schema.TypeString, Description: "Text replacing the default message on the first screen of MFA registration."},
 }
 
@@ -310,6 +313,12 @@ func assign(body *models.Brand, name string, value interface{}) {
 		body.LoginInstruction = stringPtr(value)
 	case "hide_onelogin_footer":
 		body.HideOneLoginFooter = boolPtr(value)
+	case "show_help_on_mfa":
+		body.ShowHelpOnMFA = boolPtr(value)
+	case "show_support_on_mfa":
+		body.ShowSupportOnMFA = boolPtr(value)
+	case "show_additional_links_on_mfa":
+		body.ShowAdditionalLinksOnMFA = boolPtr(value)
 	case "mfa_enrollment_message":
 		body.MFAEnrollmentMessage = stringPtr(value)
 	}
