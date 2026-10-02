@@ -105,12 +105,7 @@ func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 	tflog.Info(ctx, "[READ] Reading app", map[string]interface{}{"id": aid})
 
 	// Use utility function to set basic fields
-	basicFields := []string{
-		"name", "visible", "description", "notes", "icon_url",
-		"auth_method", "policy_id", "allow_assumed_signin", "tab_id",
-		"brand_id", "connector_id", "created_at", "updated_at",
-	}
-	utils.SetResourceFields(d, appMap, basicFields)
+	utils.SetResourceFields(d, appMap, appBasicReadFields)
 
 	// Handle parameters if they exist
 	if v, ok := appMap["parameters"]; ok {
@@ -203,6 +198,19 @@ func appDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	}, "app")
 }
 
+// appBasicReadFields are the top-level fields every app read copies straight
+// from the API response into state, shared by onelogin_apps,
+// onelogin_oidc_apps and onelogin_saml_apps.
+//
+// One list rather than three so that the reads cannot drift apart, and so that
+// a test can hold it to the assignments the create and update maps send: a
+// field that is sent but never read back makes drift in it invisible.
+var appBasicReadFields = []string{
+	"name", "visible", "description", "notes", "icon_url",
+	"auth_method", "policy_id", "allow_assumed_signin", "tab_id",
+	"brand_id", "connector_id", "created_at", "updated_at", "role_ids",
+}
+
 // basicAppCreateMap builds the map handed to appschema.Inflate.
 //
 // Extracted so that the wiring is testable. brand_id was declared on this
@@ -221,6 +229,7 @@ func basicAppCreateMap(d *schema.ResourceData) map[string]interface{} {
 	}
 	addAppAssignmentForCreate(d, inflateMap, "policy_id")
 	addAppAssignmentForCreate(d, inflateMap, "brand_id")
+	addAppAssignmentForCreate(d, inflateMap, "role_ids")
 	return inflateMap
 }
 
@@ -243,5 +252,6 @@ func basicAppUpdateMap(d *schema.ResourceData) map[string]interface{} {
 	}
 	addAppAssignmentForUpdate(d, inflateMap, "policy_id")
 	addAppAssignmentForUpdate(d, inflateMap, "brand_id")
+	addAppAssignmentForUpdate(d, inflateMap, "role_ids")
 	return inflateMap
 }

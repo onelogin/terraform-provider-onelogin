@@ -107,6 +107,51 @@ The following arguments are supported:
   unassign; OneLogin refuses a literal `0` and wants `null`, which the provider sends on
   your behalf.
 
+* `role_ids` - (Optional, Set of Number) IDs of the roles whose users get this app. When
+  set, the app's roles are exactly this set, written in a single create or update. Use it
+  instead of one [`onelogin_app_role_attachments`](onelogin_app_role_attachments.md) per
+  role when assigning several roles to the same app.
+
+  The attribute is computed as well as optional, so roles assigned some other way are
+  left alone by a configuration that does not mention `role_ids`, and *removing* the
+  argument leaves the current roles in place. Write `role_ids = []` to remove every role.
+
+  Once `role_ids` is set, it is authoritative: a role given the app anywhere else (the
+  OneLogin admin UI, `onelogin_app_role_attachments`, or the `apps` argument of
+  [`onelogin_roles`](onelogin_roles.md)) is drift, and the next apply takes it off. Do
+  not combine `role_ids` with those on the same app.
+
+  If the roles themselves are managed by `onelogin_roles` without an `apps` argument,
+  each one reads this app back and plans to remove it. Add `apps` to that role's
+  `lifecycle { ignore_changes }`, and to its `skip_membership_refresh` to skip the read
+  as well.
+
+  ```hcl
+  resource "onelogin_roles" "engineering" {
+    name = "Engineering"
+
+    skip_membership_refresh = ["apps"]
+    lifecycle {
+      ignore_changes = [apps]
+    }
+  }
+
+  resource "onelogin_roles" "support" {
+    name = "Support"
+
+    skip_membership_refresh = ["apps"]
+    lifecycle {
+      ignore_changes = [apps]
+    }
+  }
+
+  resource "onelogin_saml_apps" "example" {
+    name         = "Example"
+    connector_id = 110016
+    role_ids     = [onelogin_roles.engineering.id, onelogin_roles.support.id]
+  }
+  ```
+
 
 * `provisioning` - (Optional) Settings regarding the app's provisioning ability.
   * `enabled` - (Required) Indicates if provisioning is enabled for this app.
@@ -171,6 +216,8 @@ The following arguments are supported:
 * `policy_id` - The app policy assigned to the app. Settable; see the argument above.
 
 * `brand_id` - The brand assigned to the app. Settable; see the argument above.
+
+* `role_ids` - The roles assigned to the app, however they were assigned. Settable; see the argument above.
 
 * `visible` - Indicates if the app is visible in the OneLogin portal.
 
