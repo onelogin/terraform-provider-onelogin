@@ -3,6 +3,7 @@ package onelogin
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -114,7 +115,38 @@ func appRoleAttachmentDelete(ctx context.Context, d *schema.ResourceData, m inte
 	return nil
 }
 
+// appRoleLocks holds one mutex per app ID, serialising the read-modify-write
+// that every attachment does on its app's role_ids.
+//
+// The API offers nothing finer than the whole array: an update replaces it with
+// whatever is sent. Two attachments on the same app that both read before
+// either writes each send the array they read plus their own role, and the
+// later write drops the earlier one's. With for_each that is the normal case,
+// not an edge one -- #272.
+//
+// This only coordinates attachments inside one provider process, which is one
+// provider configuration in one run; an aliased configuration gets a process,
+// and a set of locks, of its own. Anything else that changes an app's roles --
+// the app resources' role_ids argument, onelogin_roles.apps, the OneLogin UI --
+// can still overwrite them.
+//
+// Entries are never removed. A provider process lives for one operation and
+// touches a bounded number of apps, so one mutex per app is not worth the
+// bookkeeping of reclaiming.
+var appRoleLocks sync.Map
+
+// lockAppRoles takes the lock for appID and returns the function that releases
+// it.
+func lockAppRoles(appID int) func() {
+	v, _ := appRoleLocks.LoadOrStore(appID, new(sync.Mutex))
+	mu := v.(*sync.Mutex)
+	mu.Lock()
+	return mu.Unlock
+}
+
 func removeRoleFromApp(ctx context.Context, client *onelogin.OneloginSDK, appID int, roleID int) error {
+	defer lockAppRoles(appID)()
+
 	result, err := client.GetAppByID(appID, nil)
 	if err != nil {
 		return err
@@ -157,6 +189,8 @@ func removeRoleFromApp(ctx context.Context, client *onelogin.OneloginSDK, appID 
 }
 
 func attachRoleToApp(ctx context.Context, client *onelogin.OneloginSDK, appID int, roleID int) error {
+	defer lockAppRoles(appID)()
+
 	result, err := client.GetAppByID(appID, nil)
 	if err != nil {
 		return err
