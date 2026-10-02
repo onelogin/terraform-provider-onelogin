@@ -19,6 +19,7 @@ func TestSchema(t *testing.T) {
 		assert.NotNil(t, schema["auth_method"])
 		assert.NotNil(t, schema["policy_id"])
 		assert.NotNil(t, schema["brand_id"])
+		assert.NotNil(t, schema["role_ids"])
 		assert.NotNil(t, schema["allow_assumed_signin"])
 		assert.NotNil(t, schema["tab_id"])
 		assert.NotNil(t, schema["connector_id"])
@@ -212,4 +213,48 @@ func TestInflateAssignmentTypes(t *testing.T) {
 			})
 		})
 	}
+}
+
+// TestInflateRoleIDs covers the three things role_ids can mean: leave the roles
+// alone, replace them, and remove them all.
+func TestInflateRoleIDs(t *testing.T) {
+	base := func() map[string]interface{} {
+		return map[string]interface{}{"name": "test app", "connector_id": 110016}
+	}
+
+	t.Run("absent leaves the roles alone", func(t *testing.T) {
+		app, err := Inflate(base())
+		assert.NoError(t, err)
+		assert.Nil(t, app.RoleIDs)
+	})
+
+	t.Run("a set replaces the roles", func(t *testing.T) {
+		s := base()
+		s["role_ids"] = schema.NewSet(schema.HashInt, []interface{}{380586, 406973})
+		app, err := Inflate(s)
+		assert.NoError(t, err)
+		if assert.NotNil(t, app.RoleIDs) {
+			assert.ElementsMatch(t, []int{380586, 406973}, *app.RoleIDs)
+		}
+	})
+
+	// Non-nil and empty, which marshals to [] and takes every role off. A nil
+	// slice would be dropped by omitempty and leave the roles where they were.
+	t.Run("an empty set removes every role", func(t *testing.T) {
+		s := base()
+		s["role_ids"] = schema.NewSet(schema.HashInt, nil)
+		app, err := Inflate(s)
+		assert.NoError(t, err)
+		if assert.NotNil(t, app.RoleIDs) {
+			assert.Empty(t, *app.RoleIDs)
+		}
+	})
+
+	t.Run("a value it cannot read is an error, not a silent drop", func(t *testing.T) {
+		s := base()
+		s["role_ids"] = []int{380586}
+		_, err := Inflate(s)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "role_ids")
+	})
 }

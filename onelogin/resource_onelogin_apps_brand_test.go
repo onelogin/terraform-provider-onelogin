@@ -197,15 +197,16 @@ func TestAppBrandIDNegativeRejected(t *testing.T) {
 	}
 }
 
-// TestAppResourcesWireBothAssignments is the test the original bug needed and
+// TestAppResourcesWireEveryAssignment is the test the original bug needed and
 // did not have.
 //
 // brand_id was declared on all three app resources and passed to
 // appschema.Inflate by exactly one of them, on update only. Nothing noticed,
 // because every test that exercised the field called the helper directly rather
 // than going through the resource. This walks the maps the resources actually
-// build, so a resource that stops passing a field fails here.
-func TestAppResourcesWireBothAssignments(t *testing.T) {
+// build, so a resource that stops passing a field fails here. role_ids rides
+// the same helpers, so it is held to the same check.
+func TestAppResourcesWireEveryAssignment(t *testing.T) {
 	builders := map[string]func(*schema.ResourceData) map[string]interface{}{
 		"onelogin_apps/create":      basicAppCreateMap,
 		"onelogin_apps/update":      basicAppUpdateMap,
@@ -231,18 +232,22 @@ func TestAppResourcesWireBothAssignments(t *testing.T) {
 			if err := stateSet(state, "brand_id", "44530"); err != nil {
 				t.Fatal(err)
 			}
+			if err := stateSetRoleIDs(r, state, 380586); err != nil {
+				t.Fatal(err)
+			}
 			d, err := schema.InternalMap(r.Schema).Data(state, appDiff(t, r, state, map[string]interface{}{
 				"name":         "my OIDC APP",
 				"connector_id": 38568,
 				"policy_id":    955634,
 				"brand_id":     44531,
+				"role_ids":     []interface{}{406973},
 			}))
 			if err != nil {
 				t.Fatalf("data: %v", err)
 			}
 
 			inflateMap := build(d)
-			for _, key := range []string{"policy_id", "brand_id"} {
+			for _, key := range []string{"policy_id", "brand_id", "role_ids"} {
 				if _, ok := inflateMap[key]; !ok {
 					t.Errorf("%s never reaches Inflate: %v", key, keysOf(inflateMap))
 				}
@@ -253,6 +258,22 @@ func TestAppResourcesWireBothAssignments(t *testing.T) {
 
 func stateSet(state *terraform.InstanceState, key, value string) error {
 	state.Attributes[key] = value
+	return nil
+}
+
+// stateSetRoleIDs writes role_ids into state through the resource's own
+// writer, which knows the set's hash addressing that a raw attribute map does
+// not.
+func stateSetRoleIDs(r *schema.Resource, state *terraform.InstanceState, roleIDs ...int) error {
+	d := r.Data(state)
+	if err := d.Set("role_ids", roleIDs); err != nil {
+		return err
+	}
+	for key, value := range d.State().Attributes {
+		if strings.HasPrefix(key, "role_ids") {
+			state.Attributes[key] = value
+		}
+	}
 	return nil
 }
 

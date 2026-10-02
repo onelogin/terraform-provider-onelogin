@@ -178,12 +178,7 @@ func oidcAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 
 	// Set basic fields
-	basicFields := []string{
-		"name", "visible", "description", "notes", "icon_url",
-		"auth_method", "policy_id", "allow_assumed_signin", "tab_id",
-		"brand_id", "connector_id", "created_at", "updated_at",
-	}
-	utils.SetResourceFields(d, appMap, basicFields)
+	utils.SetResourceFields(d, appMap, appBasicReadFields)
 
 	// Handle parameters if they exist
 	if v, ok := appMap["parameters"]; ok {
@@ -326,6 +321,7 @@ func oidcAppCreateMap(d *schema.ResourceData) map[string]interface{} {
 	}
 	addAppAssignmentForCreate(d, inflateMap, "policy_id")
 	addAppAssignmentForCreate(d, inflateMap, "brand_id")
+	addAppAssignmentForCreate(d, inflateMap, "role_ids")
 	return inflateMap
 }
 
@@ -349,5 +345,6 @@ func oidcAppUpdateMap(d *schema.ResourceData) map[string]interface{} {
 	}
 	addAppAssignmentForUpdate(d, inflateMap, "policy_id")
 	addAppAssignmentForUpdate(d, inflateMap, "brand_id")
+	addAppAssignmentForUpdate(d, inflateMap, "role_ids")
 	return inflateMap
 }

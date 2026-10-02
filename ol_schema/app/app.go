@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	appconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	appparametersschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
@@ -99,6 +100,28 @@ func Schema() map[string]*schema.Schema {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validAppAssignmentID,
+		},
+		// The roles whose users get this app. The API takes the whole array on
+		// every create and update and replaces what was there, so this declares
+		// all of an app's roles in a single write -- unlike
+		// onelogin_app_role_attachments, which rewrites the array once per role.
+		// #272.
+		//
+		// Optional and Computed so that a configuration which leaves it out
+		// leaves the app's roles alone, whoever assigned them: an attachment,
+		// onelogin_roles.apps or the OneLogin UI. Unlike policy_id and brand_id,
+		// clearing needs no sentinel: role_ids = [] is an empty set rather than
+		// a null, so on update it diffs against state and is sent as [], which
+		// the API takes as "no roles". A create has none to take off, and
+		// sends nothing.
+		"role_ids": &schema.Schema{
+			Type:     schema.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type:         schema.TypeInt,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 		},
 		"allow_assumed_signin": &schema.Schema{
 			Type:     schema.TypeBool,
@@ -270,6 +293,28 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 		} else {
 			app.PolicyID = &policyID
 		}
+	}
+
+	// Present means "replace the app's roles with exactly these", including
+	// with none; absent leaves them alone. The callers decide which, by
+	// whether they put the key in the map.
+	if raw, ok := s["role_ids"]; ok && raw != nil {
+		set, ok := raw.(*schema.Set)
+		if !ok {
+			return app, fmt.Errorf("role_ids must be a set, got %T", raw)
+		}
+		// Non-nil even when empty. omitempty drops only a nil pointer, so a
+		// pointer to an empty slice still sends "role_ids": [], which is what
+		// takes every role off.
+		roleIDs := make([]int, 0, set.Len())
+		for _, raw := range set.List() {
+			id, ok := raw.(int)
+			if !ok {
+				return app, fmt.Errorf("role_ids must hold ints, got %T", raw)
+			}
+			roleIDs = append(roleIDs, id)
+		}
+		app.RoleIDs = &roleIDs
 	}
 
 	// Handle parameters
