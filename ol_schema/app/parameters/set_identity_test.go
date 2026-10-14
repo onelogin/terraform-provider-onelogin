@@ -9,38 +9,70 @@ import (
 func paramSet(names ...string) *schema.Set {
 	list := make([]interface{}, 0, len(names))
 	for _, name := range names {
-		list = append(list, map[string]interface{}{"param_key_name": name})
+		list = append(list, stateParam(map[string]interface{}{"param_key_name": name}))
 	}
-	return schema.NewSet(HashByKeyName, list)
+	return schema.NewSet(Hash, list)
 }
 
-// TestHashByKeyName covers the set identity. Every attribute but the key name
-// is Computed, so hashing the whole element makes a parameter whose values are
-// not yet known unmatchable against the one already in state, and each plan
-// proposes replacing the set.
-func TestHashByKeyName(t *testing.T) {
-	configured := map[string]interface{}{
-		"param_key_name": "email",
-		"label":          "Email",
+// stateParam is a parameter the way the SDK hands one back from state or
+// configuration: every attribute present, the ones nobody set at their zero
+// value. The set hash runs over exactly this shape, so a test comparing hashes
+// has to use it -- a missing bool or list does not hash like false or an empty
+// list.
+func stateParam(set map[string]interface{}) map[string]interface{} {
+	param := map[string]interface{}{
+		"param_key_name":             "",
+		"param_id":                   0,
+		"label":                      "",
+		"user_attribute_mappings":    "",
+		"user_attribute_macros":      "",
+		"attributes_transformations": "",
+		"default_values":             []interface{}{},
+		"values":                     []interface{}{},
+		"skip_if_blank":              false,
+		"provisioned_entitlements":   false,
+		"safe_entitlements_enabled":  false,
+		"include_in_saml_assertion":  false,
 	}
-	// The same parameter after a read, carrying what the API filled in.
-	fromState := map[string]interface{}{
-		"param_key_name":            "email",
-		"label":                     "Email",
-		"param_id":                  369278,
-		"values":                    "user.email",
-		"user_attribute_mappings":   "email",
-		"include_in_saml_assertion": true,
+	for k, v := range set {
+		param[k] = v
+	}
+	return param
+}
+
+// TestHash covers the set identity, and gh issue 274 with it. The SDK compares
+// a set by its hash codes before it looks at any attribute, so an attribute the
+// hash leaves out can never produce a diff: hashing the key name alone made a
+// changed mapping plan nothing at all.
+func TestHash(t *testing.T) {
+	mapped := func(mapping string) map[string]interface{} {
+		return stateParam(map[string]interface{}{
+			"param_key_name":          "email",
+			"label":                   "Email",
+			"user_attribute_mappings": mapping,
+		})
 	}
 
-	if HashByKeyName(configured) != HashByKeyName(fromState) {
-		t.Fatal("expected a parameter to hash the same before and after the API fills in its Computed attributes")
+	if Hash(mapped("email")) == Hash(mapped("username")) {
+		t.Fatal("expected a changed mapping to change the hash, or no plan can ever see it")
 	}
-	if HashByKeyName(configured) == HashByKeyName(map[string]interface{}{"param_key_name": "firstname"}) {
-		t.Fatal("expected different key names to hash differently")
+	if Hash(mapped("email")) != Hash(mapped("email")) {
+		t.Fatal("expected the same parameter to hash the same")
 	}
-	if HashByKeyName("not a parameter") != 0 {
-		t.Fatal("expected an unexpected shape to hash to zero rather than panic")
+
+	withValues := func(values ...interface{}) map[string]interface{} {
+		return stateParam(map[string]interface{}{"param_key_name": "groups", "default_values": values})
+	}
+	if Hash(withValues("one")) == Hash(withValues("one", "two")) {
+		t.Fatal("expected a changed list to change the hash")
+	}
+
+	// param_id is Computed only. It is never in a configuration, so it
+	// cannot be part of what identifies a parameter.
+	withID := mapped("email")
+	withID["param_id"] = 369278
+	if Hash(withID) != Hash(mapped("email")) {
+		t.Fatal("expected param_id to be left out of the hash")
 	}
 }
 

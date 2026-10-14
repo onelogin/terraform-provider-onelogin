@@ -26,6 +26,7 @@ func Apps() *schema.Resource {
 		UpdateContext: appUpdate,
 		DeleteContext: appDelete,
 		Importer:      &schema.ResourceImporter{},
+		CustomizeDiff: appparametersschema.CustomizeDiff,
 		Schema:        appschema.Schema(),
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
@@ -110,44 +111,7 @@ func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 	// Handle parameters if they exist
 	if v, ok := appMap["parameters"]; ok {
 		if params, ok := v.(map[string]interface{}); ok {
-			paramMap := make(map[string]models.Parameter)
-			for key, val := range params {
-				if paramData, ok := val.(map[string]interface{}); ok {
-					// Convert each param to a Parameter model
-					param := models.Parameter{}
-
-					// Set string fields
-					if label, ok := paramData["label"].(string); ok {
-						param.Label = label
-					}
-
-					// Set optional fields
-					param.UserAttributeMappings = paramData["user_attribute_mappings"]
-					param.UserAttributeMacros = paramData["user_attribute_macros"]
-					param.AttributesTransformations = paramData["attributes_transformations"]
-					param.Values = paramData["values"]
-					param.DefaultValues = paramData["default_values"]
-
-					// Set boolean fields
-					if skipIfBlank, ok := paramData["skip_if_blank"].(bool); ok {
-						param.SkipIfBlank = skipIfBlank
-					}
-					if provisioned, ok := paramData["provisioned_entitlements"].(bool); ok {
-						param.ProvisionedEntitlements = provisioned
-					}
-					if includeInAssertion, ok := paramData["include_in_saml_assertion"].(bool); ok {
-						param.IncludeInSamlAssertion = includeInAssertion
-					}
-
-					// Set ID if it exists
-					if id, ok := paramData["id"].(float64); ok {
-						param.ID = int(id)
-					}
-
-					paramMap[key] = param
-				}
-			}
-			d.Set("parameters", appparametersschema.RetainManaged(d.Get("parameters"), appparametersschema.Flatten(paramMap)))
+			d.Set("parameters", appparametersschema.RetainManaged(d.Get("parameters"), appparametersschema.Flatten(appParametersFromAPI(params))))
 		}
 	}
 
@@ -164,6 +128,59 @@ func appRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 	}
 
 	return nil
+}
+
+// appParametersFromAPI converts the parameters object the app endpoint returns
+// into the models Flatten takes.
+//
+// safe_entitlements_enabled was never copied across, so state always read it
+// as false. That stayed invisible while the parameters set was hashed by key
+// name alone; with every attribute in the hash, a configured true would plan
+// on every run.
+func appParametersFromAPI(params map[string]interface{}) map[string]models.Parameter {
+	paramMap := make(map[string]models.Parameter)
+	for key, val := range params {
+		if paramData, ok := val.(map[string]interface{}); ok {
+			// Convert each param to a Parameter model
+			param := models.Parameter{}
+
+			// Set string fields
+			if label, ok := paramData["label"].(string); ok {
+				param.Label = label
+			}
+
+			// Set optional fields
+			param.UserAttributeMappings = paramData["user_attribute_mappings"]
+			param.UserAttributeMacros = paramData["user_attribute_macros"]
+			param.AttributesTransformations = paramData["attributes_transformations"]
+			param.Values = paramData["values"]
+			param.DefaultValues = paramData["default_values"]
+
+			// Set boolean fields
+			if skipIfBlank, ok := paramData["skip_if_blank"].(bool); ok {
+				param.SkipIfBlank = skipIfBlank
+			}
+			if provisioned, ok := paramData["provisioned_entitlements"].(bool); ok {
+				param.ProvisionedEntitlements = provisioned
+			}
+			if includeInAssertion, ok := paramData["include_in_saml_assertion"].(bool); ok {
+				param.IncludeInSamlAssertion = includeInAssertion
+			}
+			// A pointer on the model: a null stays nil, which Flatten leaves
+			// out rather than recording as false.
+			if safeEntitlements, ok := paramData["safe_entitlements_enabled"].(bool); ok {
+				param.SafeEntitlementsEnabled = &safeEntitlements
+			}
+
+			// Set ID if it exists
+			if id, ok := paramData["id"].(float64); ok {
+				param.ID = int(id)
+			}
+
+			paramMap[key] = param
+		}
+	}
+	return paramMap
 }
 
 // appUpdate updates an app

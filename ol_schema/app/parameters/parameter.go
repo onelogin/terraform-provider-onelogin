@@ -78,28 +78,6 @@ func Schema() map[string]*schema.Schema {
 	}
 }
 
-// HashByKeyName identifies a parameter in the set by its key name alone.
-//
-// The default set hash covers every attribute, and all but param_key_name are
-// Computed. A parameter whose values or user_attribute_macros the practitioner
-// has not written is unknown at plan time, so the element hashes to something
-// Terraform cannot match against the one already in state, and every plan
-// proposes replacing the whole set. Hashing the key name is knowable from the
-// configuration alone, so the element matches and the Computed attributes are
-// then compared one at a time, which is what Optional+Computed is for.
-//
-// param_key_name is the API's own identity for a parameter: the endpoint
-// returns parameters as an object keyed by it, and Inflate builds that object
-// back, so two parameters cannot share one.
-func HashByKeyName(v interface{}) int {
-	param, ok := v.(map[string]interface{})
-	if !ok {
-		return 0
-	}
-	name, _ := param["param_key_name"].(string)
-	return schema.HashString(name)
-}
-
 // RetainManaged narrows flattened parameters to the ones the practitioner is
 // managing.
 //

@@ -43,6 +43,7 @@ func SAMLApps() *schema.Resource {
 		UpdateContext: samlAppUpdate,
 		DeleteContext: samlAppDelete,
 		Importer:      &schema.ResourceImporter{},
+		CustomizeDiff: appparametersschema.CustomizeDiff,
 		Schema:        appSchema,
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{

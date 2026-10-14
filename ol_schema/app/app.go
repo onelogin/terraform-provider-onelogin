@@ -24,7 +24,6 @@ func SchemaV0() map[string]*schema.Schema {
 		Type:     schema.TypeSet,
 		Optional: true,
 		Computed: true,
-		Set:      appparametersschema.HashByKeyName,
 		Elem: &schema.Resource{
 			Schema: appparametersschema.SchemaV0(),
 		},
@@ -154,7 +153,7 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Optional: true,
 			Computed: true,
-			Set:      appparametersschema.HashByKeyName,
+			Set:      appparametersschema.Hash,
 			Elem: &schema.Resource{
 				Schema: appparametersschema.Schema(),
 			},
