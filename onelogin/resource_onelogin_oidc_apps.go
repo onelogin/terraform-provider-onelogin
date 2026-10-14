@@ -44,6 +44,7 @@ func OIDCApps() *schema.Resource {
 		UpdateContext: oidcAppUpdate,
 		DeleteContext: oidcAppDelete,
 		Importer:      &schema.ResourceImporter{},
+		CustomizeDiff: appparametersschema.CustomizeDiff,
 		Schema:        appSchema,
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
