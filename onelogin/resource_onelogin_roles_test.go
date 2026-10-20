@@ -2,10 +2,17 @@ package onelogin
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	roleschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/role"
 	"github.com/stretchr/testify/assert"
@@ -273,4 +280,98 @@ func TestFetchAllMemberIDsBoundsPageCount(t *testing.T) {
 	assert.Nil(t, ids)
 	assert.Contains(t, err.Error(), "exceeded")
 	assert.Equal(t, maxMemberPages, call, "should stop exactly at the page bound")
+}
+
+// roleUpdatePutBody runs roleUpdate against a stub API, starting from a role
+// whose attr holds prior and configured as configured, and returns the decoded
+// body of the PUT it sends.
+func roleUpdatePutBody(t *testing.T, attr string, prior, configured []interface{}) map[string]interface{} {
+	t.Helper()
+
+	var put []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case r.URL.Path == "/auth/oauth2/v2/token":
+			io.WriteString(w, `{"access_token":"x","token_type":"bearer","expires_in":36000}`)
+		case r.Method == http.MethodPut && r.URL.Path == "/api/2/roles/1":
+			put, _ = io.ReadAll(r.Body)
+			io.WriteString(w, `{"id":1}`)
+		case r.URL.Path == "/api/2/roles/1":
+			io.WriteString(w, `{"id":1,"name":"Engineering"}`)
+		default:
+			io.WriteString(w, `[]`)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	t.Setenv("ONELOGIN_API_URL", srv.URL)
+	t.Setenv("ONELOGIN_SUBDOMAIN", "test")
+	t.Setenv("ONELOGIN_CLIENT_ID", "id")
+	t.Setenv("ONELOGIN_CLIENT_SECRET", "secret")
+	client, err := onelogin.NewOneloginSDK()
+	if err != nil {
+		t.Fatalf("client: %v", err)
+	}
+
+	// HasChange compares state with the planned diff, so d has to come from a
+	// real diff, and the state from the SDK (sets are stored under hashed keys).
+	r := Roles()
+	before := r.Data(&terraform.InstanceState{ID: "1"})
+	if err := before.Set("name", "Engineering"); err != nil {
+		t.Fatal(err)
+	}
+	if err := before.Set(attr, prior); err != nil {
+		t.Fatal(err)
+	}
+	state := before.State()
+
+	diff, err := r.Diff(context.Background(), state, terraform.NewResourceConfigRaw(map[string]interface{}{
+		"name": "Engineering",
+		attr:   configured,
+	}), nil)
+	if err != nil {
+		t.Fatalf("diff: %v", err)
+	}
+	d, err := schema.InternalMap(r.Schema).Data(state, diff)
+	if err != nil {
+		t.Fatalf("data: %v", err)
+	}
+
+	if diags := roleUpdate(context.Background(), d, client); diags.HasError() {
+		t.Fatalf("roleUpdate: %v", diags)
+	}
+
+	body := map[string]interface{}{}
+	if err := json.Unmarshal(put, &body); err != nil {
+		t.Fatalf("decode PUT body %q: %v", put, err)
+	}
+	return body
+}
+
+func TestRoleUpdateMembershipBody(t *testing.T) {
+	for _, attr := range roleschema.MembershipAttrs {
+		t.Run(attr, func(t *testing.T) {
+			t.Run("sends a changed membership", func(t *testing.T) {
+				body := roleUpdatePutBody(t, attr, []interface{}{5}, []interface{}{5, 6})
+
+				assert.ElementsMatch(t, []interface{}{float64(5), float64(6)}, body[attr])
+			})
+
+			// Omitting the key would leave every member in place while the
+			// apply reported success.
+			t.Run("sends an empty array to remove every member", func(t *testing.T) {
+				body := roleUpdatePutBody(t, attr, []interface{}{5}, []interface{}{})
+
+				assert.Contains(t, body, attr)
+				assert.Equal(t, []interface{}{}, body[attr])
+			})
+
+			t.Run("omits an unchanged membership", func(t *testing.T) {
+				body := roleUpdatePutBody(t, attr, []interface{}{5}, []interface{}{5})
+
+				assert.NotContains(t, body, attr)
+			})
+		})
+	}
 }

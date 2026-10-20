@@ -316,8 +316,10 @@ func roleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		"name": d.Get("name"),
 	}
 
-	// Handle users array - only add to roleData if present
-	if users, ok := d.GetOk("users"); ok {
+	// Handle users array - only add to roleData if changed, so that an emptied
+	// set is sent as [] and clears the role rather than being omitted
+	if d.HasChange("users") {
+		users := d.Get("users")
 		userIDs := make([]int, 0, users.(*schema.Set).Len())
 		for _, user := range users.(*schema.Set).List() {
 			userIDs = append(userIDs, user.(int))
@@ -329,8 +331,9 @@ func roleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		})
 	}
 
-	// Handle apps array - only add to roleData if present
-	if apps, ok := d.GetOk("apps"); ok {
+	// Handle apps array - only add to roleData if changed
+	if d.HasChange("apps") {
+		apps := d.Get("apps")
 		appIDs := make([]int, 0, apps.(*schema.Set).Len())
 		for _, app := range apps.(*schema.Set).List() {
 			appIDs = append(appIDs, app.(int))
@@ -342,8 +345,9 @@ func roleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 		})
 	}
 
-	// Handle admins array - only add to roleData if present
-	if admins, ok := d.GetOk("admins"); ok {
+	// Handle admins array - only add to roleData if changed
+	if d.HasChange("admins") {
+		admins := d.Get("admins")
 		adminIDs := make([]int, 0, admins.(*schema.Set).Len())
 		for _, admin := range admins.(*schema.Set).List() {
 			adminIDs = append(adminIDs, admin.(int))
