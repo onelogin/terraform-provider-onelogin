@@ -213,8 +213,12 @@ The following arguments are supported:
   * `values` - (Optional) A list of parameter values. A single value is sent to OneLogin as a plain string and several as an array, matching how the API stores them.
 
 
-* `configuration`
-  * `signature_algorithm` - (Required) Hashing algorithm to use for signing. Must be one of the following: `SHA-1` `SHA-256` `SHA-348` `SHA-512`
+* `configuration` - (Optional) Settings on the app's Configuration tab, as a map of strings.
+  Any setting the connector has can be given by its name, for example `audience`. A name
+  the connector does not have fails the apply with a `400`. Settings left out are left
+  alone.
+
+  * `signature_algorithm` - (Optional) Hashing algorithm to use for signing. Must be one of the following: `SHA-1` `SHA-256` `SHA-348` `SHA-512`. Left out, a new app gets OneLogin's default and an existing app keeps its current value.
 
   * `certificate_id` - (Optional) The ID of the certificate.
 

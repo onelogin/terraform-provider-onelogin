@@ -136,35 +136,48 @@ func Inflate(s map[string]interface{}) (interface{}, error) {
 
 		return customOidc, nil
 	} else if configType == "saml" {
-		// Instead of using the limited ConfigurationSAML struct, create a generic map
-		// that passes through all SAML configuration fields provided by the user.
-		// The OneLogin API supports many more SAML fields than the SDK struct defines.
-		outSaml := make(map[string]interface{})
-
-		// Copy all provided fields to the output map
-		for key, value := range s {
-			if value != nil && value != "" {
-				// Handle special field type conversions
-				switch key {
-				case "certificate_id":
-					// Convert certificate_id to int as expected by API
-					if certId, err := getInt(value); err != nil {
-						return nil, err
-					} else if certId != 0 {
-						outSaml[key] = certId
-					}
-				default:
-					// Pass through all other fields as-is
-					outSaml[key] = value
-				}
-			}
-		}
-
-		return outSaml, nil
+		return InflateSAML(s)
 	}
 
 	// Return an empty map if we can't determine the type
 	return map[string]interface{}{}, nil
+}
+
+// InflateSAML builds a SAML app's configuration from the configuration map.
+//
+// Inflate can only recognise a SAML configuration by its signature_algorithm,
+// and builds an empty one for anything else. So a SAML app whose configuration
+// left signature_algorithm out sent none of it: the apply reported success, the
+// next read did not have the values, and every plan proposed them again.
+// onelogin_saml_apps knows its configuration is SAML and asks for this
+// directly; see appschema.ConfigurationKindKey.
+//
+// Instead of using the limited ConfigurationSAML struct, create a generic map
+// that passes through all SAML configuration fields provided by the user.
+// The OneLogin API supports many more SAML fields than the SDK struct defines.
+func InflateSAML(s map[string]interface{}) (map[string]interface{}, error) {
+	outSaml := make(map[string]interface{})
+
+	// Copy all provided fields to the output map
+	for key, value := range s {
+		if value != nil && value != "" {
+			// Handle special field type conversions
+			switch key {
+			case "certificate_id":
+				// Convert certificate_id to int as expected by API
+				if certId, err := getInt(value); err != nil {
+					return nil, err
+				} else if certId != 0 {
+					outSaml[key] = certId
+				}
+			default:
+				// Pass through all other fields as-is
+				outSaml[key] = value
+			}
+		}
+	}
+
+	return outSaml, nil
 }
 
 // RetainManaged narrows a flattened configuration to the keys the practitioner

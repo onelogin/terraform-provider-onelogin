@@ -73,10 +73,9 @@ func bearerTokenToSend(d *schema.ResourceData, create bool) (string, bool, error
 
 // withBearerToken adds the token to the configuration appschema.Inflate built.
 //
-// Inflate returns a map for SAML, and an empty map when it cannot tell what the
-// configuration is. The token goes in either way, because that is the only
-// place the app endpoint looks for it. A typed OIDC configuration has nowhere
-// to put it.
+// A SAML app's configuration is always a map, empty when the configuration sets
+// nothing. The token goes in either way, because that is the only place the app
+// endpoint looks for it. A typed OIDC configuration has nowhere to put it.
 func withBearerToken(configuration interface{}, token string) (interface{}, error) {
 	if configuration == nil {
 		return map[string]interface{}{bearerTokenConfigKey: token}, nil

@@ -86,6 +86,37 @@ func TestAccSAMLApp_bearerTokenWO(t *testing.T) {
 	})
 }
 
+// TestAccSAMLApp_configurationWithoutSignatureAlgorithm covers a configuration
+// that leaves signature_algorithm out. Nothing in it used to be sent, so the
+// framework's plan after the first apply still proposed the audience.
+func TestAccSAMLApp_configurationWithoutSignatureAlgorithm(t *testing.T) {
+	steps := GetFixtures([]string{
+		"onelogin_saml_app_configuration_without_signature_algorithm_example.tf",
+		"onelogin_saml_app_configuration_without_signature_algorithm_updated_example.tf",
+	}, t)
+	name := "onelogin_saml_apps.no_signature_algorithm"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { TestAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: steps[0],
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(name, "configuration.audience", regexp.MustCompile(`/metadata$`)),
+					resource.TestCheckNoResourceAttr(name, "configuration.signature_algorithm"),
+				),
+			},
+			{
+				Config: steps[1],
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(name, "configuration.audience", regexp.MustCompile(`/metadata/v2$`)),
+				),
+			},
+		},
+	})
+}
+
 // paramKeyName matches the state address of a parameter's key name. parameters
 // is a TypeSet, so the middle element is the set hash rather than an index.
 //
