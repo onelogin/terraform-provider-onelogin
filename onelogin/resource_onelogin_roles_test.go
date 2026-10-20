@@ -2,10 +2,18 @@ package onelogin
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	roleschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/role"
 	"github.com/stretchr/testify/assert"
@@ -33,6 +41,67 @@ func TestAccRole_crud(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccRole_membership checks, against the real API, that a role leaves alone
+// the membership its configuration does not mention, and clears the membership
+// it sets to [].
+//
+// The first role leaves apps out while an attachment gives it the app. Its read
+// brings the app back into state, so the plan after each step is only empty if
+// that is not drift, and renaming it must not send apps: [] and detach the app.
+// The second role sets apps, then empties it, which must take the app off.
+func TestAccRole_membership(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { TestAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleMembershipConfig("TF Acc Membership Role", "[onelogin_saml_apps.membership.id]"),
+				Check:  testAccCheckAppRoles("onelogin_saml_apps.membership", "onelogin_roles.unmanaged", "onelogin_roles.cleared"),
+			},
+			{
+				Config: testAccRoleMembershipConfig("TF Acc Membership Role renamed", "[onelogin_saml_apps.membership.id]"),
+				Check:  testAccCheckAppRoles("onelogin_saml_apps.membership", "onelogin_roles.unmanaged", "onelogin_roles.cleared"),
+			},
+			{
+				Config: testAccRoleMembershipConfig("TF Acc Membership Role renamed", "[]"),
+				Check:  testAccCheckAppRoles("onelogin_saml_apps.membership", "onelogin_roles.unmanaged"),
+			},
+		},
+	})
+}
+
+// testAccRoleMembershipConfig names the role without apps, and gives the other
+// role clearedApps. The second role waits for the attachment, which rewrites
+// the app's whole role list and would otherwise race its write.
+func testAccRoleMembershipConfig(unmanagedName, clearedApps string) string {
+	return fmt.Sprintf(`
+resource "onelogin_saml_apps" "membership" {
+  connector_id = 110016
+  name         = "TF Acc Membership App"
+
+  configuration = {
+    signature_algorithm = "SHA-256"
+  }
+}
+
+resource "onelogin_roles" "unmanaged" {
+  name = %q
+}
+
+resource "onelogin_app_role_attachments" "membership" {
+  app_id  = onelogin_saml_apps.membership.id
+  role_id = onelogin_roles.unmanaged.id
+}
+
+resource "onelogin_roles" "cleared" {
+  name = "TF Acc Membership Cleared Role"
+  apps = %s
+
+  depends_on = [onelogin_app_role_attachments.membership]
+}
+`, unmanagedName, clearedApps)
 }
 
 // TestExtractMemberIDs tests the extractMemberIDs helper that converts sub-endpoint
@@ -273,4 +342,130 @@ func TestFetchAllMemberIDsBoundsPageCount(t *testing.T) {
 	assert.Nil(t, ids)
 	assert.Contains(t, err.Error(), "exceeded")
 	assert.Equal(t, maxMemberPages, call, "should stop exactly at the page bound")
+}
+
+// roleConfig builds the configuration the way the plugin server does, from a
+// cty value, so that an attribute left out (configured == nil) is null and
+// distinct from an empty set. The role is renamed, so roleUpdate is reached
+// even when membership does not change.
+func roleConfig(r *schema.Resource, attr string, configured []interface{}) *terraform.ResourceConfig {
+	block := r.CoreConfigSchema()
+	vals := map[string]cty.Value{}
+	for name, ty := range block.ImpliedType().AttributeTypes() {
+		vals[name] = cty.NullVal(ty)
+	}
+	vals["name"] = cty.StringVal("Engineering renamed")
+	if configured != nil {
+		vals[attr] = cty.SetValEmpty(cty.Number)
+		if len(configured) > 0 {
+			ids := make([]cty.Value, 0, len(configured))
+			for _, id := range configured {
+				ids = append(ids, cty.NumberIntVal(int64(id.(int))))
+			}
+			vals[attr] = cty.SetVal(ids)
+		}
+	}
+	return terraform.NewResourceConfigShimmed(cty.ObjectVal(vals), block)
+}
+
+// roleUpdatePutBody runs roleUpdate against a stub API, starting from a role
+// whose attr holds prior and configured as configured (nil = left out), and
+// returns the decoded body of the PUT it sends.
+func roleUpdatePutBody(t *testing.T, attr string, prior, configured []interface{}) map[string]interface{} {
+	t.Helper()
+
+	var put []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case r.URL.Path == "/auth/oauth2/v2/token":
+			io.WriteString(w, `{"access_token":"x","token_type":"bearer","expires_in":36000}`)
+		case r.Method == http.MethodPut && r.URL.Path == "/api/2/roles/1":
+			put, _ = io.ReadAll(r.Body)
+			io.WriteString(w, `{"id":1}`)
+		case r.URL.Path == "/api/2/roles/1":
+			io.WriteString(w, `{"id":1,"name":"Engineering"}`)
+		default:
+			io.WriteString(w, `[]`)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	t.Setenv("ONELOGIN_API_URL", srv.URL)
+	t.Setenv("ONELOGIN_SUBDOMAIN", "test")
+	t.Setenv("ONELOGIN_CLIENT_ID", "id")
+	t.Setenv("ONELOGIN_CLIENT_SECRET", "secret")
+	client, err := onelogin.NewOneloginSDK()
+	if err != nil {
+		t.Fatalf("client: %v", err)
+	}
+
+	// HasChange compares state with the planned diff, so d has to come from a
+	// real diff, and the state from the SDK (sets are stored under hashed keys).
+	r := Roles()
+	before := r.Data(&terraform.InstanceState{ID: "1"})
+	if err := before.Set("name", "Engineering"); err != nil {
+		t.Fatal(err)
+	}
+	if err := before.Set(attr, prior); err != nil {
+		t.Fatal(err)
+	}
+	state := before.State()
+
+	diff, err := r.Diff(context.Background(), state, roleConfig(r, attr, configured), nil)
+	if err != nil {
+		t.Fatalf("diff: %v", err)
+	}
+	d, err := schema.InternalMap(r.Schema).Data(state, diff)
+	if err != nil {
+		t.Fatalf("data: %v", err)
+	}
+
+	if diags := roleUpdate(context.Background(), d, client); diags.HasError() {
+		t.Fatalf("roleUpdate: %v", diags)
+	}
+
+	body := map[string]interface{}{}
+	if err := json.Unmarshal(put, &body); err != nil {
+		t.Fatalf("decode PUT body %q: %v", put, err)
+	}
+	return body
+}
+
+func TestRoleUpdateMembershipBody(t *testing.T) {
+	for _, attr := range roleschema.MembershipAttrs {
+		t.Run(attr, func(t *testing.T) {
+			t.Run("sends a changed membership", func(t *testing.T) {
+				body := roleUpdatePutBody(t, attr, []interface{}{5}, []interface{}{5, 6})
+
+				assert.ElementsMatch(t, []interface{}{float64(5), float64(6)}, body[attr])
+			})
+
+			// Omitting the key would leave every member in place while the
+			// apply reported success.
+			t.Run("sends an empty array to remove every member", func(t *testing.T) {
+				body := roleUpdatePutBody(t, attr, []interface{}{5}, []interface{}{})
+
+				assert.Contains(t, body, attr)
+				assert.Equal(t, []interface{}{}, body[attr])
+			})
+
+			t.Run("omits an unchanged membership", func(t *testing.T) {
+				body := roleUpdatePutBody(t, attr, []interface{}{5}, []interface{}{5})
+
+				assert.NotContains(t, body, attr)
+			})
+
+			// Members assigned some other way (an app role attachment, an
+			// app's role_ids, a mapping) are read into state. A configuration
+			// that does not mention the attribute must leave them alone, not
+			// send [] and strip them.
+			t.Run("omits a membership the configuration leaves out", func(t *testing.T) {
+				body := roleUpdatePutBody(t, attr, []interface{}{5, 6}, nil)
+
+				assert.Equal(t, "Engineering renamed", body["name"])
+				assert.NotContains(t, body, attr)
+			})
+		})
+	}
 }

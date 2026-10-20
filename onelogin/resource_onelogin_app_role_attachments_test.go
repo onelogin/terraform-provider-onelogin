@@ -169,9 +169,8 @@ func testAccAppRoleIDs(client *onelogin.OneloginSDK, appID int) ([]int, error) {
 // testAccAppRoleAttachmentConfig builds an app, roleCount roles, and
 // attachments for the first attachmentCount of them.
 //
-// The roles skip their apps refresh. onelogin_roles.apps is Optional and not
-// Computed, so a role whose configuration leaves it out reads an attached app
-// back as drift and plans to remove it on every run.
+// The roles leave apps out, as the attachments manage it, and skip refreshing
+// it to save the calls.
 //
 // The app names one configuration key because a SAML app created without any
 // records every key the API sends back, which the next plan then proposes to
