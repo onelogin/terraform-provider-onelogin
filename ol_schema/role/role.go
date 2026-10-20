@@ -51,8 +51,8 @@ func Schema() map[string]*schema.Schema {
 		},
 		// Computed as well as optional, so membership the configuration leaves
 		// out is not managed. Members assigned some other way
-		// (onelogin_app_role_attachments, an app's or user's role_ids, a
-		// mapping) are then neither planned for removal nor sent as [] by an
+		// (onelogin_app_role_attachments, an app's role_ids, a mapping, the
+		// admin UI) are then neither planned for removal nor sent as [] by an
 		// update. Writing [] still removes every member.
 		"apps": {
 			Type:     schema.TypeSet,
