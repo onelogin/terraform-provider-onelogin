@@ -52,6 +52,40 @@ func TestAccSAMLApp_crud(t *testing.T) {
 	})
 }
 
+// TestAccSAMLApp_bearerTokenWO covers issue #29 against a SCIM connector.
+//
+// Each step's apply is followed by the framework's own plan, which fails the
+// step if anything is left to change. That is the convergence check: a token
+// kept anywhere a read could disagree with would show up there.
+func TestAccSAMLApp_bearerTokenWO(t *testing.T) {
+	steps := GetFixtures([]string{
+		"onelogin_saml_app_scim_bearer_token_example.tf",
+		"onelogin_saml_app_scim_bearer_token_updated_example.tf",
+	}, t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { TestAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: steps[0],
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("onelogin_saml_apps.scim", "bearer_token_wo"),
+					resource.TestCheckResourceAttr("onelogin_saml_apps.scim", "bearer_token_wo_version", "1"),
+					resource.TestCheckNoResourceAttr("onelogin_saml_apps.scim", "configuration.bearer_token"),
+				),
+			},
+			{
+				Config: steps[1],
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("onelogin_saml_apps.scim", "bearer_token_wo"),
+					resource.TestCheckResourceAttr("onelogin_saml_apps.scim", "bearer_token_wo_version", "2"),
+				),
+			},
+		},
+	})
+}
+
 // paramKeyName matches the state address of a parameter's key name. parameters
 // is a TypeSet, so the middle element is the set hash rather than an index.
 //

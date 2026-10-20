@@ -145,6 +145,46 @@ The following arguments are supported:
   ```
 
 
+* `bearer_token_wo` - (Optional, Sensitive, Write-only) The SCIM bearer token, for an app
+  on a SCIM provisioning connector (the connector's **SCIM Bearer Token** field). Requires
+  Terraform 1.11 or later; earlier versions refuse the configuration with
+  `Write-only Attribute Not Allowed`.
+
+  Terraform sends the token and never stores it, in plan or state. OneLogin does not
+  return it either, so the provider cannot see the current token. It sends one on
+  create, and on update only when `bearer_token_wo_version` changes. Changing the token
+  without changing the version sends nothing, and a token changed in the OneLogin admin
+  UI is not detected as drift.
+
+  After `terraform import`, the version is not in state yet, so the first apply sends
+  the token once.
+
+  Do not put `bearer_token` in `configuration` instead. OneLogin accepts it there but
+  never returns it, so every plan proposes it again.
+
+  ```hcl
+  variable "scim_bearer_token" {
+    type      = string
+    sensitive = true
+    ephemeral = true
+  }
+
+  resource "onelogin_saml_apps" "scim" {
+    name         = "SCIM app"
+    connector_id = 45504
+
+    bearer_token_wo         = var.scim_bearer_token
+    bearer_token_wo_version = 1 # change this to send a new token
+
+    configuration = {
+      signature_algorithm = "SHA-256"
+    }
+  }
+  ```
+
+* `bearer_token_wo_version` - (Optional, Number) Change this to send `bearer_token_wo`
+  on an update. Requires `bearer_token_wo`, and must be at least 1.
+
 * `provisioning` - (Optional) Settings regarding the app's provisioning ability.
   * `enabled` - (Required) Indicates if provisioning is enabled for this app.
 
@@ -204,6 +244,8 @@ The following arguments are supported:
 * `updated_at` - Timestamp for app's last update.
 
 * `created_at` - Timestamp for app's creation.
+
+* `bearer_token_wo_version` - The version last applied. The token itself is never in state.
 
 * `policy_id` - The app policy assigned to the app. Settable; see the argument above.
 
