@@ -201,6 +201,15 @@ func assignmentID(s map[string]interface{}, key string) (id int, present bool, e
 	return id, true, nil
 }
 
+// ConfigurationKindKey, set to ConfigurationKindSAML in the map handed to
+// Inflate, says the configuration is a SAML app's. Without it the kind is
+// guessed from the keys, and a SAML configuration without signature_algorithm
+// is not recognised and not sent.
+const (
+	ConfigurationKindKey  = "configuration_kind"
+	ConfigurationKindSAML = "saml"
+)
+
 // Inflate takes a map of interfaces and constructs a OneLogin App.
 func Inflate(s map[string]interface{}) (models.App, error) {
 	var appID, connectorID int32
@@ -335,7 +344,14 @@ func Inflate(s map[string]interface{}) (models.App, error) {
 
 	// Handle configuration
 	if s["configuration"] != nil {
-		conf, err := appconfigurationschema.Inflate(s["configuration"].(map[string]interface{}))
+		configuration := s["configuration"].(map[string]interface{})
+
+		var conf interface{}
+		if s[ConfigurationKindKey] == ConfigurationKindSAML {
+			conf, err = appconfigurationschema.InflateSAML(configuration)
+		} else {
+			conf, err = appconfigurationschema.Inflate(configuration)
+		}
 		if err != nil {
 			return app, err
 		}

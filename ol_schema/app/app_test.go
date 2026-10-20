@@ -258,3 +258,39 @@ func TestInflateRoleIDs(t *testing.T) {
 		assert.Contains(t, err.Error(), "role_ids")
 	})
 }
+
+func TestInflateSAMLConfigurationKind(t *testing.T) {
+	base := func() map[string]interface{} {
+		return map[string]interface{}{
+			"name":          "test app",
+			"connector_id":  39893,
+			"configuration": map[string]interface{}{"account_id": "my-domain"},
+		}
+	}
+
+	// The bug: without signature_algorithm the configuration was not
+	// recognised as SAML, and nothing in it was sent.
+	t.Run("a SAML configuration without signature_algorithm is sent", func(t *testing.T) {
+		s := base()
+		s[ConfigurationKindKey] = ConfigurationKindSAML
+		app, err := Inflate(s)
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]interface{}{"account_id": "my-domain"}, app.Configuration)
+	})
+
+	t.Run("a SAML certificate_id that is not a number is an error", func(t *testing.T) {
+		s := base()
+		s[ConfigurationKindKey] = ConfigurationKindSAML
+		s["configuration"] = map[string]interface{}{"certificate_id": "abc"}
+		_, err := Inflate(s)
+		assert.Error(t, err)
+	})
+
+	// Callers that do not say what their configuration is still get the old
+	// guess, so the OIDC resource is unaffected.
+	t.Run("without the kind the configuration is still guessed", func(t *testing.T) {
+		app, err := Inflate(base())
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]interface{}{}, app.Configuration)
+	})
+}

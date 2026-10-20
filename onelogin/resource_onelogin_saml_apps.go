@@ -274,6 +274,8 @@ func samlAppCreateMap(d *schema.ResourceData) map[string]interface{} {
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
 		"sso":                  d.Get("sso"),
+
+		appschema.ConfigurationKindKey: appschema.ConfigurationKindSAML,
 	}
 	addAppAssignmentForCreate(d, inflateMap, "policy_id")
 	addAppAssignmentForCreate(d, inflateMap, "brand_id")
@@ -299,6 +301,8 @@ func samlAppUpdateMap(d *schema.ResourceData) map[string]interface{} {
 		"provisioning":         d.Get("provisioning"),
 		"configuration":        d.Get("configuration"),
 		"sso":                  d.Get("sso"),
+
+		appschema.ConfigurationKindKey: appschema.ConfigurationKindSAML,
 	}
 	addAppAssignmentForUpdate(d, inflateMap, "policy_id")
 	addAppAssignmentForUpdate(d, inflateMap, "brand_id")
