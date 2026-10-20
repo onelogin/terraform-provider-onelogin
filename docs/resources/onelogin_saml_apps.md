@@ -183,7 +183,7 @@ The following arguments are supported:
   ```
 
 * `bearer_token_wo_version` - (Optional, Number) Change this to send `bearer_token_wo`
-  on an update. Requires `bearer_token_wo`.
+  on an update. Requires `bearer_token_wo`, and must be at least 1.
 
 * `provisioning` - (Optional) Settings regarding the app's provisioning ability.
   * `enabled` - (Required) Indicates if provisioning is enabled for this app.

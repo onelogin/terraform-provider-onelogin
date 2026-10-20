@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
@@ -39,11 +40,15 @@ func addBearerTokenSchema(s map[string]*schema.Schema) {
 		Sensitive:   true,
 		Description: "SCIM bearer token for the app's provisioning connector. Write-only: never stored in state. Requires Terraform 1.11 or later.",
 	}
+	// At least 1, because an unset TypeInt reads as 0: after an import, or on a
+	// resource applied before this attribute existed, a version of 0 would be
+	// no change and the token would never be sent.
 	s[bearerTokenWOVersionKey] = &schema.Schema{
 		Type:         schema.TypeInt,
 		Optional:     true,
 		RequiredWith: []string{bearerTokenWOKey},
-		Description:  "Change this to send bearer_token_wo again on an update.",
+		ValidateFunc: validation.IntAtLeast(1),
+		Description:  "Change this to send bearer_token_wo again on an update. Starts at 1.",
 	}
 }
 

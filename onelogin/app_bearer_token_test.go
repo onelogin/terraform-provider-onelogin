@@ -187,6 +187,50 @@ func TestSAMLAppBearerTokenBody(t *testing.T) {
 	})
 }
 
+// importedSCIMAppState is the state an import, or an apply from before
+// bearer_token_wo existed, leaves behind: no version at all.
+func importedSCIMAppState(t *testing.T) *terraform.InstanceState {
+	t.Helper()
+
+	state := scimAppState(t)
+	delete(state.Attributes, bearerTokenWOVersionKey)
+	return state
+}
+
+// TestSAMLAppBearerTokenAfterImport covers the first apply after an import.
+//
+// An unset TypeInt reads as 0, so a version of 0 against a state with no
+// version is no change at all, and the token would never be sent. Versions
+// start at 1 for that reason; anything from 1 up is a change from nothing.
+func TestSAMLAppBearerTokenAfterImport(t *testing.T) {
+	t.Run("the first version sends the token", func(t *testing.T) {
+		got := samlAppBodyJSON(t, importedSCIMAppState(t), map[string]interface{}{
+			"name":                  "SCIM app",
+			"connector_id":          45504,
+			"configuration":         map[string]interface{}{"signature_algorithm": "SHA-256"},
+			bearerTokenWOVersionKey: 1,
+		}, map[string]cty.Value{
+			bearerTokenWOKey: cty.StringVal("secret-1"),
+		}, false)
+
+		if !strings.Contains(got, `"bearer_token":"secret-1"`) {
+			t.Fatalf("expected the token to be sent, got %s", got)
+		}
+	})
+
+	t.Run("version 0 is rejected", func(t *testing.T) {
+		diags := schema.InternalMap(SAMLApps().Schema).Validate(terraform.NewResourceConfigRaw(map[string]interface{}{
+			"name":                  "SCIM app",
+			"connector_id":          45504,
+			bearerTokenWOKey:        "secret-1",
+			bearerTokenWOVersionKey: 0,
+		}))
+		if !diags.HasError() {
+			t.Fatalf("expected %s = 0 to be rejected", bearerTokenWOVersionKey)
+		}
+	})
+}
+
 // TestSAMLAppBearerTokenNotRead guards the other half of write-only: a read
 // must not put anything in state for it, whatever the API returns.
 func TestSAMLAppBearerTokenNotRead(t *testing.T) {
