@@ -121,28 +121,20 @@ The following arguments are supported:
   [`onelogin_roles`](onelogin_roles.md)) is drift, and the next apply takes it off. Do
   not combine `role_ids` with those on the same app.
 
-  If the roles themselves are managed by `onelogin_roles` without an `apps` argument,
-  each one reads this app back and plans to remove it. Add `apps` to that role's
-  `lifecycle { ignore_changes }`, and to its `skip_membership_refresh` to skip the read
-  as well.
+  A role managed by `onelogin_roles` without an `apps` argument leaves this app alone. Add
+  `skip_membership_refresh = ["apps"]` to that role to skip reading its apps as well.
 
   ```hcl
   resource "onelogin_roles" "engineering" {
     name = "Engineering"
 
     skip_membership_refresh = ["apps"]
-    lifecycle {
-      ignore_changes = [apps]
-    }
   }
 
   resource "onelogin_roles" "support" {
     name = "Support"
 
     skip_membership_refresh = ["apps"]
-    lifecycle {
-      ignore_changes = [apps]
-    }
   }
 
   resource "onelogin_saml_apps" "example" {

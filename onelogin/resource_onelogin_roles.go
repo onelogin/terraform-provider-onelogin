@@ -317,7 +317,8 @@ func roleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag
 	}
 
 	// Handle users array - only add to roleData if changed, so that an emptied
-	// set is sent as [] and clears the role rather than being omitted
+	// set is sent as [] and clears the role rather than being omitted. One the
+	// configuration leaves out never changes, because it is computed.
 	if d.HasChange("users") {
 		users := d.Get("users")
 		userIDs := make([]int, 0, users.(*schema.Set).Len())

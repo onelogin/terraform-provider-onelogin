@@ -49,19 +49,27 @@ func Schema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
+		// Computed as well as optional, so membership the configuration leaves
+		// out is not managed. Members assigned some other way
+		// (onelogin_app_role_attachments, an app's or user's role_ids, a
+		// mapping) are then neither planned for removal nor sent as [] by an
+		// update. Writing [] still removes every member.
 		"apps": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			Computed: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"users": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			Computed: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"admins": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			Computed: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		// Membership lives on three paginated sub-endpoints, and a role with
@@ -80,7 +88,7 @@ func Schema() map[string]*schema.Schema {
 				Type:         schema.TypeString,
 				ValidateFunc: validMembershipAttr,
 			},
-			Description: "Membership attributes to leave un-refreshed: any of apps, users, admins. Their sub-endpoints are not queried during read, and state keeps whatever it already held. Use for membership managed outside Terraform, alongside a lifecycle ignore_changes block for the same attribute.",
+			Description: "Membership attributes to leave un-refreshed: any of apps, users, admins. Their sub-endpoints are not queried during read, and state keeps whatever it already held. Use for membership managed outside Terraform, and leave the same attribute out of the configuration.",
 		},
 	}
 }
