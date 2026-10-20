@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	appschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app"
 	appconfigurationschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/configuration"
 	appparametersschema "github.com/onelogin/terraform-provider-onelogin/ol_schema/app/parameters"
@@ -37,6 +38,7 @@ func SAMLApps() *schema.Resource {
 		Computed: true,
 		Elem:     &schema.Schema{Type: schema.TypeString},
 	}
+	addBearerTokenSchema(appSchema)
 	return &schema.Resource{
 		CreateContext: samlAppCreate,
 		ReadContext:   samlAppRead,
@@ -77,9 +79,7 @@ func samlAppsV0() *schema.Resource {
 // samlAppCreate takes a pointer to the ResourceData Struct and a HTTP client and
 // makes the POST request to OneLogin to create an SAML App with its sub-resources
 func samlAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	inflateMap := samlAppCreateMap(d)
-
-	samlApp, err := appschema.Inflate(inflateMap)
+	samlApp, err := samlAppBody(d, true)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryCreate, "SAML App", "")
 	}
@@ -207,9 +207,7 @@ func samlAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 func samlAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	aid, _ := strconv.Atoi(d.Id())
 
-	inflateMap := samlAppUpdateMap(d)
-
-	samlApp, err := appschema.Inflate(inflateMap)
+	samlApp, err := samlAppBody(d, false)
 	if err != nil {
 		return utils.HandleSchemaError(ctx, err, utils.ErrorCategoryUpdate, "SAML App", d.Id())
 	}
@@ -240,6 +238,23 @@ func samlAppDelete(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		aid, _ := strconv.Atoi(id)
 		return client.DeleteApp(aid)
 	}, "SAML App")
+}
+
+// samlAppBody builds the app a create or update sends.
+//
+// bearer_token_wo is added after Inflate rather than put in the map, because
+// d.Get cannot read it; see bearerTokenToSend.
+func samlAppBody(d *schema.ResourceData, create bool) (models.App, error) {
+	inflateMap := samlAppUpdateMap(d)
+	if create {
+		inflateMap = samlAppCreateMap(d)
+	}
+
+	app, err := appschema.Inflate(inflateMap)
+	if err != nil {
+		return app, err
+	}
+	return app, addBearerToken(d, &app, create)
 }
 
 // samlAppCreateMap builds the map handed to appschema.Inflate.
