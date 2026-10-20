@@ -122,7 +122,8 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		"id": rid,
 	})
 
-	// Fetch base role object (returns {"id": ..., "name": ...}).
+	// Fetch base role object for its name. It carries the membership arrays
+	// too, but membership is read from the paginated sub-endpoints below.
 	result, err := client.GetRoleByIDWithContext(ctx, rid, nil)
 	if err != nil {
 		if utils.IsNotFoundError(err) {
@@ -143,8 +144,8 @@ func roleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		return diag.FromErr(err)
 	}
 
-	// Membership is not part of the base role object — it lives on three separate
-	// sub-endpoints, each of which is paginated.
+	// Membership is read from three separate sub-endpoints, each of which is
+	// paginated.
 	memberAttrs := []struct {
 		attr  string
 		fetch memberFetcher

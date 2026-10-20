@@ -60,17 +60,18 @@ provider "onelogin" {
 Here's a simple example that creates a user and assigns them to a role:
 
 ```hcl
-# Create a role
-resource "onelogin_roles" "developers" {
-  name = "Developers"
-}
-
 # Create a user
 resource "onelogin_users" "john_doe" {
   username   = "john.doe@example.com"
   email      = "john.doe@example.com"
   firstname  = "John"
   lastname   = "Doe"
+}
+
+# Create a role and assign the user to it
+resource "onelogin_roles" "developers" {
+  name  = "Developers"
+  users = [onelogin_users.john_doe.id]
 }
 
 # Create a group
