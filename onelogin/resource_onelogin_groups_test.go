@@ -364,6 +364,29 @@ func TestGroupPolicyIDNoPerpetualDiff(t *testing.T) {
 	})
 }
 
+// The read now returns references set outside Terraform. A configuration that
+// leaves reference out, or sets it to "", adopts the stored value instead of
+// proposing to clear it on every plan.
+func TestGroupReferenceAdoptedWhenNotConfigured(t *testing.T) {
+	for name, config := range map[string]map[string]interface{}{
+		"absent": {"name": "Engineering"},
+		"empty":  {"name": "Engineering", "reference": ""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			d := groupState(t, 0)
+			diff, err := resourceOneLoginGroups().Diff(context.Background(), d.State(), terraform.NewResourceConfigRaw(config), nil)
+			if err != nil {
+				t.Fatalf("diff: %v", err)
+			}
+			if diff != nil {
+				for attribute, change := range diff.Attributes {
+					t.Errorf("unexpected diff on %s: %q -> %q", attribute, change.Old, change.New)
+				}
+			}
+		})
+	}
+}
+
 // Removing the attribute has to be expressible. Were policy_id Computed, an
 // empty configuration would read as "keep what is in state" and a policy could
 // never be taken off a group once set.
