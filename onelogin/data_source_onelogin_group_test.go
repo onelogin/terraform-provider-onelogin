@@ -126,8 +126,8 @@ func TestDataSourceOneLoginGroupReadNullReference(t *testing.T) {
 func TestDataSourceOneLoginGroupReadNotFound(t *testing.T) {
 	_, err := groupDataSourceRead(t, 731, http.StatusNotFound,
 		`{"status":{"error":true,"code":404,"type":"not found","message":"Group for id 731 was not found"}}`)
-	if err == nil {
-		t.Fatal("expected an error for a group that does not exist")
+	if err == nil || !strings.Contains(err.Error(), "status: 404") {
+		t.Fatalf("expected the API's 404 for a group that does not exist, got %v", err)
 	}
 }
 
@@ -158,6 +158,9 @@ func TestGroupFromResponseRejects(t *testing.T) {
 			map[string]interface{}{"id": 731.0, "name": ""},
 		}},
 		"status only": map[string]interface{}{"status": map[string]interface{}{"error": false, "code": 200.0}},
+		// api/2's shape. It never includes reference, so taking it would set
+		// reference to "" for a group that has one.
+		"bare object": map[string]interface{}{"id": 731.0, "name": "Example Group"},
 	}
 	for name, resp := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -165,18 +168,6 @@ func TestGroupFromResponseRejects(t *testing.T) {
 				t.Fatalf("expected an error, got %v", group)
 			}
 		})
-	}
-}
-
-// api/2 returns the group as a bare object. Accepted so that moving the SDK
-// call to api/2 doesn't bring the empty name back.
-func TestGroupFromResponseBareObject(t *testing.T) {
-	group, err := groupFromResponse(map[string]interface{}{"id": 731.0, "name": "Example Group"}, 731)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-	if group["name"] != "Example Group" {
-		t.Errorf("name = %v, want Example Group", group["name"])
 	}
 }
 
