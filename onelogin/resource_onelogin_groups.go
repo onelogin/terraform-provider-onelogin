@@ -32,13 +32,11 @@ func resourceOneLoginGroups() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// The API accepts reference in a create or update payload and
-			// then neither stores nor returns it. Computed keeps an omitted
-			// value from diffing, and the read below leaves a set one alone
-			// rather than clearing it, so a configuration that uses the
-			// attribute still settles. Whether it should exist at all, given
-			// the API does nothing with it, is a question for the next major
-			// alongside the sso change held in #236.
+			// Stored by create and update, but only api/1 returns it, so the
+			// read takes it from there. Computed: a configuration without
+			// reference adopts whatever the group has rather than proposing
+			// to clear it. That includes references set outside Terraform
+			// before this attribute was read back at all.
 			"reference": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -122,6 +120,15 @@ func groupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	result, err := client.GetGroupByIDV2WithContext(ctx, groupID)
 	if err != nil {
+		// A group deleted outside Terraform leaves state, so the next plan
+		// recreates it instead of failing on the 404.
+		if utils.IsNotFoundError(err) {
+			tflog.Info(ctx, "[NOT FOUND] Group not found, removing from state", map[string]interface{}{
+				"id": groupID,
+			})
+			d.SetId("")
+			return nil
+		}
 		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Group", d.Id())
 	}
 
@@ -141,14 +148,29 @@ func groupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	if err := d.Set("name", groupMap["name"]); err != nil {
 		return diag.FromErr(err)
 	}
-	// Absent stays absent. The API drops reference rather than storing it, so
-	// it comes back null on every read, and writing that null cleared whatever
-	// the configuration had asked for -- a removal every plan proposed and the
-	// next read produced again.
-	if reference, present := groupMap["reference"]; present && reference != nil {
-		if err := d.Set("reference", reference); err != nil {
-			return diag.FromErr(err)
+
+	// api/2 leaves reference out of its response even when the group has one,
+	// which hid every change made outside Terraform and left an import without
+	// it. api/1 returns it.
+	v1, err := client.GetGroupByID(groupID)
+	if err != nil {
+		if utils.IsNotFoundError(err) {
+			tflog.Info(ctx, "[NOT FOUND] Group not found, removing from state", map[string]interface{}{
+				"id": groupID,
+			})
+			d.SetId("")
+			return nil
 		}
+		return utils.HandleAPIError(ctx, err, utils.ErrorCategoryRead, "Group", d.Id())
+	}
+	v1Group, err := groupFromResponse(v1, groupID)
+	if err != nil {
+		return diag.Errorf("failed to read reference of group %d: %s", groupID, err)
+	}
+	// null when the group has none, which sets "".
+	reference, _ := v1Group["reference"].(string)
+	if err := d.Set("reference", reference); err != nil {
+		return diag.FromErr(err)
 	}
 
 	// An unassigned group reports policy_id as null and a cleared one reports
