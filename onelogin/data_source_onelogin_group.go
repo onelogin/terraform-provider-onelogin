@@ -75,26 +75,25 @@ func dataSourceOneLoginGroupRead(ctx context.Context, d *schema.ResourceData, m 
 //	{"status": {...}, "data": [{"id": 1, "name": "...", "reference": null}]}
 //
 // Looking for name at the top level of that wrapper found nothing, so the data
-// source returned an empty name for every group (#282). A bare group object is
-// still accepted, in case the SDK moves to api/2, which returns one.
+// source returned an empty name for every group (#282).
 //
 // The group has to be the one asked for and has to have a name. Anything else
-// is an error rather than an empty attribute a configuration might act on.
+// is an error rather than an empty attribute a configuration might act on. That
+// includes api/2's bare group object: it never carries reference, so accepting
+// it would trade an empty name for an empty reference.
 func groupFromResponse(resp interface{}, groupID int) (map[string]interface{}, error) {
 	body, ok := resp.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("unexpected response shape %T", resp)
 	}
 
-	group := body
-	if data, wrapped := body["data"]; wrapped {
-		items, ok := data.([]interface{})
-		if !ok || len(items) != 1 {
-			return nil, fmt.Errorf("expected one group in the response, got %v", data)
-		}
-		if group, ok = items[0].(map[string]interface{}); !ok {
-			return nil, fmt.Errorf("unexpected group shape %T", items[0])
-		}
+	items, ok := body["data"].([]interface{})
+	if !ok || len(items) != 1 {
+		return nil, fmt.Errorf("expected one group in the response's data, got %v", body["data"])
+	}
+	group, ok := items[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("unexpected group shape %T", items[0])
 	}
 
 	if id, ok := group["id"].(float64); !ok || int(id) != groupID {
