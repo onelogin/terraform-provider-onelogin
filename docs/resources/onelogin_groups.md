@@ -38,8 +38,8 @@ resource "onelogin_groups" "engineering" {
 
 * `name` - (Required) The name of the group.
 * `reference` - (Optional) A reference identifier for the group. Changes made outside
-  Terraform show up in the next plan. Removing the argument leaves the group's current
-  reference in place, and Terraform stops managing it.
+  Terraform show up in the next plan. Removing the argument, or setting it to `""`, leaves
+  the group's current reference in place, and Terraform stops managing it.
 * `policy_id` - (Optional, Number) ID of the user policy applied to this group's members.
 
   Only user policies can be assigned. An app policy is refused with
